@@ -82,7 +82,7 @@ const navItems: NavItemWithSub[] = [
     name: "Pedagógico", 
     href: "/pedagogico",
     subMenu: [
-      { name: "Cadastro de Cursos", href: "/pedagogico" },
+      { name: "Cadastro de Cursos", href: "/pedagogico/cursos" },
       { name: "Disciplinas", href: "/pedagogico/disciplinas" },
       { name: "Turmas", href: "/pedagogico/turmas" },
       { name: "Conceitos", href: "/pedagogico/conceitos" },
@@ -127,7 +127,7 @@ export function Header() {
   return (
     <header className="flex bg-[#34495E] border-b border-[#e4e9f0] justify-between items-center">
       <div className="ml-5">
-        <h1 className="m-2 flex text-[#F6F6F6] text-2xl font-bold cursor-pointer hover:bg-[#253341a4] rounded-lg justify-center items-center w-50 h-10"><Link href="/">PROSIS</Link></h1>
+        <h1 className="ml-15 m-2 flex text-[#F6F6F6] text-2xl font-bold cursor-pointer hover:bg-[#253341a4] rounded-lg justify-center items-center w-50 h-10"><Link href="/">PROSIS</Link></h1>
         <p className="text-[#F6F6F6] text-xs m-2">
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
         </p>
