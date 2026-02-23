@@ -64,6 +64,28 @@ export interface AprendizFormData {
   TemProblemaSaude?: boolean;
   ProblemaSaudeQual?: string;
   Deficiencia?: string;
+  // Calendário
+  CalCurso?: string;
+  CalJornadaDiaria?: string;
+  CalDiasAprendizagemTeorica?: string;
+  CalDiasAprendizagemPratica?: string;
+  CalDataAdmissao?: string;
+  CalDataTerminoIntrodutorios?: string;
+  CalUnidadeIntrodutorio?: number;
+  CalDiaEncontroSemanal?: string;
+  CalDataInicioEncontroSemanal?: string;
+  CalDiaEncontroMensal?: string;
+  CalSemanaEncontroMensal?: string;
+  CalFolga?: string;
+  CalUnidadeFeriadoTeoria?: number;
+  CalUnidadeFeriadoPratica?: number;
+  CalEmpresa?: number;
+  CalPeriodoFeriasDe?: string;
+  CalPeriodoFeriasAte?: string;
+  CalPeriodoFerias2De?: string;
+  CalPeriodoFerias2Ate?: string;
+  CalPeriodoSuspensaoDe?: string;
+  CalPeriodoSuspensaoAte?: string;
 }
 
 export const ufOptions = [

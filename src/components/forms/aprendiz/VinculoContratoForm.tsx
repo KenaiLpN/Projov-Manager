@@ -61,8 +61,8 @@ export function VinculoContratoForm({
           >
             <option value="">Selecione...</option>
             {instituicoes.map((i) => (
-              <option key={i.IdParceiro} value={i.IdParceiro}>
-                {i.NomeFantasia}
+              <option key={i.IpaCodigo} value={i.IpaCodigo}>
+                {i.IpaDescricao}
               </option>
             ))}
           </select>
@@ -80,8 +80,8 @@ export function VinculoContratoForm({
           >
             <option value="">Selecione...</option>
             {orientadores.map((o) => (
-              <option key={o.IdOrientador} value={o.IdOrientador}>
-                {o.NomeOrientador}
+              <option key={o.id_usuario} value={o.id_usuario}>
+                {o.UsuNome}
               </option>
             ))}
           </select>

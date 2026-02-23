@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 import { UserMenu } from "../perfildropdown";
+import { NotificationsMenu } from "../notifications";
 import { getRoleLabel } from "@/utils/roles";
 
 interface NavItem {
@@ -16,7 +17,6 @@ interface NavItemWithSub extends NavItem {
 }
 
 const navItems: NavItemWithSub[] = [
-  
   {
     name: "Cadastros",
     href: "/cadastros/usuarios",
@@ -78,8 +78,8 @@ const navItems: NavItemWithSub[] = [
       { name: "Pesquisa Candidatos", href: "/aprendizes/candidatos" },
     ],
   },
-  { 
-    name: "Pedagógico", 
+  {
+    name: "Pedagógico",
     href: "/pedagogico",
     subMenu: [
       { name: "Cadastro de Cursos", href: "/pedagogico/cursos" },
@@ -88,7 +88,7 @@ const navItems: NavItemWithSub[] = [
       { name: "Conceitos", href: "/pedagogico/conceitos" },
       { name: "Áreas de atuação", href: "/pedagogico/areas" },
     ],
-   },
+  },
   { name: "Estatísticas", href: "/estatisticas" },
 ];
 
@@ -127,7 +127,9 @@ export function Header() {
   return (
     <header className="flex bg-[#34495E] border-b border-[#e4e9f0] justify-between items-center">
       <div className="ml-5">
-        <h1 className="ml-15 m-2 flex text-[#F6F6F6] text-2xl font-bold cursor-pointer hover:bg-[#253341a4] rounded-lg justify-center items-center w-50 h-10"><Link href="/">PROSIS</Link></h1>
+        <h1 className="ml-15 m-2 flex text-[#F6F6F6] text-2xl font-bold cursor-pointer hover:bg-[#253341a4] rounded-lg justify-center items-center w-50 h-10">
+          <Link href="/">PROSIS</Link>
+        </h1>
         <p className="text-[#F6F6F6] text-xs m-2">
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
         </p>
@@ -187,7 +189,8 @@ export function Header() {
         })}
       </div>
 
-      <div className="flex items-center gap-4 pr-5">
+      <div className="flex items-center gap-6 pr-5">
+        <NotificationsMenu />
         <UserMenu nome={user.nome} role={getRoleLabel(user.role)} />
       </div>
     </header>

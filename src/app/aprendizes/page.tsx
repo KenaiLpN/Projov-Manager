@@ -156,6 +156,9 @@ export default function Aprendizes() {
                 <th className="p-4 font-bold text-gray-700 uppercase text-xs tracking-wider">
                   Status
                 </th>
+                <th className="p-4 font-bold text-gray-700 uppercase text-xs tracking-wider">
+                  Calendário
+                </th>
                 <th className="p-4 font-bold text-gray-700 uppercase text-xs tracking-wider text-center">
                   Ações
                 </th>
@@ -203,7 +206,17 @@ export default function Aprendizes() {
                       >
                         {a.StatusJovem}
                       </span>
+
+
+
                     </td>
+                       <td className=" text-gray-600">
+                      <button className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-sm" onClick={() => router.push(`/aprendizes/calendario?id=${a.IdAluno}`)}>Calendário</button>
+                    </td>
+
+
+
+
                     <td className="p-4 text-center">
                       <button
                         onClick={() =>

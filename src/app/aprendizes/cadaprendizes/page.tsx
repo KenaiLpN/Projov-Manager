@@ -9,8 +9,19 @@ import { EscolaridadeTurmasForm } from "@/components/forms/aprendiz/Escolaridade
 import { DocumentacaoForm } from "@/components/forms/aprendiz/DocumentacaoForm";
 import { EnderecoContatoForm } from "@/components/forms/aprendiz/EnderecoContatoForm";
 import { SaudeDeficienciaForm } from "@/components/forms/aprendiz/SaudeDeficienciaForm";
+import { CalendarioForm } from "@/components/forms/aprendiz/CalendarioForm";
 import { AprendizFormData } from "@/components/forms/aprendiz/types";
-import { ArrowLeft, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  User,
+  Briefcase,
+  GraduationCap,
+  FileText,
+  MapPin,
+  HeartPulse,
+  CalendarDays,
+} from "lucide-react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
 
@@ -23,6 +34,7 @@ function CadastroForm() {
   const [instituicoes, setInstituicoes] = useState<any[]>([]);
   const [escolas, setEscolas] = useState<any[]>([]);
   const [orientadores, setOrientadores] = useState<any[]>([]);
+  const [cursos, setCursos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<AprendizFormData>({
@@ -90,7 +102,45 @@ function CadastroForm() {
     TemProblemaSaude: false,
     ProblemaSaudeQual: "",
     Deficiencia: "",
+    // Calendário
+    CalCurso: "",
+    CalJornadaDiaria: "",
+    CalDiasAprendizagemTeorica: "",
+    CalDiasAprendizagemPratica: "",
+    CalDataAdmissao: "",
+    CalDataTerminoIntrodutorios: "",
+    CalUnidadeIntrodutorio: undefined,
+    CalDiaEncontroSemanal: "",
+    CalDataInicioEncontroSemanal: "",
+    CalDiaEncontroMensal: "",
+    CalSemanaEncontroMensal: "",
+    CalFolga: "",
+    CalUnidadeFeriadoTeoria: undefined,
+    CalUnidadeFeriadoPratica: undefined,
+    CalEmpresa: undefined,
+    CalPeriodoFeriasDe: "",
+    CalPeriodoFeriasAte: "",
+    CalPeriodoFerias2De: "",
+    CalPeriodoFerias2Ate: "",
+    CalPeriodoSuspensaoDe: "",
+    CalPeriodoSuspensaoAte: "",
   });
+
+  const tabs = [
+    { id: "jovem", label: "Jovem", icon: <User size={18} /> },
+    { id: "trabalho", label: "Trabalho", icon: <Briefcase size={18} /> },
+    {
+      id: "escolaridade",
+      label: "Escolaridade",
+      icon: <GraduationCap size={18} />,
+    },
+    { id: "documentacao", label: "Documentação", icon: <FileText size={18} /> },
+    { id: "endereco", label: "Endereço", icon: <MapPin size={18} /> },
+    { id: "saude", label: "Saúde", icon: <HeartPulse size={18} /> },
+    { id: "calendario", label: "Calendário", icon: <CalendarDays size={18} /> },
+  ];
+
+  const [activeTab, setActiveTab] = useState("jovem");
 
   useEffect(() => {
     loadSelectData();
@@ -101,17 +151,19 @@ function CadastroForm() {
 
   const loadSelectData = async () => {
     try {
-      const [resUnidades, resParceiros, resEscolas, resOrientadores] =
+      const [resUnidades, resParceiros, resEscolas, resUsuarios, resCursos] =
         await Promise.all([
-          api.get("/unidade"),
-          api.get("/instituicoes-parceiras"),
-          api.get("/instituicao"),
-          api.get("/orientador"),
+          api.get("/unidade?limit=1000"),
+          api.get("/instituicoes-parceiras?limit=1000"),
+          api.get("/instituicao?limit=1000"),
+          api.get("/users?limit=1000"),
+          api.get("/cursos?limit=1000"),
         ]);
       setUnidades(resUnidades.data.data || []);
       setInstituicoes(resParceiros.data.data || []);
       setEscolas(resEscolas.data.data || []);
-      setOrientadores(resOrientadores.data.data || []);
+      setOrientadores(resUsuarios.data.data || []);
+      setCursos(resCursos.data.data || []);
     } catch (err) {
       console.error("Erro ao carregar dados auxiliares", err);
     }
@@ -164,6 +216,15 @@ function CadastroForm() {
         "DataInicioFerias",
         "DataTerminoFerias",
         "RG_DataEmissao",
+        "CalDataAdmissao",
+        "CalDataTerminoIntrodutorios",
+        "CalDataInicioEncontroSemanal",
+        "CalPeriodoFeriasDe",
+        "CalPeriodoFeriasAte",
+        "CalPeriodoFerias2De",
+        "CalPeriodoFerias2Ate",
+        "CalPeriodoSuspensaoDe",
+        "CalPeriodoSuspensaoAte",
       ];
 
       dateFields.forEach((field) => {
@@ -219,9 +280,13 @@ function CadastroForm() {
 
     setLoading(true);
     try {
-      // Limpar dados antes de enviar
-      const dataToSend = { ...formData };
-      delete dataToSend.IdAluno; // O ID já vai na URL do PUT
+      // Limpar dados antes de enviar: remove campos do calendário que não existem no banco
+      const dataToSend: any = {};
+      Object.keys(formData).forEach((key) => {
+        if (!key.startsWith("Cal") && key !== "IdAluno") {
+          dataToSend[key] = (formData as any)[key];
+        }
+      });
 
       if (editingId) {
         await api.put(`/aprendiz/${editingId}`, dataToSend);
@@ -318,45 +383,122 @@ function CadastroForm() {
           </div>
         </header>
 
-        <div className="p-8">
-          <div className="w-full space-y-10 pb-20">
-            {/* 1. DADOS PESSOAIS */}
-            <DadosPessoaisForm
-              formData={formData}
-              handleChange={handleChange}
-            />
+        <div className="p-8 max-w-7xl mx-auto w-full">
+          {/* Tabs Navigation */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8 p-1 flex gap-1 overflow-x-auto no-scrollbar">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "bg-[#133c86] text-white shadow-md"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-[#133c86]"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-            {/* 2. VÍNCULO E CONTRATO */}
-            <VinculoContratoForm
-              formData={formData}
-              handleChange={handleChange}
-              unidades={unidades}
-              instituicoes={instituicoes}
-              orientadores={orientadores}
-            />
+          <div className="w-full pb-20">
+            {activeTab === "jovem" && (
+              <DadosPessoaisForm
+                formData={formData}
+                handleChange={handleChange}
+              />
+            )}
+            {activeTab === "trabalho" && (
+              <VinculoContratoForm
+                formData={formData}
+                handleChange={handleChange}
+                unidades={unidades}
+                instituicoes={instituicoes}
+                orientadores={orientadores}
+              />
+            )}
+            {activeTab === "escolaridade" && (
+              <EscolaridadeTurmasForm
+                formData={formData}
+                handleChange={handleChange}
+                escolas={escolas}
+              />
+            )}
+            {activeTab === "documentacao" && (
+              <DocumentacaoForm
+                formData={formData}
+                handleChange={handleChange}
+              />
+            )}
+            {activeTab === "endereco" && (
+              <EnderecoContatoForm
+                formData={formData}
+                handleChange={handleChange}
+                buscaCEP={buscaCEP}
+              />
+            )}
+            {activeTab === "saude" && (
+              <SaudeDeficienciaForm
+                formData={formData}
+                handleChange={handleChange}
+              />
+            )}
+            {activeTab === "calendario" && (
+              <CalendarioForm
+                formData={formData}
+                handleChange={handleChange}
+                unidades={unidades}
+                instituicoes={instituicoes}
+                cursos={cursos}
+              />
+            )}
 
-            {/* 3. ESCOLARIDADE E TURMAS */}
-            <EscolaridadeTurmasForm
-              formData={formData}
-              handleChange={handleChange}
-              escolas={escolas}
-            />
+            {/* Navigation Buttons */}
+            <div className="mt-10 flex justify-between items-center border-t border-gray-100 pt-8">
+              <button
+                disabled={activeTab === "jovem"}
+                onClick={() => {
+                  const currentIndex = tabs.findIndex(
+                    (t) => t.id === activeTab,
+                  );
+                  if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1].id);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="flex items-center gap-2 px-6 py-2 rounded-lg border border-gray-300 text-gray-600 font-medium hover:bg-gray-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ArrowLeft size={18} />
+                Anterior
+              </button>
 
-            {/* 4. DOCUMENTAÇÃO */}
-            <DocumentacaoForm formData={formData} handleChange={handleChange} />
-
-            {/* 5. ENDEREÇO E CONTATO */}
-            <EnderecoContatoForm
-              formData={formData}
-              handleChange={handleChange}
-              buscaCEP={buscaCEP}
-            />
-
-            {/* 6. INFORMAÇÕES DE SAÚDE */}
-            <SaudeDeficienciaForm
-              formData={formData}
-              handleChange={handleChange}
-            />
+              {activeTab !== "calendario" ? (
+                <button
+                  onClick={() => {
+                    const currentIndex = tabs.findIndex(
+                      (t) => t.id === activeTab,
+                    );
+                    if (currentIndex < tabs.length - 1)
+                      setActiveTab(tabs[currentIndex + 1].id);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="flex items-center gap-2 px-6 py-2 rounded-lg bg-[#133c86] text-white font-medium hover:bg-[#0f2e6b] transition-all"
+                >
+                  Próximo
+                  <div className="rotate-180">
+                    <ArrowLeft size={18} />
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition-all shadow-lg disabled:opacity-50"
+                >
+                  <Save size={18} />
+                  {editingId ? "Finalizar Atualização" : "Finalizar Cadastro"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </main>

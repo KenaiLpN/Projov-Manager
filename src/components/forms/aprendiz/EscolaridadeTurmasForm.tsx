@@ -75,8 +75,8 @@ export function EscolaridadeTurmasForm({
           >
             <option value="">Selecione...</option>
             {escolas.map((e) => (
-              <option key={e.id_instituicao} value={e.id_instituicao}>
-                {e.nome_instituicao}
+              <option key={e.EscCodigo} value={e.EscCodigo}>
+                {e.EscNome}
               </option>
             ))}
           </select>
