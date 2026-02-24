@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AprendizSidebar } from "@/components/aprendizsidebar";
 import api from "@/services/api";
 
@@ -30,6 +30,9 @@ interface AprendizFormData {
 
 export default function Aprendizes() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter") || "";
+
   const [aprendizes, setAprendizes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -38,14 +41,18 @@ export default function Aprendizes() {
 
   // Carregar dados iniciais
   useEffect(() => {
-    fetchAprendizes(page);
-  }, [page]);
+    fetchAprendizes(page, search, filter);
+  }, [page, filter]);
 
-  const fetchAprendizes = async (p: number, s: string = search) => {
+  const fetchAprendizes = async (
+    p: number,
+    s: string = search,
+    f: string = filter,
+  ) => {
     setLoading(true);
     try {
       const response = await api.get(
-        `/aprendiz?page=${p}&limit=10${s ? `&search=${s}` : ""}`,
+        `/aprendiz?page=${p}&limit=10${s ? `&search=${s}` : ""}${f ? `&filter=${f}` : ""}`,
       );
       setAprendizes(response.data.data);
       setTotalPages(response.data.meta.totalPages);
@@ -137,6 +144,26 @@ export default function Aprendizes() {
               Pesquisar
             </button>
           </div>
+          {filter && (
+            <div className="mr-4 flex items-center gap-2">
+              <span className="text-xs font-bold text-[#133c86] uppercase">
+                Filtro Ativo:
+              </span>
+              <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center gap-2">
+                {filter === "working"
+                  ? "Trabalhando"
+                  : filter === "available"
+                    ? "Disponíveis"
+                    : "Férias/Licença"}
+                <button
+                  onClick={() => router.push("/aprendizes")}
+                  className="hover:text-blue-200"
+                >
+                  ×
+                </button>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Tabela Modernizada */}
@@ -206,16 +233,17 @@ export default function Aprendizes() {
                       >
                         {a.StatusJovem}
                       </span>
-
-
-
                     </td>
-                       <td className=" text-gray-600">
-                      <button className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-sm" onClick={() => router.push(`/aprendizes/calendario?id=${a.IdAluno}`)}>Calendário</button>
+                    <td className=" text-gray-600">
+                      <button
+                        className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-sm"
+                        onClick={() =>
+                          router.push(`/aprendizes/calendario?id=${a.IdAluno}`)
+                        }
+                      >
+                        Calendário
+                      </button>
                     </td>
-
-
-
 
                     <td className="p-4 text-center">
                       <button
