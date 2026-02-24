@@ -48,8 +48,8 @@ export function CalendarioForm({
 
     const empresaNome =
       instituicoes.find(
-        (i: any) => String(i.IdParceiro) === String(formData.CalEmpresa),
-      )?.NomeFantasia || "";
+        (i: any) => String(i.IpaCodigo) === String(formData.CalEmpresa),
+      )?.IpaDescricao || "";
 
     const cursoNome =
       cursos.find((c: any) => String(c.CurCodigo) === String(formData.CalCurso))
@@ -362,8 +362,8 @@ export function CalendarioForm({
               >
                 <option value="">Selecione...</option>
                 {instituicoes.map((i: any) => (
-                  <option key={i.IdParceiro} value={i.IdParceiro}>
-                    {i.NomeFantasia}
+                  <option key={i.IpaCodigo} value={i.IpaCodigo}>
+                    {i.IpaDescricao}
                   </option>
                 ))}
               </select>

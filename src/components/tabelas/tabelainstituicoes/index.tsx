@@ -2,24 +2,18 @@ import React from "react";
 
 // Defina a interface aqui ou importe de @/types se preferir centralizar
 export interface Instituicao {
-  id_instituicao: number;
-  nome_instituicao: string;
-  email: string;
-  cnpj?: string;
-  endereco?: string;
-  numero?: string;
-  bairro?: string;
-  cidade?: string;
-  estado?: string;
-  chk_ativo?: boolean;
-  // Outros campos opcionais para edição...
-  telefone?: string;
-  cep?: string;
-  complemento?: string;
-  responsavel?: string;
-  role_responsavel?: string;
-  telefone_responsavel?: string;
-  email_responsavel?: string;
+  EscCodigo: number;
+  EscNome: string | null;
+  EscEmail: string | null;
+  EscTelefone: string | null;
+  EscCEP: string | null;
+  EscEndereco: string | null;
+  EscNumeroEndereco: string | null;
+  EscBairro: string | null;
+  EscCidade: string | null;
+  EscEstado: string | null;
+  EscComplemento: string | null;
+  EscDiretor: string | null;
 }
 
 interface TabelaInstituicoesProps {
@@ -73,16 +67,13 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
               Instituição
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              CNPJ
+              Diretor
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Email
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Cidade/UF
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Status
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tr-lg">
               Ações
@@ -91,33 +82,21 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {instituicoes.map((inst) => (
-            <tr key={inst.id_instituicao} className="hover:bg-gray-50">
+            <tr key={inst.EscCodigo} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {inst.id_instituicao}
+                {inst.EscCodigo}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {inst.nome_instituicao}
+                {inst.EscNome || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {inst.cnpj || "-"}
+                {inst.EscDiretor || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {inst.email}
+                {inst.EscEmail}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {inst.cidade} / {inst.estado}
-              </td>
-
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    inst.chk_ativo
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {inst.chk_ativo ? "Ativo" : "Inativo"}
-                </span>
+                {inst.EscCidade} / {inst.EscEstado}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -127,7 +106,7 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(inst.id_instituicao)}
+                  onClick={() => onDelete(inst.EscCodigo)}
                   className="text-red-600 hover:text-red-900 cursor-pointer"
                 >
                   Excluir

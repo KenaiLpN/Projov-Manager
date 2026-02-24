@@ -13,23 +13,17 @@ import Pagination from "@/components/pagination";
 
 // Interface do Form
 interface InstituicaoFormData {
-  nome_instituicao: string;
-  email: string;
-  senha?: string; // Campo extra para criação
-  cnpj: string;
-  telefone: string;
-  responsavel: string;
-  telefone_responsavel: string;
-  email_responsavel: string;
-  role_responsavel: string;
-  cep: string;
-  endereco: string;
-  numero: string;
-  complemento: string;
-  bairro: string;
-  cidade: string;
-  estado: string;
-  chk_ativo: boolean;
+  EscNome: string;
+  EscEmail: string;
+  EscTelefone: string;
+  EscCEP: string;
+  EscEndereco: string;
+  EscNumeroEndereco: string;
+  EscBairro: string;
+  EscCidade: string;
+  EscEstado: string;
+  EscComplemento: string;
+  EscDiretor: string;
 }
 
 export default function Instituicoes() {
@@ -48,23 +42,17 @@ export default function Instituicoes() {
 
   // Estado inicial do formulário
   const initialFormState: InstituicaoFormData = {
-    nome_instituicao: "",
-    email: "",
-    senha: "",
-    cnpj: "",
-    telefone: "",
-    responsavel: "",
-    telefone_responsavel: "",
-    email_responsavel: "",
-    role_responsavel: "",
-    cep: "",
-    endereco: "",
-    numero: "",
-    complemento: "",
-    bairro: "",
-    cidade: "",
-    estado: "",
-    chk_ativo: true,
+    EscNome: "",
+    EscEmail: "",
+    EscTelefone: "",
+    EscCEP: "",
+    EscEndereco: "",
+    EscNumeroEndereco: "",
+    EscBairro: "",
+    EscCidade: "",
+    EscEstado: "",
+    EscComplemento: "",
+    EscDiretor: "",
   };
 
   const [formData, setFormData] =
@@ -114,10 +102,10 @@ export default function Instituicoes() {
         if (!data.erro) {
           setFormData((prev) => ({
             ...prev,
-            endereco: data.logradouro,
-            bairro: data.bairro,
-            cidade: data.localidade,
-            estado: data.uf,
+            EscEndereco: data.logradouro,
+            EscBairro: data.bairro,
+            EscCidade: data.localidade,
+            EscEstado: data.uf,
           }));
         }
       } catch (err) {
@@ -133,25 +121,19 @@ export default function Instituicoes() {
   };
 
   const handleEdit = (item: Instituicao) => {
-    setEditingId(item.id_instituicao);
+    setEditingId(item.EscCodigo);
     setFormData({
-      nome_instituicao: item.nome_instituicao,
-      email: item.email,
-      senha: "", // Senha não vem do back e não editamos aqui
-      cnpj: item.cnpj || "",
-      telefone: item.telefone || "",
-      responsavel: item.responsavel || "",
-      telefone_responsavel: item.telefone_responsavel || "",
-      email_responsavel: item.email_responsavel || "",
-      role_responsavel: item.role_responsavel || "",
-      cep: item.cep || "",
-      endereco: item.endereco || "",
-      numero: item.numero || "",
-      complemento: item.complemento || "",
-      bairro: item.bairro || "",
-      cidade: item.cidade || "",
-      estado: item.estado || "",
-      chk_ativo: item.chk_ativo ?? true,
+      EscNome: item.EscNome || "",
+      EscEmail: item.EscEmail || "",
+      EscTelefone: item.EscTelefone || "",
+      EscCEP: item.EscCEP || "",
+      EscEndereco: item.EscEndereco || "",
+      EscNumeroEndereco: item.EscNumeroEndereco || "",
+      EscBairro: item.EscBairro || "",
+      EscCidade: item.EscCidade || "",
+      EscEstado: item.EscEstado || "",
+      EscComplemento: item.EscComplemento || "",
+      EscDiretor: item.EscDiretor || "",
     });
     setIsModalOpen(true);
   };
@@ -247,32 +229,13 @@ export default function Instituicoes() {
     setSaving(true);
 
     try {
-      // Clona o formData para manipular o payload
-      const payload: any = { ...formData };
-
-      // Se for edição, removemos a senha (o endpoint de update não aceita)
-      if (editingId) {
-        delete payload.senha;
-      }
-
-      // Limpeza de strings vazias (exceto booleanos)
-      Object.keys(payload).forEach((key) => {
-        const value = payload[key];
-        if (typeof value === "string" && value.trim() === "") {
-          // Opcional: ou remove a chave ou manda null, dependendo do back
-          // No seu caso o back aceita string vazia ou trata.
-          // Vamos manter a string se não for nula, mas se quiser limpar:
-          // delete payload[key];
-        }
-      });
-
       if (editingId) {
         // --- PUT ---
-        await api.put(`/instituicao/${editingId}`, payload);
+        await api.put(`/instituicao/${editingId}`, formData);
         toast.success("Instituição atualizada com sucesso!");
       } else {
         // --- POST ---
-        await api.post("/instituicao", payload);
+        await api.post("/instituicao", formData);
         toast.success("Instituição cadastrada com sucesso!");
       }
 
@@ -372,14 +335,14 @@ export default function Instituicoes() {
           </h2>
 
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Linha 1: Nome e CNPJ */}
+            {/* Linha 1: Nome e Diretor */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome da Instituição <span className="text-red-500">*</span>
               </label>
               <input
-                name="nome_instituicao"
-                value={formData.nome_instituicao}
+                name="EscNome"
+                value={formData.EscNome}
                 onChange={handleChange}
                 type="text"
                 className="p-2 w-full rounded border border-gray-300"
@@ -388,127 +351,55 @@ export default function Instituicoes() {
 
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                CNPJ
+                Diretor / Responsável
               </label>
               <input
-                name="cnpj"
-                value={formData.cnpj}
+                name="EscDiretor"
+                value={formData.EscDiretor}
                 onChange={handleChange}
                 type="text"
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
 
-            {/* Linha 2: Email e Senha */}
+            {/* Linha 2: Email e Telefone */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Email (Login) <span className="text-red-500">*</span>
+                Email <span className="text-red-500">*</span>
               </label>
               <input
-                name="email"
-                value={formData.email}
+                name="EscEmail"
+                value={formData.EscEmail}
                 onChange={handleChange}
                 type="email"
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
 
-            {/* Senha só aparece se NÃO estiver editando */}
-            {!editingId && (
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-600">
-                  Senha <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="senha"
-                  value={formData.senha}
-                  onChange={handleChange}
-                  type="password"
-                  placeholder="Mínimo 6 caracteres"
-                  className="p-2 w-full rounded border border-gray-300"
-                />
-              </div>
-            )}
-
-            {/* Linha 3: Telefone e Responsável */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Telefone da Instituição
               </label>
               <input
-                name="telefone"
-                value={formData.telefone}
+                name="EscTelefone"
+                value={formData.EscTelefone}
                 onChange={handleChange}
                 type="text"
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Nome do Responsável
-              </label>
-              <input
-                name="responsavel"
-                value={formData.responsavel}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
+            <hr className="md:col-span-2 my-2" />
+            <p className="md:col-span-2 text-sm font-bold text-gray-500">
+              Endereço
+            </p>
 
-            {/* Linha 4: Dados Responsável */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Telefone Responsável
-              </label>
-              <input
-                name="telefone_responsavel"
-                value={formData.telefone_responsavel}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Email Responsável
-              </label>
-              <input
-                name="email_responsavel"
-                value={formData.email_responsavel}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            {/* Linha 5: Cargo e CEP */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Cargo do Responsável
-              </label>
-              <select
-                name="role_responsavel"
-                value={formData.role_responsavel}
-                onChange={handleChange}
-                className="p-2 w-full rounded border border-gray-300 cursor-pointer"
-              >
-                <option value="">Selecione...</option>
-                {roles.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+            {/* Linha 3: CEP e Estado */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">CEP</label>
               <input
-                name="cep"
-                value={formData.cep}
+                name="EscCEP"
+                value={formData.EscCEP}
                 onChange={handleChange}
                 onBlur={(e) => buscaCEP(e.target.value)}
                 type="text"
@@ -516,68 +407,13 @@ export default function Instituicoes() {
               />
             </div>
 
-            {/* Linha 6: Endereço */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Endereço
-              </label>
-              <input
-                name="endereco"
-                value={formData.endereco}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Número
-              </label>
-              <input
-                name="numero"
-                value={formData.numero}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            {/* Linha 7: Bairro e Cidade */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Bairro
-              </label>
-              <input
-                name="bairro"
-                value={formData.bairro}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Cidade
-              </label>
-              <input
-                name="cidade"
-                value={formData.cidade}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            {/* Linha 8: Estado e Complemento */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Estado
               </label>
               <select
-                name="estado"
-                value={formData.estado}
+                name="EscEstado"
+                value={formData.EscEstado}
                 onChange={handleChange}
                 className="p-2 w-full rounded border border-gray-300 cursor-pointer"
               >
@@ -590,13 +426,68 @@ export default function Instituicoes() {
               </select>
             </div>
 
+            {/* Linha 4: Cidade e bairro */}
             <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Cidade
+              </label>
+              <input
+                name="EscCidade"
+                value={formData.EscCidade}
+                onChange={handleChange}
+                type="text"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Bairro
+              </label>
+              <input
+                name="EscBairro"
+                value={formData.EscBairro}
+                onChange={handleChange}
+                type="text"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            {/* Linha 5: Endereço e Número */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Endereço
+              </label>
+              <input
+                name="EscEndereco"
+                value={formData.EscEndereco}
+                onChange={handleChange}
+                type="text"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Número
+              </label>
+              <input
+                name="EscNumeroEndereco"
+                value={formData.EscNumeroEndereco}
+                onChange={handleChange}
+                type="text"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            {/* Linha 6: Complemento */}
+            <div className="flex flex-col gap-1 md:col-span-2">
               <label className="text-sm font-semibold text-gray-600">
                 Complemento
               </label>
               <input
-                name="complemento"
-                value={formData.complemento}
+                name="EscComplemento"
+                value={formData.EscComplemento}
                 onChange={handleChange}
                 type="text"
                 className="p-2 w-full rounded border border-gray-300"

@@ -12,14 +12,18 @@ import TabelaInstituicoesParceiras, {
 import Pagination from "@/components/pagination";
 
 interface ParceiroFormData {
-  NomeFantasia: string;
-  RazaoSocial: string;
-  cep: string; // Auxiliar para busca de CEP no formulário (não salva no banco pois não tem coluna)
-  Logradouro: string;
-  Numero: string;
-  Bairro: string;
-  Cidade: string;
-  Estado: string;
+  IpaDescricao: string;
+  IpaNomeContato: string;
+  IpaCEP: string;
+  IpaEndereco: string;
+  IpaNumeroEndereco: string;
+  IpaBairro: string;
+  IpaCidade: string;
+  IpaEstado: string;
+  IpaComplemento: string;
+  IpaEmail: string;
+  IpaTelefone: string;
+  IpaCelular: string;
 }
 
 export default function InstituicoesParceirasPage() {
@@ -38,14 +42,18 @@ export default function InstituicoesParceirasPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState<ParceiroFormData>({
-    NomeFantasia: "",
-    RazaoSocial: "",
-    cep: "",
-    Logradouro: "",
-    Numero: "",
-    Bairro: "",
-    Cidade: "",
-    Estado: "",
+    IpaDescricao: "",
+    IpaNomeContato: "",
+    IpaCEP: "",
+    IpaEndereco: "",
+    IpaNumeroEndereco: "",
+    IpaBairro: "",
+    IpaCidade: "",
+    IpaEstado: "",
+    IpaComplemento: "",
+    IpaEmail: "",
+    IpaTelefone: "",
+    IpaCelular: "",
   });
 
   // Função de busca de CEP para facilitar o cadastro
@@ -60,10 +68,10 @@ export default function InstituicoesParceirasPage() {
         if (!data.erro) {
           setFormData((prev) => ({
             ...prev,
-            Logradouro: data.logradouro,
-            Bairro: data.bairro,
-            Cidade: data.localidade,
-            Estado: data.uf,
+            IpaEndereco: data.logradouro,
+            IpaBairro: data.bairro,
+            IpaCidade: data.localidade,
+            IpaEstado: data.uf,
           }));
         }
       } catch (err) {
@@ -75,29 +83,37 @@ export default function InstituicoesParceirasPage() {
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
-      NomeFantasia: "",
-      RazaoSocial: "",
-      cep: "",
-      Logradouro: "",
-      Numero: "",
-      Bairro: "",
-      Cidade: "",
-      Estado: "",
+      IpaDescricao: "",
+      IpaNomeContato: "",
+      IpaCEP: "",
+      IpaEndereco: "",
+      IpaNumeroEndereco: "",
+      IpaBairro: "",
+      IpaCidade: "",
+      IpaEstado: "",
+      IpaComplemento: "",
+      IpaEmail: "",
+      IpaTelefone: "",
+      IpaCelular: "",
     });
     setIsModalOpen(true);
   };
 
   const handleEdit = (item: InstituicaoParceira) => {
-    setEditingId(item.IdParceiro);
+    setEditingId(item.IpaCodigo);
     setFormData({
-      NomeFantasia: item.NomeFantasia || "",
-      RazaoSocial: item.RazaoSocial || "",
-      cep: "", // O CEP não vem do banco, inicia vazio
-      Logradouro: item.Logradouro || "",
-      Numero: item.Numero || "",
-      Bairro: item.Bairro || "",
-      Cidade: item.Cidade || "",
-      Estado: item.Estado || "",
+      IpaDescricao: item.IpaDescricao || "",
+      IpaNomeContato: item.IpaNomeContato || "",
+      IpaCEP: item.IpaCEP || "",
+      IpaEndereco: item.IpaEndereco || "",
+      IpaNumeroEndereco: item.IpaNumeroEndereco || "",
+      IpaBairro: item.IpaBairro || "",
+      IpaCidade: item.IpaCidade || "",
+      IpaEstado: item.IpaEstado || "",
+      IpaComplemento: item.IpaComplemento || "",
+      IpaEmail: item.IpaEmail || "",
+      IpaTelefone: item.IpaTelefone || "",
+      IpaCelular: item.IpaCelular || "",
     });
     setIsModalOpen(true);
   };
@@ -182,21 +198,26 @@ export default function InstituicoesParceirasPage() {
   const handleSalvar = async () => {
     setSaving(true);
     try {
-      if (!formData.NomeFantasia) {
-        toast.error("O Nome Fantasia é obrigatório.");
+      if (!formData.IpaDescricao) {
+        toast.error("A descrição é obrigatória.");
         setSaving(false);
         return;
       }
 
-      // Monta o payload removendo campos auxiliares como 'cep' que não existem no banco
+      // O payload deve corresponder ao que o Zod Schema espera no backend
       const payload = {
-        NomeFantasia: formData.NomeFantasia,
-        RazaoSocial: formData.RazaoSocial,
-        Logradouro: formData.Logradouro,
-        Numero: formData.Numero,
-        Bairro: formData.Bairro,
-        Cidade: formData.Cidade,
-        Estado: formData.Estado,
+        IpaDescricao: formData.IpaDescricao,
+        IpaEndereco: formData.IpaEndereco,
+        IpaNumeroEndereco: formData.IpaNumeroEndereco,
+        IpaComplemento: formData.IpaComplemento,
+        IpaBairro: formData.IpaBairro,
+        IpaCidade: formData.IpaCidade,
+        IpaEstado: formData.IpaEstado,
+        IpaCEP: formData.IpaCEP,
+        IpaEmail: formData.IpaEmail,
+        IpaTelefone: formData.IpaTelefone,
+        IpaCelular: formData.IpaCelular,
+        IpaNomeContato: formData.IpaNomeContato,
       };
 
       if (editingId) {
@@ -268,7 +289,7 @@ export default function InstituicoesParceirasPage() {
             onClick={openModalNew}
             className="px-6 py-3 bg-[#34495E] text-white font-semibold rounded-lg shadow-md hover:bg-[#253341a4] mr-4 cursor-pointer"
           >
-            Novo Parceiro
+            Nova Instituição Parceira
           </button>
         </div>
 
@@ -300,32 +321,20 @@ export default function InstituicoesParceirasPage() {
           <div className="p-4 grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Nome Fantasia <span className="text-red-500">*</span>
+                Nome do Parceiro <span className="text-red-500">*</span>
               </label>
               <input
-                name="NomeFantasia"
-                value={formData.NomeFantasia}
+                name="IpaDescricao"
+                value={formData.IpaDescricao}
                 onChange={handleChange}
                 type="text"
-                maxLength={150}
+                maxLength={80}
                 placeholder="Nome da Instituição"
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Razão Social
-              </label>
-              <input
-                name="RazaoSocial"
-                value={formData.RazaoSocial}
-                onChange={handleChange}
-                type="text"
-                maxLength={250}
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
+          
 
             <hr className="my-2" />
             <p className="text-sm font-bold text-gray-500">Endereço</p>
@@ -336,8 +345,8 @@ export default function InstituicoesParceirasPage() {
                   CEP
                 </label>
                 <input
-                  name="cep"
-                  value={formData.cep}
+                  name="IpaCEP"
+                  value={formData.IpaCEP}
                   onChange={handleChange}
                   onBlur={(e) => buscaCEP(e.target.value)}
                   type="text"
@@ -351,8 +360,8 @@ export default function InstituicoesParceirasPage() {
                   Estado (UF)
                 </label>
                 <input
-                  name="Estado"
-                  value={formData.Estado}
+                  name="IpaEstado"
+                  value={formData.IpaEstado}
                   onChange={handleChange}
                   type="text"
                   maxLength={2}
@@ -366,11 +375,11 @@ export default function InstituicoesParceirasPage() {
                 Cidade
               </label>
               <input
-                name="Cidade"
-                value={formData.Cidade}
+                name="IpaCidade"
+                value={formData.IpaCidade}
                 onChange={handleChange}
                 type="text"
-                maxLength={100}
+                maxLength={30}
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
@@ -381,11 +390,11 @@ export default function InstituicoesParceirasPage() {
                   Logradouro
                 </label>
                 <input
-                  name="Logradouro"
-                  value={formData.Logradouro}
+                  name="IpaEndereco"
+                  value={formData.IpaEndereco}
                   onChange={handleChange}
                   type="text"
-                  maxLength={200}
+                  maxLength={100}
                   className="p-2 w-full rounded border border-gray-300"
                 />
               </div>
@@ -395,11 +404,11 @@ export default function InstituicoesParceirasPage() {
                   Número
                 </label>
                 <input
-                  name="Numero"
-                  value={formData.Numero}
+                  name="IpaNumeroEndereco"
+                  value={formData.IpaNumeroEndereco}
                   onChange={handleChange}
                   type="text"
-                  maxLength={20}
+                  maxLength={6}
                   className="p-2 w-full rounded border border-gray-300"
                 />
               </div>
@@ -410,13 +419,88 @@ export default function InstituicoesParceirasPage() {
                 Bairro
               </label>
               <input
-                name="Bairro"
-                value={formData.Bairro}
+                name="IpaBairro"
+                value={formData.IpaBairro}
                 onChange={handleChange}
                 type="text"
-                maxLength={100}
+                maxLength={30}
                 className="p-2 w-full rounded border border-gray-300"
               />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Complemento
+              </label>
+              <input
+                name="IpaComplemento"
+                value={formData.IpaComplemento}
+                onChange={handleChange}
+                type="text"
+                maxLength={20}
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            <hr className="my-2" />
+            <p className="text-sm font-bold text-gray-500">Contato</p>
+  <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Nome do Contato
+              </label>
+              <input
+                name="IpaNomeContato"
+                value={formData.IpaNomeContato}
+                onChange={handleChange}
+                type="text"
+                maxLength={50}
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                E-mail
+              </label>
+              <input
+                name="IpaEmail"
+                value={formData.IpaEmail}
+                onChange={handleChange}
+                type="email"
+                maxLength={80}
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-600">
+                  Telefone
+                </label>
+                <input
+                  name="IpaTelefone"
+                  value={formData.IpaTelefone}
+                  onChange={handleChange}
+                  type="text"
+                  maxLength={10}
+                  placeholder="(00) 0000-0000"
+                  className="p-2 w-full rounded border border-gray-300"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-600">
+                  Celular
+                </label>
+                <input
+                  name="IpaCelular"
+                  value={formData.IpaCelular}
+                  onChange={handleChange}
+                  type="text"
+                  maxLength={11}
+                  placeholder="(00) 00000-0000"
+                  className="p-2 w-full rounded border border-gray-300"
+                />
+              </div>
             </div>
           </div>
 

@@ -1,15 +1,20 @@
 import React from "react";
 
 export interface InstituicaoParceira {
-  IdParceiro: number;
-  NomeFantasia: string | null;
-  RazaoSocial: string | null;
-  Logradouro: string | null;
-  Numero: string | null;
-  Bairro: string | null;
-  Cidade: string | null;
-  Estado: string | null;
-  DataCadastro: string | null;
+  IpaCodigo: number;
+  IpaDescricao: string | null;
+  IpaEndereco: string | null;
+  IpaNumeroEndereco: string | null;
+  IpaComplemento: string | null;
+  IpaBairro: string | null;
+  IpaCidade: string | null;
+  IpaEstado: string | null;
+  IpaCEP: string | null;
+  IpaEmail: string | null;
+  IpaTelefone: string | null;
+  IpaCelular: string | null;
+  IpaNomeContato: string | null;
+  IpaDataCadastro: string | null;
 }
 
 interface TabelaProps {
@@ -28,11 +33,7 @@ const TabelaInstituicoesParceiras: React.FC<TabelaProps> = ({
   onDelete,
 }) => {
   if (loading) {
-    return (
-      <div className="text-center p-8 text-[#133c86]">
-        Carregando...
-      </div>
-    );
+    return <div className="text-center p-8 text-[#133c86]">Carregando...</div>;
   }
 
   if (error) {
@@ -78,21 +79,21 @@ const TabelaInstituicoesParceiras: React.FC<TabelaProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {dados.map((item) => (
-            <tr key={item.IdParceiro} className="hover:bg-gray-50">
+            <tr key={item.IpaCodigo} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.IdParceiro}
+                {item.IpaCodigo}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.NomeFantasia || "-"}
+                {item.IpaDescricao || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.RazaoSocial || "-"}
+                {item.IpaNomeContato || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.Cidade} / {item.Estado}
+                {item.IpaCidade} / {item.IpaEstado}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.Bairro || "-"}
+                {item.IpaBairro || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -102,7 +103,7 @@ const TabelaInstituicoesParceiras: React.FC<TabelaProps> = ({
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(item.IdParceiro)}
+                  onClick={() => onDelete(item.IpaCodigo)}
                   className="text-red-600 hover:text-red-900"
                 >
                   Excluir
