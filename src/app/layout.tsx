@@ -10,6 +10,11 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "react-hot-toast";
+import { PrimeReactProvider } from "primereact/api";
+
+// Estilos do PrimeReact
+import "primereact/resources/themes/lara-light-blue/theme.css";
+import "primereact/resources/primereact.min.css";
 
 export default function RootLayout({
   children,
@@ -19,16 +24,18 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body className={inter.className} suppressHydrationWarning={true}>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: "#133c86",
-              color: "#fff",
-            },
-          }}
-        />
-        <PrivateLayout>{children}</PrivateLayout>
+        <PrimeReactProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: "#133c86",
+                color: "#fff",
+              },
+            }}
+          />
+          <PrivateLayout>{children}</PrivateLayout>
+        </PrimeReactProvider>
       </body>
     </html>
   );
