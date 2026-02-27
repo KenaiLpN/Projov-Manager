@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(__dirname),
-
-  // output: 'export',
+  output: "export",
+  distDir: "build",
   images: {
     unoptimized: true,
   },

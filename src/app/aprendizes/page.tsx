@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AprendizSidebar } from "@/components/aprendizsidebar";
 import api from "@/services/api";
@@ -28,7 +28,7 @@ interface AprendizFormData {
   StatusJovem?: string;
 }
 
-export default function Aprendizes() {
+function AprendizesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter") || "";
@@ -286,5 +286,19 @@ export default function Aprendizes() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function Aprendizes() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          Carregando...
+        </div>
+      }
+    >
+      <AprendizesContent />
+    </Suspense>
   );
 }
