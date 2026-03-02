@@ -15,11 +15,11 @@ export function UserMenu({ nome, role }: UserMenuProps) {
   // Lógica para obter as iniciais (Ex: "João Silva" -> "JS")
   const getInitials = (fullName: string) => {
     if (!fullName) return "U";
-    const names = fullName.split(" ");
+    const names = fullName.trim().split(" ").filter(Boolean);
     if (names.length >= 2) {
       return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
     }
-    return names[0].slice(0, 2).toUpperCase();
+    return names[0][0].toUpperCase();
   };
 
   // Fecha o menu se clicar fora dele
@@ -86,10 +86,9 @@ export function UserMenu({ nome, role }: UserMenuProps) {
               Configurações
             </Link>
           </div>
-          
-            <BotaoSair />
-           
-          
+
+          <BotaoSair />
+
           <div className="border-t border-gray-100 py-1"></div>
         </div>
       )}
