@@ -12,12 +12,12 @@ import TabelaStatus, {
 import Pagination from "@/components/pagination";
 
 interface SteFormData {
-  SteDescricao: string;
+  Ste_Descricao: string;
 }
 
 export default function StatusEncaminhamentoPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [lista, setLista] = useState<StatusEncaminhamento[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -27,23 +27,23 @@ export default function StatusEncaminhamentoPage() {
   const [saving, setSaving] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState<SteFormData>({
-    SteDescricao: "",
+    Ste_Descricao: "",
   });
 
   const openModalNew = () => {
     setEditingId(null);
-    setFormData({ SteDescricao: "" });
+    setFormData({ Ste_Descricao: "" });
     setIsModalOpen(true);
   };
 
   const handleEdit = (item: StatusEncaminhamento) => {
-    setEditingId(item.SteCodigo);
+    setEditingId(item.Ste_Codigo);
     setFormData({
-      SteDescricao: item.SteDescricao,
+      Ste_Descricao: item.Ste_Descricao,
     });
     setIsModalOpen(true);
   };
@@ -103,7 +103,7 @@ export default function StatusEncaminhamentoPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
@@ -232,8 +232,8 @@ export default function StatusEncaminhamentoPage() {
                 Descrição do Status (Máx 50)
               </label>
               <input
-                name="SteDescricao"
-                value={formData.SteDescricao}
+                name="Ste_Descricao"
+                value={formData.Ste_Descricao}
                 onChange={handleChange}
                 type="text"
                 maxLength={50}

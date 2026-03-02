@@ -12,7 +12,7 @@ import TabelaProfissoes, {
 import Pagination from "@/components/pagination";
 
 interface ProFormData {
-  ProDescricao: string;
+  ProfDescricao: string;
 }
 
 export default function ProfissoesPage() {
@@ -31,7 +31,7 @@ export default function ProfissoesPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState<ProFormData>({
-    ProDescricao: "",
+    ProfDescricao: "",
   });
 
   async function fetchData(pagina: number, searchTerm: string = search) {
@@ -73,14 +73,14 @@ export default function ProfissoesPage() {
 
   const openModalNew = () => {
     setEditingId(null);
-    setFormData({ ProDescricao: "" });
+    setFormData({ ProfDescricao: "" });
     setIsModalOpen(true);
   };
 
   const handleEdit = (item: Profissao) => {
-    setEditingId(item.ProCodigo);
+    setEditingId(item.ProfCodigo);
     setFormData({
-      ProDescricao: item.ProDescricao,
+      ProfDescricao: item.ProfDescricao,
     });
     setIsModalOpen(true);
   };
@@ -236,8 +236,8 @@ export default function ProfissoesPage() {
                 Nome da Profissão (Máx 50)
               </label>
               <input
-                name="ProDescricao"
-                value={formData.ProDescricao}
+                name="ProfDescricao"
+                value={formData.ProfDescricao}
                 onChange={handleChange}
                 type="text"
                 maxLength={50}

@@ -12,7 +12,7 @@ import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
 
 interface RegFormData {
-  RegDescricao: string;
+  DescRegiao: string;
 }
 
 export default function RegioesPage() {
@@ -31,19 +31,19 @@ export default function RegioesPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState<RegFormData>({
-    RegDescricao: "",
+    DescRegiao: "",
   });
 
   const openModalNew = () => {
     setEditingId(null);
-    setFormData({ RegDescricao: "" });
+    setFormData({ DescRegiao: "" });
     setIsModalOpen(true);
   };
 
   const handleEdit = (item: CadastroRegiao) => {
-    setEditingId(item.RegCodigo);
+    setEditingId(item.CodRegiao);
     setFormData({
-      RegDescricao: item.RegDescricao,
+      DescRegiao: item.DescRegiao,
     });
     setIsModalOpen(true);
   };
@@ -232,8 +232,8 @@ export default function RegioesPage() {
                 Descrição da Região (Máx 50)
               </label>
               <input
-                name="RegDescricao"
-                value={formData.RegDescricao}
+                name="DescRegiao"
+                value={formData.DescRegiao}
                 onChange={handleChange}
                 type="text"
                 maxLength={50}

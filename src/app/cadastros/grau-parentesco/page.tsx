@@ -12,7 +12,7 @@ import TabelaGraus, {
 import Pagination from "@/components/pagination";
 
 interface ParFormData {
-  ParDescricao: string;
+  GpaDescricao: string;
 }
 
 export default function GrausParentescoPage() {
@@ -31,19 +31,19 @@ export default function GrausParentescoPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState<ParFormData>({
-    ParDescricao: "",
+    GpaDescricao: "",
   });
 
   const openModalNew = () => {
     setEditingId(null);
-    setFormData({ ParDescricao: "" });
+    setFormData({ GpaDescricao: "" });
     setIsModalOpen(true);
   };
 
   const handleEdit = (item: GrauParentesco) => {
-    setEditingId(item.ParCodigo);
+    setEditingId(item.GpaCodigo);
     setFormData({
-      ParDescricao: item.ParDescricao,
+      GpaDescricao: item.GpaDescricao,
     });
     setIsModalOpen(true);
   };
@@ -128,7 +128,7 @@ export default function GrausParentescoPage() {
   const handleSalvar = async () => {
     setSaving(true);
     try {
-      if (!formData.ParDescricao.trim()) {
+      if (!formData.GpaDescricao.trim()) {
         toast.error("A descrição é obrigatória.");
         setSaving(false);
         return;
@@ -238,8 +238,8 @@ export default function GrausParentescoPage() {
                 Descrição do Grau (Máx 50)
               </label>
               <input
-                name="ParDescricao"
-                value={formData.ParDescricao}
+                name="GpaDescricao"
+                value={formData.GpaDescricao}
                 onChange={handleChange}
                 type="text"
                 maxLength={50}

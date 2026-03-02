@@ -1,8 +1,8 @@
 import React from "react";
 
 export interface Profissao {
-  ProCodigo: number;
-  ProDescricao: string;
+  ProfCodigo: number;
+  ProfDescricao: string;
 }
 
 interface TabelaProfissoesProps {
@@ -62,12 +62,12 @@ const TabelaProfissoes: React.FC<TabelaProfissoesProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {dados.map((item) => (
-            <tr key={item.ProCodigo} className="hover:bg-gray-50">
+            <tr key={item.ProfCodigo} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.ProCodigo}
+                {item.ProfCodigo}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
-                {item.ProDescricao}
+                {item.ProfDescricao}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -77,7 +77,7 @@ const TabelaProfissoes: React.FC<TabelaProfissoesProps> = ({
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(item.ProCodigo)}
+                  onClick={() => onDelete(item.ProfCodigo)}
                   className="text-red-600 hover:text-red-900 cursor-pointer"
                 >
                   Excluir

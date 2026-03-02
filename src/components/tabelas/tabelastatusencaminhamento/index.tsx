@@ -1,8 +1,8 @@
 import React from "react";
 
 export interface StatusEncaminhamento {
-  SteCodigo: number;
-  SteDescricao: string;
+  Ste_Codigo: string;
+  Ste_Descricao: string;
 }
 
 interface TabelaProps {
@@ -10,7 +10,7 @@ interface TabelaProps {
   loading: boolean;
   error: string | null;
   onEdit: (item: StatusEncaminhamento) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }
 
 const TabelaStatusEncaminhamento: React.FC<TabelaProps> = ({
@@ -58,12 +58,12 @@ const TabelaStatusEncaminhamento: React.FC<TabelaProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {dados.map((item) => (
-            <tr key={item.SteCodigo} className="hover:bg-gray-50">
+            <tr key={item.Ste_Codigo} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.SteCodigo}
+                {item.Ste_Codigo}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.SteDescricao}
+                {item.Ste_Descricao}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -73,7 +73,7 @@ const TabelaStatusEncaminhamento: React.FC<TabelaProps> = ({
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(item.SteCodigo)}
+                  onClick={() => onDelete(item.Ste_Codigo)}
                   className="text-red-600 hover:text-red-900 cursor-pointer"
                 >
                   Excluir

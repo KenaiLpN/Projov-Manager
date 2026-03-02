@@ -1,8 +1,8 @@
 import React from "react";
 
 export interface CadastroRegiao {
-  RegCodigo: number;
-  RegDescricao: string;
+  CodRegiao: number;
+  DescRegiao: string;
 }
 
 interface TabelaProps {
@@ -58,12 +58,12 @@ const TabelaCadastroRegiao: React.FC<TabelaProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {dados.map((item) => (
-            <tr key={item.RegCodigo} className="hover:bg-gray-50">
+            <tr key={item.CodRegiao} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.RegCodigo}
+                {item.CodRegiao}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.RegDescricao}
+                {item.DescRegiao}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -73,7 +73,7 @@ const TabelaCadastroRegiao: React.FC<TabelaProps> = ({
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(item.RegCodigo)}
+                  onClick={() => onDelete(item.CodRegiao)}
                   className="text-red-600 hover:text-red-900 cursor-pointer"
                 >
                   Excluir

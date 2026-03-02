@@ -1,8 +1,8 @@
 import React from "react";
 
 export interface GrauParentesco {
-  ParCodigo: number;
-  ParDescricao: string;
+  GpaCodigo: number;
+  GpaDescricao: string;
 }
 
 interface TabelaGrausProps {
@@ -58,12 +58,12 @@ const TabelaGrauParentesco: React.FC<TabelaGrausProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {dados.map((item) => (
-            <tr key={item.ParCodigo} className="hover:bg-gray-50">
+            <tr key={item.GpaCodigo} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.ParCodigo}
+                {item.GpaCodigo}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.ParDescricao}
+                {item.GpaDescricao}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -73,7 +73,7 @@ const TabelaGrauParentesco: React.FC<TabelaGrausProps> = ({
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(item.ParCodigo)}
+                  onClick={() => onDelete(item.GpaCodigo)}
                   className="text-red-600 hover:text-red-900 cursor-pointer"
                 >
                   Excluir
