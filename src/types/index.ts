@@ -18,6 +18,7 @@ export interface Usuario {
   id_usuario?: number; // Mantendo caso venha, mas opcional
   criado_em?: string;
   atualizado_em?: string;
+  confirmacao_senha?: string;
 }
 export interface Unidade {
   UniCodigo: number;

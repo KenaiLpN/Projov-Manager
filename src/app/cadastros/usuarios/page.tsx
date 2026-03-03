@@ -30,11 +30,9 @@ export default function CadCliPage() {
     UsuCodigo: "",
     UsuNome: "",
     UsuEmail: "",
-
     UsuTipo: "",
     UsuSenha: "",
-    senha2: "",
-    chk_ativo: true,
+    confirmacao_senha: "",
   });
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -44,12 +42,10 @@ export default function CadCliPage() {
     setFormData({
       UsuCodigo: "",
       UsuNome: "",
-
       UsuEmail: "",
       UsuTipo: "",
       UsuSenha: "",
-      senha2: "",
-      chk_ativo: true,
+      confirmacao_senha: "",
     });
     setIsModalOpen(true);
   };
@@ -60,11 +56,9 @@ export default function CadCliPage() {
       UsuCodigo: usuario.UsuCodigo,
       UsuNome: usuario.UsuNome || "",
       UsuEmail: usuario.UsuEmail || "",
-
       UsuTipo: usuario.UsuTipo || "",
       UsuSenha: "",
-      senha2: "",
-      chk_ativo: usuario.chk_ativo ?? false,
+      confirmacao_senha: "",
     });
     setIsModalOpen(true);
   };
@@ -161,7 +155,7 @@ export default function CadCliPage() {
   // --- FUNÇÃO CORRIGIDA ---
   const handleSalvar = async () => {
     // 1. Validações Iniciais
-    if (formData.UsuSenha !== formData.senha2) {
+    if (formData.UsuSenha !== formData.confirmacao_senha) {
       toast.error("As senhas não coincidem. Por favor, verifique.");
       return;
     }
@@ -182,20 +176,15 @@ export default function CadCliPage() {
 
     try {
       // 2. Preparação dos dados (Sanitização)
-      const { senha2, ...dataToSend } = formData;
+      const { confirmacao_senha, UsuSenha, ...restOfData } = formData;
       const payload: any = {
-        UsuCodigo: dataToSend.UsuCodigo,
-        UsuNome: dataToSend.UsuNome,
-        UsuEmail: dataToSend.UsuEmail,
-        UsuTipo: dataToSend.UsuTipo,
-
-        chk_ativo: dataToSend.chk_ativo,
+        ...restOfData,
       };
 
-      // Se for a senha e estiver vazia, ignora (para não mandar senha vazia na edição)
-      if (formData.UsuSenha && formData.UsuSenha.trim() !== "") {
-        payload.UsuSenha = formData.UsuSenha;
-        payload.confirmacao_senha = formData.senha2;
+      // Se a senha estiver preenchida, inclui no payload
+      if (UsuSenha && UsuSenha.trim() !== "") {
+        payload.UsuSenha = UsuSenha;
+        payload.confirmacao_senha = confirmacao_senha;
       }
 
       // 3. Envio para API
@@ -392,8 +381,8 @@ export default function CadCliPage() {
                 Confirme sua Senha
               </label>
               <input
-                name="senha2"
-                value={formData.senha2}
+                name="confirmacao_senha"
+                value={formData.confirmacao_senha}
                 onChange={handleChange}
                 type="password"
                 placeholder="Confirme sua Senha"
