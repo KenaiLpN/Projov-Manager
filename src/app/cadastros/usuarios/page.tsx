@@ -184,7 +184,6 @@ export default function CadCliPage() {
       // Se a senha estiver preenchida, inclui no payload
       if (UsuSenha && UsuSenha.trim() !== "") {
         payload.UsuSenha = UsuSenha;
-        payload.confirmacao_senha = confirmacao_senha;
       }
 
       // 3. Envio para API

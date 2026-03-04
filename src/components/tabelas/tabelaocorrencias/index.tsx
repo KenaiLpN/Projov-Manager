@@ -1,11 +1,11 @@
 import React from "react";
 
 export interface Ocorrencia {
-  id_ocorrencia: number;
-  descricao: string;
-  data_ocorrencia: string; // Vem como string ISO da API
-  id_participante: number;
-  chk_ativo: boolean;
+  OcadOrdem: number;
+  OcadCodAprendiz: number;
+  OcadCodOcorrencia: number;
+  OcadDataOcorrencia: string; // Vem como string ISO da API
+  OcadObservacoes: string;
 }
 
 interface TabelaOcorrenciasProps {
@@ -51,7 +51,7 @@ const TabelaOcorrencias: React.FC<TabelaOcorrenciasProps> = ({
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("pt-BR", {
-        timeZone: "UTC" // Importante para não alterar o dia devido ao fuso
+      timeZone: "UTC", // Importante para não alterar o dia devido ao fuso
     });
   };
 
@@ -61,19 +61,19 @@ const TabelaOcorrencias: React.FC<TabelaOcorrenciasProps> = ({
         <thead className="bg-[#bacce6]">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tl-lg">
-              ID
+              Ordem
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Data
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Descrição
+              ID Aprendiz
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              ID Part.
+              Cód. Ocor.
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Status
+              Observações
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tr-lg">
               Ações
@@ -82,29 +82,21 @@ const TabelaOcorrencias: React.FC<TabelaOcorrenciasProps> = ({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {dados.map((item) => (
-            <tr key={item.id_ocorrencia} className="hover:bg-gray-50">
+            <tr key={item.OcadOrdem} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.id_ocorrencia}
+                {item.OcadOrdem}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatDate(item.data_ocorrencia)}
+                {formatDate(item.OcadDataOcorrencia)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.descricao}
+                {item.OcadCodAprendiz}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.id_participante}
+                {item.OcadCodOcorrencia}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    item.chk_ativo
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {item.chk_ativo ? "Ativo" : "Inativo"}
-                </span>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">
+                {item.OcadObservacoes}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -114,7 +106,7 @@ const TabelaOcorrencias: React.FC<TabelaOcorrenciasProps> = ({
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(item.id_ocorrencia)}
+                  onClick={() => onDelete(item.OcadOrdem)}
                   className="text-red-600 hover:text-red-900 cursor-pointer"
                 >
                   Excluir

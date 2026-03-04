@@ -12,10 +12,10 @@ import TabelaOcorrencias, {
 import Pagination from "@/components/pagination";
 
 interface OcorrenciaFormData {
-  descricao: string;
-  data_ocorrencia: string; // usaremos string YYYY-MM-DD para o input
-  id_participante: string; // string para facilitar o input, depois convertemos
-  chk_ativo: boolean;
+  OcadCodAprendiz: string;
+  OcadCodOcorrencia: string;
+  OcadDataOcorrencia: string;
+  OcadObservacoes: string;
 }
 
 export default function OcorrenciasPage() {
@@ -33,10 +33,10 @@ export default function OcorrenciasPage() {
   const [deleting, setDeleting] = useState(false);
 
   const initialFormState: OcorrenciaFormData = {
-    descricao: "",
-    data_ocorrencia: "",
-    id_participante: "",
-    chk_ativo: true,
+    OcadCodAprendiz: "",
+    OcadCodOcorrencia: "",
+    OcadDataOcorrencia: "",
+    OcadObservacoes: "",
   };
 
   const [formData, setFormData] =
@@ -88,17 +88,17 @@ export default function OcorrenciasPage() {
   };
 
   const handleEdit = (item: Ocorrencia) => {
-    setEditingId(item.id_ocorrencia);
+    setEditingId(item.OcadOrdem);
 
-    const isoDate = item.data_ocorrencia
-      ? item.data_ocorrencia.split("T")[0]
+    const isoDate = item.OcadDataOcorrencia
+      ? item.OcadDataOcorrencia.split("T")[0]
       : "";
 
     setFormData({
-      descricao: item.descricao,
-      data_ocorrencia: isoDate,
-      id_participante: String(item.id_participante),
-      chk_ativo: item.chk_ativo,
+      OcadCodAprendiz: String(item.OcadCodAprendiz),
+      OcadCodOcorrencia: String(item.OcadCodOcorrencia),
+      OcadDataOcorrencia: isoDate,
+      OcadObservacoes: item.OcadObservacoes,
     });
     setIsModalOpen(true);
   };
@@ -108,18 +108,13 @@ export default function OcorrenciasPage() {
     setEditingId(null);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      chk_ativo: e.target.checked,
     }));
   };
 
@@ -149,12 +144,23 @@ export default function OcorrenciasPage() {
   const handleSalvar = async () => {
     setSaving(true);
     try {
+      if (
+        !formData.OcadCodAprendiz ||
+        !formData.OcadCodOcorrencia ||
+        !formData.OcadDataOcorrencia ||
+        !formData.OcadObservacoes
+      ) {
+        toast.error("Preencha todos os campos obrigatórios.");
+        setSaving(false);
+        return;
+      }
+
       // Converte dados antes de enviar
       const payload = {
-        descricao: formData.descricao,
-        data_ocorrencia: formData.data_ocorrencia, // O schema espera "YYYY-MM-DD" ou Date
-        id_participante: Number(formData.id_participante),
-        chk_ativo: formData.chk_ativo,
+        OcadCodAprendiz: Number(formData.OcadCodAprendiz),
+        OcadCodOcorrencia: Number(formData.OcadCodOcorrencia),
+        OcadDataOcorrencia: formData.OcadDataOcorrencia,
+        OcadObservacoes: formData.OcadObservacoes,
       };
 
       if (editingId) {
@@ -265,17 +271,32 @@ export default function OcorrenciasPage() {
           </h2>
 
           <div className="p-4 grid grid-cols-1 gap-4">
-            {/* Descrição */}
+            {/* Aprendiz */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Descrição <span className="text-red-500">*</span>
+                ID do Aprendiz <span className="text-red-500">*</span>
               </label>
               <input
-                name="descricao"
-                value={formData.descricao}
+                name="OcadCodAprendiz"
+                value={formData.OcadCodAprendiz}
                 onChange={handleChange}
-                type="text"
-                placeholder="Ex: Falta justificada"
+                type="number"
+                placeholder="ID do aluno"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            {/* Código Ocorrência */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Código da Ocorrência <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="OcadCodOcorrencia"
+                value={formData.OcadCodOcorrencia}
+                onChange={handleChange}
+                type="number"
+                placeholder="Ex: 1"
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
@@ -286,44 +307,26 @@ export default function OcorrenciasPage() {
                 Data da Ocorrência <span className="text-red-500">*</span>
               </label>
               <input
-                name="data_ocorrencia"
-                value={formData.data_ocorrencia}
+                name="OcadDataOcorrencia"
+                value={formData.OcadDataOcorrencia}
                 onChange={handleChange}
                 type="date"
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
 
-            {/* ID Participante */}
+            {/* Observações */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                ID do Participante <span className="text-red-500">*</span>
+                Observações <span className="text-red-500">*</span>
               </label>
-              <input
-                name="id_participante"
-                value={formData.id_participante}
+              <textarea
+                name="OcadObservacoes"
+                value={formData.OcadObservacoes}
                 onChange={handleChange}
-                type="number"
-                placeholder="ID do aluno/participante"
-                className="p-2 w-full rounded border border-gray-300"
+                placeholder="Detalhes da ocorrência..."
+                className="p-2 w-full rounded border border-gray-300 min-h-[100px]"
               />
-            </div>
-
-            {/* Checkbox Ativo */}
-            <div className="flex items-center gap-2 mt-2">
-              <input
-                type="checkbox"
-                id="chk_ativo"
-                checked={formData.chk_ativo}
-                onChange={handleCheckboxChange}
-                className="w-4 h-4 text-blue-600 rounded cursor-pointer"
-              />
-              <label
-                htmlFor="chk_ativo"
-                className="text-sm font-semibold text-gray-600 cursor-pointer"
-              >
-                Registro Ativo?
-              </label>
             </div>
           </div>
 
