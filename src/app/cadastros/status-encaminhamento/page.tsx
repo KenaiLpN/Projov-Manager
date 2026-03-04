@@ -12,6 +12,7 @@ import TabelaStatus, {
 import Pagination from "@/components/pagination";
 
 interface SteFormData {
+  Ste_Codigo: string;
   Ste_Descricao: string;
 }
 
@@ -31,18 +32,20 @@ export default function StatusEncaminhamentoPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState<SteFormData>({
+    Ste_Codigo: "",
     Ste_Descricao: "",
   });
 
   const openModalNew = () => {
     setEditingId(null);
-    setFormData({ Ste_Descricao: "" });
+    setFormData({ Ste_Codigo: "", Ste_Descricao: "" });
     setIsModalOpen(true);
   };
 
   const handleEdit = (item: StatusEncaminhamento) => {
     setEditingId(item.Ste_Codigo);
     setFormData({
+      Ste_Codigo: item.Ste_Codigo,
       Ste_Descricao: item.Ste_Descricao,
     });
     setIsModalOpen(true);
@@ -229,7 +232,24 @@ export default function StatusEncaminhamentoPage() {
           <div className="p-4 grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Descrição do Status (Máx 50)
+                Código do Status (Máx 2) <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="Ste_Codigo"
+                value={formData.Ste_Codigo}
+                onChange={handleChange}
+                type="text"
+                maxLength={2}
+                disabled={!!editingId} // Não permitir editar o ID se for edição
+                placeholder="Ex: AP"
+                className="p-2 w-full rounded border border-gray-300 disabled:bg-gray-100"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Descrição do Status (Máx 50){" "}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 name="Ste_Descricao"
