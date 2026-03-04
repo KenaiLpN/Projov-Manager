@@ -61,8 +61,6 @@ const navItems: NavItemWithSub[] = [
         name: "Consulta Unidades",
         href: "/empresa/consultaunidadesparceiro",
       },
-      { name: "Boletos", href: "/empresa/boletos" },
-      { name: "Nota Fiscal", href: "/empresa/nfe" },
     ],
   },
   { name: "Acessos", href: "/acessos" },
