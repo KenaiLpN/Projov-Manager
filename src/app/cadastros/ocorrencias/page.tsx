@@ -174,7 +174,10 @@ export default function OcorrenciasPage() {
       fetchOcorrencias(page);
     } catch (err: any) {
       console.error(err);
-      const msg = err.response?.data?.message || "Erro ao salvar.";
+      const data = err.response?.data;
+      const msg = data?.detail
+        ? `${data.message}: ${data.detail}`
+        : data?.message || "Erro ao salvar.";
       toast.error(msg);
     } finally {
       setSaving(false);
