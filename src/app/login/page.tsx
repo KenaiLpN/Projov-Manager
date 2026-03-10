@@ -7,6 +7,7 @@ import UserDropDown from "@/components/userdropdown";
 import { toast } from "react-hot-toast";
 
 export default function LoginPage() {
+  const router = useRouter(); // F04
   const [UsuCodigo, setUsuCodigo] = useState("");
   const [senha, setSenha] = useState("");
   const [UsuTipo, setUsuTipo] = useState<string | null>(null);
@@ -27,15 +28,18 @@ export default function LoginPage() {
     try {
       const response = await api.post("/login", { UsuCodigo, senha, UsuTipo });
 
-      const { token, user } = response.data;
+      const { user } = response.data;
 
       localStorage.setItem("projov_user", JSON.stringify(user));
 
-      document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
+      // F01 / F07: removido document.cookie = ...
+      // O backend já nos enviou o cookie `token` como httpOnly.
 
-      window.location.href = "/home";
-    } catch (error) {
-      console.error(error);
+      // F04: Navegação sem reload usando Next Router
+      router.push("/home");
+    } catch (error: any) {
+      const msg = error?.response?.data?.message ?? "Erro desconhecido";
+      console.error("[Login 401] Motivo:", msg, error);
       setLoginError(true);
       setLoading(false);
     }
@@ -51,7 +55,7 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-center text-[#FFFF]">
             Bem vindo ao PROSIS
           </h1>
-          <p className="flex justify-center text-[#FFFF]">
+          <p className="flex justify-center text-[#FFFF]">+
             Gestão do Programa Jovem Aprendiz
           </p>
         </div>

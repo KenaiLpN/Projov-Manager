@@ -136,14 +136,14 @@ export function getFeriadosNacionais(ano: number): Date[] {
   sextaSanta.setDate(sextaSanta.getDate() - 2);
   feriados.push(sextaSanta);
 
-  // Carnaval (47 dias antes da Páscoa)
+  // Carnaval: Segunda-feira = 48 dias antes da Páscoa, Terça = 47 dias
   const carnaval = new Date(pascoa);
-  carnaval.setDate(carnaval.getDate() - 47);
+  carnaval.setDate(carnaval.getDate() - 48); // Segunda de Carnaval
   feriados.push(carnaval);
 
-  // Terça de Carnaval (47 dias antes da Páscoa = segunda, +1 = terça)
+  // Terça de Carnaval (47 dias antes da Páscoa, 1 dia depois da segunda)
   const tercaCarnaval = new Date(pascoa);
-  tercaCarnaval.setDate(tercaCarnaval.getDate() - 47);
+  tercaCarnaval.setDate(tercaCarnaval.getDate() - 47); // Correção: era -47 igual à segunda
   feriados.push(tercaCarnaval);
 
   // Corpus Christi (60 dias após a Páscoa)

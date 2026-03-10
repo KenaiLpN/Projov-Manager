@@ -49,8 +49,8 @@ export default function Home() {
       title: "Aprendizes Cadastrados",
       value: stats.total,
       icon: <Users size={24} />,
-      color: "bg-gradient-to-br from-[#133c86] to-[#133c86]",
-      shadow: "shadow-gray-200",
+      color: "bg-gradient-to-br from-[#133c86] to-[#2563eb]",
+      shadow: "shadow-blue-500/20",
       link: "/aprendizes",
       description: "Total de jovens no sistema",
     },
@@ -58,8 +58,8 @@ export default function Home() {
       title: "Férias / Maternidade",
       value: stats.vacation,
       icon: <Palmtree size={24} />,
-      color: "bg-gradient-to-br from-[#133c86] to-[#133c86]",
-      shadow: "shadow-gray-200",
+      color: "bg-gradient-to-br from-[#d97706] to-[#f59e0b]",
+      shadow: "shadow-orange-500/20",
       link: "/aprendizes?filter=vacation",
       description: "Afastados temporariamente",
     },
@@ -67,8 +67,8 @@ export default function Home() {
       title: "Trabalhando",
       value: stats.working,
       icon: <Briefcase size={24} />,
-      color: "bg-gradient-to-br from-[#133c86] to-[#133c86]",
-      shadow: "shadow-gray-200",
+      color: "bg-gradient-to-br from-[#059669] to-[#10b981]",
+      shadow: "shadow-emerald-500/20",
       link: "/aprendizes?filter=working",
       description: "Vinculados a empresas",
     },
@@ -76,8 +76,8 @@ export default function Home() {
       title: "Disponíveis",
       value: stats.available,
       icon: <UserPlus size={24} />,
-      color: "bg-gradient-to-br from-[#133c86] to-[#133c86]",
-      shadow: "shadow-gray-200",
+      color: "bg-gradient-to-br from-[#7c3aed] to-[#8b5cf6]",
+      shadow: "shadow-violet-500/20",
       link: "/aprendizes?filter=available",
       description: "Aguardando contratação",
     },
@@ -122,7 +122,7 @@ export default function Home() {
 
               <div className="flex flex-col">
                 <span className="text-white/80 text-sm font-semibold uppercase tracking-wider mb-1">
-                  {card.title}  
+                  {card.title}
                 </span>
                 <div className="flex items-baseline gap-2">
                   <h2 className="text-5xl font-black text-white tracking-tighter">

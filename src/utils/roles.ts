@@ -22,6 +22,5 @@ export const ROLE_OPTIONS = [
   { value: "P", label: "Pedagógico" },
   { value: "S", label: "Pesquisa" },
   { value: "T", label: "Técnico" },
-  { value: "DEV", label: "Desenvolvedor" },
   { value: "D", label: "Desligado" },
 ];

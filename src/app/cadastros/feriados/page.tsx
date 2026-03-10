@@ -1,182 +1,95 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
-import api from "@/services/api";
-import { toast } from "react-hot-toast";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import TabelaFeriados, { Feriado } from "@/components/tabelas/tabelaferiados";
 import Pagination from "@/components/pagination";
+import { useCrud } from "@/hooks/useCrud";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
 
 interface FeriadoFormData {
   FerDescricao: string;
   FerData: string; // YYYY-MM-DD para input date
   FerUnidade: string;
-  FerTipo?: string;
 }
 
 export default function FeriadosPage() {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingItem, setEditingItem] = useState<Feriado | null>(null);
+  const {
+    lista,
+    loading,
+    error,
+    page,
+    totalPages,
+    search,
+    isModalOpen,
+    saving,
+    isConfirmOpen,
+    deleting,
+    setPage,
+    setSearch,
+    setIsModalOpen,
+    setIsConfirmOpen,
+    setItemToDelete,
+    confirmDelete,
+    handleSalvar,
+    resetFormAndLoad,
+  } = useCrud<Feriado>({ endpoint: "/feriado" });
 
-  const [lista, setLista] = useState<Feriado[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [saving, setSaving] = useState<boolean>(false);
-  const [search, setSearch] = useState<string>("");
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<Feriado | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [editingUnidadeData, setEditingUnidadeData] = useState<string | null>(
+    null,
+  );
 
-  const [formData, setFormData] = useState<FeriadoFormData>({
-    FerDescricao: "",
-    FerData: "",
-    FerUnidade: "",
-    FerTipo: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<FeriadoFormData>({
+    defaultValues: { FerDescricao: "", FerData: "", FerUnidade: "" },
   });
 
   const openModalNew = () => {
-    setEditingItem(null);
-    setFormData({
-      FerDescricao: "",
-      FerData: "",
-      FerUnidade: "",
-      FerTipo: "",
-    });
-    setIsModalOpen(true);
+    reset();
+    setEditingUnidadeData(null);
+    resetFormAndLoad();
   };
 
   const handleEdit = (item: Feriado) => {
-    setEditingItem(item);
-
-    // Convertendo ISO para YYYY-MM-DD para preencher o input type="date"
     const dataFormatada = item.FerData
       ? new Date(item.FerData).toISOString().split("T")[0]
       : "";
 
-    setFormData({
-      FerDescricao: item.FerDescricao,
-      FerData: dataFormatada,
-      FerUnidade: String(item.FerUnidade),
-      FerTipo: item.FerTipo || "",
-    });
+    setValue("FerDescricao", item.FerDescricao);
+    setValue("FerData", dataFormatada);
+    setValue("FerUnidade", String(item.FerUnidade));
+
+    setEditingUnidadeData(`${item.FerUnidade}/${dataFormatada}`);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingItem(null);
+    setEditingUnidadeData(null);
   };
 
-  async function fetchData(pagina: number, searchTerm: string = search) {
-    setLoading(true);
-    try {
-      const response = await api.get(
-        `/feriado?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
-      );
-      setLista(response.data.data);
-      setTotalPages(response.data.meta.totalPages);
-    } catch (err) {
-      console.error(err);
-      setError("Falha ao carregar dados.");
-    } finally {
-      setLoading(false);
+  const onSubmit = async (data: FeriadoFormData) => {
+    const success = await handleSalvar(editingUnidadeData, {
+      ...data,
+      FerUnidade: Number(data.FerUnidade), // Convert string to number for the backend
+    });
+    if (success) {
+      reset();
+      setEditingUnidadeData(null);
     }
-  }
-
-  const handleSearch = () => {
-    setPage(1);
-    fetchData(1, search);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
-
-  const handleClearSearch = () => {
-    setSearch("");
-    setPage(1);
-    fetchData(1, "");
-  };
-
-  useEffect(() => {
-    fetchData(page);
-  }, [page]);
-
-  const handlePreviousPage = () => {
-    if (page > 1) setPage((prev) => prev - 1);
-  };
-
-  const handleNextPage = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDelete = (item: Feriado) => {
-    setItemToDelete(item);
+    const dataFormatada = new Date(item.FerData).toISOString().split("T")[0];
+    setItemToDelete(`${item.FerUnidade}/${dataFormatada}`);
     setIsConfirmOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!itemToDelete) return;
-
-    setDeleting(true);
-    try {
-      const dataFormatada = new Date(itemToDelete.FerData)
-        .toISOString()
-        .split("T")[0];
-      await api.delete(`/feriado/${itemToDelete.FerUnidade}/${dataFormatada}`);
-      toast.success("Excluído com sucesso!");
-      setIsConfirmOpen(false);
-      setItemToDelete(null);
-      fetchData(page);
-    } catch (err: any) {
-      toast.error("Erro ao excluir.");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const handleSalvar = async () => {
-    setSaving(true);
-    try {
-      // Validação simples
-      if (!formData.FerDescricao || !formData.FerData || !formData.FerUnidade) {
-        toast.error("Preencha todos os campos obrigatórios.");
-        setSaving(false);
-        return;
-      }
-
-      if (editingItem) {
-        const dataOriginal = new Date(editingItem.FerData)
-          .toISOString()
-          .split("T")[0];
-        await api.put(
-          `/feriado/${editingItem.FerUnidade}/${dataOriginal}`,
-          formData,
-        );
-        toast.success("Atualizado com sucesso!");
-      } else {
-        await api.post("/feriado", formData);
-        toast.success("Cadastrado com sucesso!");
-      }
-      closeModal();
-      fetchData(page);
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao salvar.");
-    } finally {
-      setSaving(false);
-    }
   };
 
   return (
@@ -194,12 +107,11 @@ export default function FeriadosPage() {
                 placeholder="Buscar por descrição, unidade..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleKeyPress}
                 className="p-2 pr-10 w-72 rounded bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#133c86]"
               />
               {search && (
                 <button
-                  onClick={handleClearSearch}
+                  onClick={() => setSearch("")}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                   title="Limpar pesquisa"
                 >
@@ -220,12 +132,6 @@ export default function FeriadosPage() {
                 </button>
               )}
             </div>
-            <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-[#133c86] text-white font-semibold rounded hover:bg-[#0f2e6b] transition-colors cursor-pointer"
-            >
-              Pesquisar
-            </button>
           </div>
           <button
             onClick={openModalNew}
@@ -257,70 +163,93 @@ export default function FeriadosPage() {
 
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
-            {editingItem ? "Editar Feriado" : "Novo Feriado"}
+            {editingUnidadeData ? "Editar Feriado" : "Novo Feriado"}
           </h2>
 
-          <div className="p-4 grid grid-cols-1 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Descrição do Feriado
-              </label>
-              <input
-                name="FerDescricao"
-                value={formData.FerDescricao}
-                onChange={handleChange}
-                type="text"
-                maxLength={50}
-                placeholder="Ex: Confraternização Universal"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col h-full"
+          >
+            <div className="p-4 grid grid-cols-1 gap-4 flex-1">
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-gray-600">
-                  Data
+                  Descrição do Feriado
                 </label>
                 <input
-                  name="FerData"
-                  value={formData.FerData}
-                  onChange={handleChange}
-                  type="date"
-                  className="p-2 w-full rounded border border-gray-300"
+                  {...register("FerDescricao", {
+                    required: true,
+                    maxLength: 50,
+                  })}
+                  type="text"
+                  placeholder="Ex: Confraternização Universal"
+                  className={`p-2 w-full rounded border ${
+                    errors.FerDescricao ? "border-red-500" : "border-gray-300"
+                  }`}
                 />
+                {errors.FerDescricao && (
+                  <span className="text-red-500 text-xs">
+                    Descrição do feriado é obrigatória!
+                  </span>
+                )}
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-600">
-                  Unidade
-                </label>
-                <input
-                  name="FerUnidade"
-                  value={formData.FerUnidade}
-                  onChange={handleChange}
-                  type="number"
-                  placeholder="Ex: 1"
-                  className="p-2 w-full rounded border border-gray-300"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-600">
+                    Data
+                  </label>
+                  <input
+                    {...register("FerData", { required: true })}
+                    type="date"
+                    className={`p-2 w-full rounded border ${
+                      errors.FerData ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.FerData && (
+                    <span className="text-red-500 text-xs">
+                      A data é obrigatória!
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-600">
+                    Unidade
+                  </label>
+                  <input
+                    {...register("FerUnidade", { required: true })}
+                    type="number"
+                    placeholder="Ex: 1"
+                    className={`p-2 w-full rounded border ${
+                      errors.FerUnidade ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.FerUnidade && (
+                    <span className="text-red-500 text-xs">
+                      A unidade é obrigatória!
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end gap-4 m-4 pt-4 border-t">
-            <button
-              onClick={closeModal}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSalvar}
-              disabled={saving}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors cursor-pointer"
-            >
-              {saving ? "Salvando..." : "Confirmar"}
-            </button>
-          </div>
+            <div className="flex justify-end gap-4 m-4 pt-4 border-t mt-auto">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors cursor-pointer"
+              >
+                {saving ? "Salvando..." : "Confirmar"}
+              </button>
+            </div>
+          </form>
         </Modal>
 
         <ConfirmModal

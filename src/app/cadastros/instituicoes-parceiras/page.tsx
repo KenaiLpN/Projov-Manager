@@ -127,7 +127,7 @@ export default function InstituicoesParceirasPage() {
     setLoading(true);
     try {
       const response = await api.get(
-        `/instituicoes-parceiras?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
+        `/instituicoes-parceiras?page=${pagina}&limit=10${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`,
       );
       setLista(response.data.data);
       setTotalPages(response.data.meta.totalPages);
@@ -157,8 +157,13 @@ export default function InstituicoesParceirasPage() {
   };
 
   useEffect(() => {
-    fetchData(page);
-  }, [page]);
+    // F06: Implementado debounce de 500ms para o search não engasgar a API a cada caractere digitado
+    const delayDebounceFn = setTimeout(() => {
+      fetchData(page, search);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [page, search]);
 
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
@@ -334,8 +339,6 @@ export default function InstituicoesParceirasPage() {
               />
             </div>
 
-          
-
             <hr className="my-2" />
             <p className="text-sm font-bold text-gray-500">Endereço</p>
 
@@ -444,7 +447,7 @@ export default function InstituicoesParceirasPage() {
 
             <hr className="my-2" />
             <p className="text-sm font-bold text-gray-500">Contato</p>
-  <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome do Contato
               </label>

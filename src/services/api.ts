@@ -13,8 +13,10 @@ if (API_URL && !API_URL.startsWith("http")) {
 
 const finalBaseURL = API_URL.endsWith("/") ? API_URL : `${API_URL}/`;
 
-// Isso ajudará a diagnosticar o erro diretamente no console do navegador do usuário
-console.log("Configurando API BaseURL:", finalBaseURL);
+// F09: Isso ajudará a diagnosticar o erro diretamente no console do navegador, apenas em dev
+if (process.env.NODE_ENV !== "production") {
+  console.log("Configurando API BaseURL:", finalBaseURL);
+}
 
 const api = axios.create({
   baseURL: finalBaseURL,
