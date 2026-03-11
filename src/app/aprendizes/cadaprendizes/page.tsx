@@ -36,6 +36,7 @@ function CadastroForm() {
   const [orientadores, setOrientadores] = useState<any[]>([]);
   const [cursos, setCursos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true);
 
   const [formData, setFormData] = useState<AprendizFormData>({
     NomeJovem: "",
@@ -102,6 +103,7 @@ function CadastroForm() {
     TemProblemaSaude: false,
     ProblemaSaudeQual: "",
     Deficiencia: "",
+    Senha: "",
     // Calendário
     CalCurso: "",
     CalJornadaDiaria: "",
@@ -143,6 +145,13 @@ function CadastroForm() {
   const [activeTab, setActiveTab] = useState("jovem");
 
   useEffect(() => {
+    const userStr = localStorage.getItem("projov_user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.UsuTipo === "APRENDIZ") {
+        setIsAdmin(false);
+      }
+    }
     loadSelectData();
     if (editingId) {
       fetchAprendiz(editingId);
@@ -295,7 +304,9 @@ function CadastroForm() {
         await api.post("/aprendiz", dataToSend);
         toast.success("Aprendiz cadastrado com sucesso!");
       }
-      router.push("/aprendizes");
+      if (isAdmin) {
+        router.push("/aprendizes");
+      }
     } catch (err: any) {
       console.error(err);
       const errorMsg =
@@ -333,18 +344,20 @@ function CadastroForm() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc]">
-      <AprendizSidebar />
+      {isAdmin && <AprendizSidebar />}
 
       <main className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white border-b border-gray-200 px-8 py-6 sticky top-0 z-10 shadow-sm">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.back()}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 cursor-pointer"
-              >
-                <ArrowLeft size={36} />
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => router.back()}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 cursor-pointer"
+                >
+                  <ArrowLeft size={36} />
+                </button>
+              )}
               <div>
                 <h1 className="text-2xl font-bold text-[#133c86]">
                   {editingId
@@ -359,12 +372,14 @@ function CadastroForm() {
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => router.back()}
-                className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-all"
-              >
-                Cancelar
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => router.back()}
+                  className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-all"
+                >
+                  Cancelar
+                </button>
+              )}
               <button
                 onClick={handleSave}
                 disabled={loading}

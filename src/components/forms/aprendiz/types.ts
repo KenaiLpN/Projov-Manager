@@ -64,6 +64,7 @@ export interface AprendizFormData {
   TemProblemaSaude?: boolean;
   ProblemaSaudeQual?: string;
   Deficiencia?: string;
+  Senha?: string;
   // Calendário
   CalCurso?: string;
   CalJornadaDiaria?: string;

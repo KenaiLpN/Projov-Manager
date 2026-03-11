@@ -7,6 +7,7 @@ export const ROLE_MAP: Record<string, string> = {
   S: "Pesquisa",
   T: "Técnico",
   DEV: "Desenvolvedor",
+  APRENDIZ: "Aprendiz",
 };
 
 export const getRoleLabel = (code: string | null | undefined): string => {
@@ -23,4 +24,5 @@ export const ROLE_OPTIONS = [
   { value: "S", label: "Pesquisa" },
   { value: "T", label: "Técnico" },
   { value: "D", label: "Desligado" },
+  { value: "APRENDIZ", label: "Aprendiz" },
 ];

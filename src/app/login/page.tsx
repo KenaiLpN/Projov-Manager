@@ -36,7 +36,11 @@ export default function LoginPage() {
       // O backend já nos enviou o cookie `token` como httpOnly.
 
       // F04: Navegação sem reload usando Next Router
-      router.push("/home");
+      if (user.UsuTipo === "APRENDIZ") {
+        router.push(`/aprendizes/cadaprendizes?id=${user.UsuCodigo}`);
+      } else {
+        router.push("/home");
+      }
     } catch (error: any) {
       const msg = error?.response?.data?.message ?? "Erro desconhecido";
       console.error("[Login 401] Motivo:", msg, error);

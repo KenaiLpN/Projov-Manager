@@ -181,6 +181,20 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             <option value="Concluído">Concluído</option>
           </select>
         </div>
+
+        <div className="flex flex-col gap-1.5 lg:col-span-2">
+          <label className="text-xs font-bold text-gray-500 uppercase">
+            Senha (Para Login do Aprendiz)
+          </label>
+          <input
+            type="password"
+            name="Senha"
+            value={formData.Senha || ""}
+            onChange={handleChange}
+            placeholder="Deixe em branco para não alterar"
+            className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+          />
+        </div>
       </div>
     </section>
   );

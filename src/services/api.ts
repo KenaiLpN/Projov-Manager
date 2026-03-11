@@ -1,21 +1,33 @@
 // src/services/api.ts
 import axios from "axios";
 
-let API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://bot-api-ff.vercel.app";
+// Em desenvolvimento, usamos o proxy do Next.js (/api/proxy) para evitar CORS:
+// o browser faz uma requisição same-origin para o Next.js, que repassa server-side.
+// Em produção, apontamos direto para a API.
+const isDev = process.env.NODE_ENV !== "production";
 
-// Remove espaços extras que podem vir do arquivo .env
-API_URL = API_URL.trim();
+// Lógica de fallback robusta:
+// Em dev FORÇAR usar o '/api/proxy' mesmo se tiver `.env` preenchido.
+let API_URL = "";
 
-if (API_URL && !API_URL.startsWith("http")) {
-  API_URL = `https://${API_URL}`;
+if (isDev) {
+  API_URL = "/api/proxy";
+} else {
+  // Em produção, usa a variável de ambiente, ou a URL padrão.
+  API_URL = (
+    process.env.NEXT_PUBLIC_API_URL || "https://bot-api-ff.vercel.app"
+  ).trim();
+
+  // Garante o http(s) em produção se esquecer
+  if (API_URL && !API_URL.startsWith("http")) {
+    API_URL = `https://${API_URL}`;
+  }
 }
 
 const finalBaseURL = API_URL.endsWith("/") ? API_URL : `${API_URL}/`;
 
-// F09: Isso ajudará a diagnosticar o erro diretamente no console do navegador, apenas em dev
-if (process.env.NODE_ENV !== "production") {
-  console.log("Configurando API BaseURL:", finalBaseURL);
+if (isDev) {
+  console.log("Configurando API BaseURL (proxy local):", finalBaseURL);
 }
 
 const api = axios.create({

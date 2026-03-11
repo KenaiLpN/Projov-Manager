@@ -17,22 +17,38 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
     const publicRoutes = ["/login", "/cadastro", "/recuperar-senha"];
     const isPublicPage = publicRoutes.includes(pathname);
 
-    // 2. Função que verifica o cookie
+    // 2. Função que verifica a autenticação
     const checkAuth = () => {
-      // Procura pelo cookie chamado "token"
-      const hasToken = document.cookie.split("; ").find((row) => row.startsWith("token="));
+      // Como o cookie 'token' é httpOnly (segurança), o JS não consegue lê-lo via document.cookie.
+      // E é por isso que a tela branca estava acontecendo!
+      // Vamos verificar a sessão pelo user guardado no localStorage (que é setado no login).
+      const hasUserSession = localStorage.getItem("projov_user");
 
       if (isPublicPage) {
         // Se é rota pública, libera geral
         setIsAuthorized(true);
       } else {
         // Se é rota privada...
-        if (!hasToken) {
-          // Não tem token? Manda pro login e bloqueia a tela
+        if (!hasUserSession) {
+          // Não tem sessão guardada? Manda pro login e bloqueia a tela
           setIsAuthorized(false);
-          router.push("/login");
+          router.push("/login"); // Aqui forçamos a volta real
         } else {
-          // Tem token? Libera o acesso
+          // Verificação de restrição para APRENDIZ
+          try {
+            const userObj = JSON.parse(hasUserSession);
+            if (userObj.UsuTipo === "APRENDIZ") {
+              const expectedPath = "/aprendizes/cadaprendizes";
+              if (!pathname.startsWith(expectedPath)) {
+                // Se APRENDIZ tentar acessar rota não permitida, força para o edit dele
+                setIsAuthorized(false);
+                router.push(`${expectedPath}?id=${userObj.UsuCodigo}`);
+                return;
+              }
+            }
+          } catch (e) {}
+
+          // Tem sessão local? Libera o layout
           setIsAuthorized(true);
         }
       }
