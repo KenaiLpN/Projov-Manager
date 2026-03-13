@@ -6,7 +6,14 @@ function parseJwt(token: string) {
   try {
     const base64Url = token.split(".")[1];
     if (!base64Url) return null;
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    
+    // Add base64 padding
+    const pad = base64.length % 4;
+    if (pad) {
+      if (pad === 1) return null;
+      base64 += new Array(5 - pad).join("=");
+    }
 
     // Decodifica lidando com caracteres Unicode adequadamente
     const jsonPayload = decodeURIComponent(
@@ -17,6 +24,7 @@ function parseJwt(token: string) {
     );
     return JSON.parse(jsonPayload);
   } catch (e) {
+    console.error("Erro ao decodificar JWT:", e);
     return null;
   }
 }
