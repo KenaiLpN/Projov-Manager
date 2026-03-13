@@ -208,11 +208,7 @@ export default function LoginPage() {
         <div>
           <UserDropDown selectedRole={UsuTipo} onRoleChange={(val) => {
             setUsuTipo(val);
-            if (val === "APRENDIZ") {
-              setSenha("dummy123");
-            } else {
-              setSenha("");
-            }
+            setSenha("");
           }} />
         </div>
 
@@ -233,24 +229,22 @@ export default function LoginPage() {
           />
         </div>
 
-        {UsuTipo !== "APRENDIZ" && (
-          <div>
-            <input
-              type="password"
-              placeholder="Senha"
-              value={senha}
-              onChange={(e) => {
-                setSenha(e.target.value);
-                setLoginError(false);
-              }}
-              className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
-                loginError
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-[#34495E] focus:border-blue-500"
-              }`}
-            />
-          </div>
-        )}
+        <div>
+          <input
+            type="password"
+            placeholder="Senha"
+            value={senha}
+            onChange={(e) => {
+              setSenha(e.target.value);
+              setLoginError(false);
+            }}
+            className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
+              loginError
+                ? "border-red-500 focus:border-red-500"
+                : "border-[#34495E] focus:border-blue-500"
+            }`}
+          />
+        </div>
 
         {loginError && (
           <div className="text-red-500 text-sm text-center rounded">
