@@ -104,6 +104,10 @@ function CadastroForm() {
     ProblemaSaudeQual: "",
     Deficiencia: "",
     Senha: "",
+    Gestante: false,
+    MesesGestacao: undefined,
+    PartoRealizado: false,
+    DataParto: "",
     // Calendário
     CalCurso: "",
     CalJornadaDiaria: "",
@@ -197,7 +201,9 @@ function CadastroForm() {
         const isBooleanField =
           key === "UsaMedicamentos" ||
           key === "TemAlergia" ||
-          key === "TemProblemaSaude";
+          key === "TemProblemaSaude" ||
+          key === "Gestante" ||
+          key === "PartoRealizado";
 
         if (val === null || val === undefined) {
           if (isBooleanField) {
@@ -234,6 +240,7 @@ function CadastroForm() {
         "CalPeriodoFerias2Ate",
         "CalPeriodoSuspensaoDe",
         "CalPeriodoSuspensaoAte",
+        "DataParto",
       ];
 
       dateFields.forEach((field) => {

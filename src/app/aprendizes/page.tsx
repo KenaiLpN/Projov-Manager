@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AprendizSidebar } from "@/components/aprendizsidebar";
+import { Filter, X } from "lucide-react";
 import api from "@/services/api";
 
 // Interface para o Aprendiz baseada no modelo do Prisma
@@ -39,21 +40,57 @@ function AprendizesContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
 
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [advancedFilterForm, setAdvancedFilterForm] = useState({
+    Nome: "",
+    Empresa: "",
+    Instituicao: "",
+    DataAniversario: "",
+    Curso: "",
+    Status: ""
+  });
+  const [empresas, setEmpresas] = useState<any[]>([]);
+  const [escolas, setEscolas] = useState<any[]>([]);
+  const [cursos, setCursos] = useState<any[]>([]);
+  const [auxDataLoaded, setAuxDataLoaded] = useState(false);
+  const [activeAdvancedFilter, setActiveAdvancedFilter] = useState<any>(null);
+
+  const loadAuxData = async () => {
+    if (auxDataLoaded) return;
+    try {
+      const [resParceiros, resEscolas, resCursos] = await Promise.all([
+        api.get("/instituicoes-parceiras?limit=1000"),
+        api.get("/instituicao?limit=1000"),
+        api.get("/cursos?limit=1000"),
+      ]);
+      setEmpresas(resParceiros.data?.data || []);
+      setEscolas(resEscolas.data?.data || []);
+      setCursos(resCursos.data?.data || []);
+      setAuxDataLoaded(true);
+    } catch (err) {
+      console.error("Erro ao carregar dados do filtro", err);
+    }
+  };
+
   // Carregar dados iniciais
   useEffect(() => {
-    fetchAprendizes(page, search, filter);
-  }, [page, filter]);
+    fetchAprendizes(page, search, filter, activeAdvancedFilter);
+  }, [page, filter, activeAdvancedFilter]);
 
   const fetchAprendizes = async (
     p: number,
     s: string = search,
     f: string = filter,
+    adv: any = activeAdvancedFilter
   ) => {
     setLoading(true);
     try {
-      const response = await api.get(
-        `/aprendiz?page=${p}&limit=10${s ? `&search=${s}` : ""}${f ? `&filter=${f}` : ""}`,
-      );
+      let url = `/aprendiz?page=${p}&limit=10`;
+      if (s) url += `&search=${s}`;
+      if (f) url += `&filter=${f}`;
+      if (adv) url += `&advancedFilter=${encodeURIComponent(JSON.stringify(adv))}`;
+      
+      const response = await api.get(url);
       setAprendizes(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
@@ -65,7 +102,7 @@ function AprendizesContent() {
 
   const handleSearch = () => {
     setPage(1);
-    fetchAprendizes(1, search);
+    fetchAprendizes(1, search, filter, activeAdvancedFilter);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -77,7 +114,27 @@ function AprendizesContent() {
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
-    fetchAprendizes(1, "");
+    fetchAprendizes(1, "", filter, activeAdvancedFilter);
+  };
+
+  const handleApplyAdvancedFilter = () => {
+    setActiveAdvancedFilter({ ...advancedFilterForm });
+    setIsFilterModalOpen(false);
+    setPage(1);
+  };
+  
+  const handleClearAdvancedFilter = () => {
+    setAdvancedFilterForm({
+      Nome: "",
+      Empresa: "",
+      Instituicao: "",
+      DataAniversario: "",
+      Curso: "",
+      Status: ""
+    });
+    setActiveAdvancedFilter(null);
+    setIsFilterModalOpen(false);
+    setPage(1);
   };
 
   return (
@@ -143,25 +200,48 @@ function AprendizesContent() {
             >
               Pesquisar
             </button>
+            <button
+              onClick={() => {
+                setIsFilterModalOpen(true);
+                loadAuxData();
+              }}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <Filter size={18} />
+              Filtro
+            </button>
           </div>
-          {filter && (
-            <div className="mr-4 flex items-center gap-2">
+          {(filter || activeAdvancedFilter) && (
+            <div className="mr-4 flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-[#133c86] uppercase">
-                Filtro Ativo:
+                Filtros Ativos:
               </span>
-              <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center gap-2">
-                {filter === "working"
-                  ? "Trabalhando"
-                  : filter === "available"
-                    ? "Disponíveis"
-                    : "Férias/Licença"}
-                <button
-                  onClick={() => router.push("/aprendizes")}
-                  className="hover:text-blue-200"
-                >
-                  ×
-                </button>
-              </span>
+              {filter && (
+                <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center gap-2">
+                  {filter === "working"
+                    ? "Trabalhando"
+                    : filter === "available"
+                      ? "Disponíveis"
+                      : "Férias/Licença"}
+                  <button
+                    onClick={() => router.push("/aprendizes")}
+                    className="hover:text-blue-200 cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {activeAdvancedFilter && (
+                <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center gap-2">
+                  Filtro Avançado
+                  <button
+                    onClick={handleClearAdvancedFilter}
+                    className="hover:text-blue-200 cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -205,11 +285,19 @@ function AprendizesContent() {
                   </td>
                 </tr>
               ) : (
-                aprendizes.map((a) => (
-                  <tr
-                    key={a.IdAluno}
-                    className="hover:bg-blue-50 transition-colors"
-                  >
+                aprendizes.map((a) => {
+                  let rowBg = "hover:bg-blue-50 transition-colors bg-white";
+                  if (a.StatusJovem === "Férias") {
+                    rowBg = "hover:bg-green-100 transition-colors bg-green-50/50";
+                  } else if (a.StatusJovem === "Licença Maternidade") {
+                    rowBg = "hover:bg-pink-100 transition-colors bg-pink-50/50";
+                  }
+
+                  return (
+                    <tr
+                      key={a.IdAluno}
+                      className={rowBg}
+                    >
                     <td className="p-4 font-medium text-gray-800">
                       {a.NomeJovem}
                     </td>
@@ -258,7 +346,8 @@ function AprendizesContent() {
                       </button>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -284,6 +373,113 @@ function AprendizesContent() {
             </button>
           </div>
         </div>
+        {/* Modal de Filtro Avançado */}
+        {isFilterModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+              <button
+                onClick={() => setIsFilterModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <X size={24} />
+              </button>
+              <h2 className="text-2xl font-bold text-[#133c86] mb-6 border-b pb-2">
+                Filtro de Pesquisa
+              </h2>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Nome</label>
+                  <input
+                    type="text"
+                    value={advancedFilterForm.Nome}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, Nome: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none"
+                    placeholder="Digite o nome..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Data de aniversário</label>
+                  <input
+                    type="date"
+                    value={advancedFilterForm.DataAniversario}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, DataAniversario: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Empresa</label>
+                  <select
+                    value={advancedFilterForm.Empresa}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, Empresa: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white"
+                  >
+                    <option value="">Todas</option>
+                    {empresas.map((emp) => (
+                      <option key={emp.IpaCodigo} value={emp.IpaCodigo}>{emp.IpaDescricao}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Instituição de ensino</label>
+                  <select
+                    value={advancedFilterForm.Instituicao}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, Instituicao: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white"
+                  >
+                    <option value="">Todas</option>
+                    {escolas.map((esc) => (
+                      <option key={esc.EscCodigo} value={esc.EscCodigo}>{esc.EscNome}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Curso</label>
+                  <select
+                    value={advancedFilterForm.Curso}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, Curso: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white"
+                  >
+                    <option value="">Todos</option>
+                    {cursos.map((cur) => (
+                      <option key={cur.CurCodigo} value={cur.CurCodigo}>{cur.CurDescricao}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Status do Jovem</label>
+                  <select
+                    value={advancedFilterForm.Status}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, Status: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white"
+                  >
+                    <option value="">Todos</option>
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                    <option value="Férias">Férias</option>
+                    <option value="Afastado">Afastado</option>
+                    <option value="Licença Maternidade">Licença Maternidade</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-8">
+                <button
+                  onClick={handleClearAdvancedFilter}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 flex-1 cursor-pointer"
+                >
+                  Limpar Filtros
+                </button>
+                <button
+                  onClick={handleApplyAdvancedFilter}
+                  className="px-6 py-2 bg-[#133c86] text-white rounded-lg font-bold hover:bg-[#0f2e6b] shadow flex-1 cursor-pointer"
+                >
+                  Aplicar Filtro
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

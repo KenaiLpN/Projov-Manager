@@ -3,6 +3,7 @@ import { useState } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import UserDropDown from "@/components/userdropdown";
+import Cookies from "js-cookie";
 
 import { toast } from "react-hot-toast";
 
@@ -32,12 +33,13 @@ export default function LoginPage() {
     try {
       const response = await api.post("/login", { UsuCodigo, senha, UsuTipo });
 
-      const { user } = response.data;
+      const { user, token } = response.data;
 
       localStorage.setItem("projov_user", JSON.stringify(user));
 
-      // F01 / F07: removido document.cookie = ...
-      // O backend já nos enviou o cookie `token` como httpOnly.
+      if (token) {
+        Cookies.set("token", token, { expires: 1 });
+      }
 
       // F04: Navegação sem reload usando Next Router
       if (user.UsuTipo === "APRENDIZ") {
@@ -90,8 +92,12 @@ export default function LoginPage() {
       
       // Attempt login immediately
       const response = await api.post("/login", { UsuCodigo, senha: newPassword, UsuTipo });
-      const { user } = response.data;
+      const { user, token } = response.data;
       localStorage.setItem("projov_user", JSON.stringify(user));
+
+      if (token) {
+        Cookies.set("token", token, { expires: 1 });
+      }
       
       if (user.UsuTipo === "APRENDIZ") {
         router.push(`/aprendizes/cadaprendizes?id=${user.UsuCodigo}`);
