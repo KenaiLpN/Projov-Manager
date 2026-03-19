@@ -18,6 +18,11 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [createError, setCreateError] = useState("");
+  
+  // Estados para esqueci minha senha
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState("");
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +43,7 @@ export default function LoginPage() {
       localStorage.setItem("projov_user", JSON.stringify(user));
 
       if (token) {
-        Cookies.set("token", token, { expires: 1 });
+        Cookies.set("token", token, { expires: 8 / 24 });
       }
 
       // F04: Navegação sem reload usando Next Router
@@ -96,7 +101,7 @@ export default function LoginPage() {
       localStorage.setItem("projov_user", JSON.stringify(user));
 
       if (token) {
-        Cookies.set("token", token, { expires: 1 });
+        Cookies.set("token", token, { expires: 8 / 24 });
       }
       
       if (user.UsuTipo === "APRENDIZ") {
@@ -107,6 +112,30 @@ export default function LoginPage() {
     } catch (error: any) {
       const msg = error?.response?.data?.message || "Erro ao criar senha.";
       setCreateError(msg);
+      setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotError("");
+    setLoading(true);
+
+    if (!forgotEmail) {
+      setForgotError("Por favor, informe seu e-mail.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await api.post("/forgot-password", { email: forgotEmail });
+      toast.success(response.data.message || "Um e-mail para troca da senha será enviado para você.");
+      setForgotPasswordMode(false);
+      setForgotEmail("");
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || "Erro ao solicitar recuperação de senha.";
+      setForgotError(msg);
+    } finally {
       setLoading(false);
     }
   }
@@ -196,6 +225,75 @@ export default function LoginPage() {
     );
   }
 
+  if (forgotPasswordMode) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#253442]">
+        <form
+          onSubmit={handleForgotPassword}
+          className="flex flex-col p-8 bg-[#34495E] shadow-2xl w-110 rounded-2xl gap-8 shadow-grey-900"
+        >
+          <div>
+            <h1 className="text-2xl font-bold text-center text-[#FFFF]">
+              Recuperar Senha
+            </h1>
+            <p className="flex text-center justify-center text-[#FFFF] mt-2">
+              Informe seu e-mail cadastrado para receber as instruções e recuperar o acesso.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div>
+              <input
+                type="email"
+                placeholder="Seu E-mail"
+                value={forgotEmail}
+                onChange={(e) => {
+                  setForgotEmail(e.target.value);
+                  setForgotError("");
+                }}
+                className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
+                  forgotError
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-[#34495E] focus:border-blue-500"
+                }`}
+              />
+            </div>
+
+            {forgotError && (
+              <div className="text-red-500 text-sm text-center rounded">
+                {forgotError}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full text-white p-3 rounded cursor-pointer transition-[background-position] duration-500 ease-in-out
+      ${
+        loading
+          ? "bg-blue-400 cursor-not-allowed"
+          : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top"
+      }`}
+          >
+            {loading ? "Processando..." : "Enviar E-mail"}
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setForgotPasswordMode(false);
+              setLoading(false);
+            }}
+            className="flex justify-center text-gray-300 hover:text-white mt-[-10px]"
+          >
+            Voltar ao Login
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center h-screen bg-[#253442]">
       <form
@@ -272,6 +370,13 @@ export default function LoginPage() {
         </button>
         <button
           type="button"
+          onClick={() => {
+            setForgotPasswordMode(true);
+            setLoginError(false);
+            setUsuTipo(null);
+            setUsuCodigo("");
+            setSenha("");
+          }}
           className="flex justify-center text-[#FFFF] hover:text-blue-500"
           id="lostpassword"
         >

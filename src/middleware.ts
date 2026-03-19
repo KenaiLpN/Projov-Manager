@@ -48,6 +48,7 @@ export function middleware(request: NextRequest) {
   // Consideramos rotas públicas explicitamente:
   const isAuthRoute = pathname === "/login";
   const isRootRoute = pathname === "/";
+  const isPublicRoute = pathname.startsWith("/reset-password");
 
   // Se tem token válido e está no /, manda pra home
   if (isRootRoute && isValidToken) {
@@ -65,7 +66,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Se não tem token válido e não está em uma rota de auth, intercepta para o login
-  if (!isValidToken && !isAuthRoute) {
+  if (!isValidToken && !isAuthRoute && !isPublicRoute) {
     // Excluímos eventuais assets/public para não dar looping de CSS/JS caso o matcher falhe, segurança extra:
     if (!pathname.startsWith("/_next") && !pathname.startsWith("/favicon")) {
       return NextResponse.redirect(new URL("/login", request.url));

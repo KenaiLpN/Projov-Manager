@@ -14,7 +14,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     // 1. Defina quais rotas são públicas (não precisam de login)
     // Dica: Adicione '/' se sua home for pública, ou remova se for privada
-    const publicRoutes = ["/login", "/cadastro", "/recuperar-senha"];
+    const publicRoutes = ["/login", "/cadastro", "/recuperar-senha", "/reset-password"];
     const isPublicPage = publicRoutes.includes(pathname);
 
     // 2. Função que verifica a autenticação
@@ -66,9 +66,9 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 
   // --- LÓGICA DE LAYOUT ORIGINAL ABAIXO ---
 
-  const isPublicPage = pathname === "/login" || pathname === "/cadastro";
+  const isPublicPageAtLayout = pathname === "/login" || pathname === "/cadastro" || pathname === "/reset-password";
 
-  if (isPublicPage) {
+  if (isPublicPageAtLayout) {
     return <>{children}</>;
   }
 
