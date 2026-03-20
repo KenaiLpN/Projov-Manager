@@ -1,12 +1,10 @@
 import React from "react";
-
 export interface Conceito {
   ConCodigo: string;
   ConNota: number | null;
   ConPercentual: number | null;
   ConAprova: string | null;
 }
-
 interface TabelaConceitosProps {
   dados: Conceito[];
   loading: boolean;
@@ -14,7 +12,6 @@ interface TabelaConceitosProps {
   onEdit: (conceito: Conceito) => void;
   onDelete: (id: string) => void;
 }
-
 const TabelaConceitos: React.FC<TabelaConceitosProps> = ({
   dados,
   loading,
@@ -24,7 +21,6 @@ const TabelaConceitos: React.FC<TabelaConceitosProps> = ({
 }) => {
   if (loading) return <div className="p-4 text-center">Carregando...</div>;
   if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
-
   return (
     <div className="overflow-x-auto m-5 rounded-lg shadow">
       <table className="min-w-full bg-white border border-gray-200">
@@ -128,5 +124,4 @@ const TabelaConceitos: React.FC<TabelaConceitosProps> = ({
     </div>
   );
 };
-
-export default TabelaConceitos;
+export default TabelaConceitos;

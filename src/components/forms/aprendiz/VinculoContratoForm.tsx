@@ -1,7 +1,6 @@
 import React from "react";
 import { Briefcase } from "lucide-react";
 import { AprendizFormData } from "./types";
-
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -13,7 +12,6 @@ interface Props {
   instituicoes: any[];
   orientadores: any[];
 }
-
 export function VinculoContratoForm({
   formData,
   handleChange,
@@ -48,7 +46,6 @@ export function VinculoContratoForm({
             ))}
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Instituição Parceira
@@ -67,7 +64,6 @@ export function VinculoContratoForm({
             ))}
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Orientador Responsável
@@ -86,7 +82,6 @@ export function VinculoContratoForm({
             ))}
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Tipo de Aprendizagem
@@ -103,7 +98,6 @@ export function VinculoContratoForm({
             <option value="Comercial">Comercial</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             CBO / Função
@@ -116,7 +110,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Área de Atuação
@@ -128,7 +121,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Horas Diárias
@@ -141,7 +133,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Meses de Contrato
@@ -154,7 +145,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Tipo de Pagamento
@@ -170,7 +160,6 @@ export function VinculoContratoForm({
             <option value="Horista">Horista</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Data Início Empresa
@@ -183,7 +172,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Data Início Aprendizagem
@@ -196,7 +184,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Data Prevista Término
@@ -209,7 +196,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Data Desligamento
@@ -222,7 +208,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Início Férias
@@ -235,7 +220,6 @@ export function VinculoContratoForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Término Férias
@@ -251,4 +235,4 @@ export function VinculoContratoForm({
       </div>
     </section>
   );
-}
+}

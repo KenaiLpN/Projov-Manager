@@ -1,7 +1,5 @@
 "use client";
-
 import { useEffect } from "react";
-
 export default function Error({
   error,
   reset,
@@ -10,19 +8,14 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Verifica se o erro é uma falha de carregamento de chunk (comum em novos deploys)
     const isChunkError =
       error.message.includes("Loading chunk") ||
       error.message.includes("ChunkLoadError");
-
     if (isChunkError) {
-      // Tenta recarregar a página automaticamente para pegar o build novo
       window.location.reload();
     }
-
     console.error("Erro capturado:", error);
   }, [error]);
-
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-gray-50 p-4 text-center">
       <h2 className="text-2xl font-bold text-gray-800">
@@ -40,4 +33,4 @@ export default function Error({
       </button>
     </div>
   );
-}
+}

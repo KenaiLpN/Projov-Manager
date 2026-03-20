@@ -1,12 +1,10 @@
 import React from "react";
-
 export interface SituacaoParticipante {
   StaCodigo: number;
   StaAbreviatura: string;
   StaDescricao: string;
   StaArea: string;
 }
-
 interface TabelaSituacoesProps {
   dados: SituacaoParticipante[];
   loading: boolean;
@@ -14,7 +12,6 @@ interface TabelaSituacoesProps {
   onEdit: (item: SituacaoParticipante) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaSituacoes: React.FC<TabelaSituacoesProps> = ({
   dados,
   loading,
@@ -29,7 +26,6 @@ const TabelaSituacoes: React.FC<TabelaSituacoesProps> = ({
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -37,7 +33,6 @@ const TabelaSituacoes: React.FC<TabelaSituacoesProps> = ({
       </div>
     );
   }
-
   if (!dados || dados.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -45,7 +40,6 @@ const TabelaSituacoes: React.FC<TabelaSituacoesProps> = ({
       </div>
     );
   }
-
   return (
     <div className="p-4 overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -104,5 +98,4 @@ const TabelaSituacoes: React.FC<TabelaSituacoesProps> = ({
     </div>
   );
 };
-
-export default TabelaSituacoes;
+export default TabelaSituacoes;

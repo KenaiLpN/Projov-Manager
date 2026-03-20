@@ -1,5 +1,4 @@
 @import "tailwindcss";
-
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -9,17 +8,13 @@
     scrollbar-width: none;
   }
 }
-
-/* Print styles for calendar */
 @media print {
   body > *:not(#calendario-print) {
     display: none !important;
   }
-
   .print\:hidden {
     display: none !important;
   }
-
   #calendario-print {
     position: absolute;
     top: 0;

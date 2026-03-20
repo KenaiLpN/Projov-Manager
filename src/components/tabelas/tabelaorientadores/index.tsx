@@ -1,5 +1,4 @@
 import React from "react";
-
 export interface Orientador {
   OriCodigo: number;
   OriUnidadeParceiro: number;
@@ -8,7 +7,6 @@ export interface Orientador {
   OriEmail?: string;
   UnidadeNome?: string;
 }
-
 interface TabelaProps {
   dados: Orientador[];
   loading: boolean;
@@ -16,7 +14,6 @@ interface TabelaProps {
   onEdit: (item: Orientador) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaOrientadores: React.FC<TabelaProps> = ({
   dados,
   loading,
@@ -27,7 +24,6 @@ const TabelaOrientadores: React.FC<TabelaProps> = ({
   if (loading) {
     return <div className="text-center p-8 text-[#133c86]">Carregando...</div>;
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -35,7 +31,6 @@ const TabelaOrientadores: React.FC<TabelaProps> = ({
       </div>
     );
   }
-
   if (!dados || dados.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -43,7 +38,6 @@ const TabelaOrientadores: React.FC<TabelaProps> = ({
       </div>
     );
   }
-
   return (
     <div className="p-4 overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200 border-collapse">
@@ -105,5 +99,4 @@ const TabelaOrientadores: React.FC<TabelaProps> = ({
     </div>
   );
 };
-
-export default TabelaOrientadores;
+export default TabelaOrientadores;

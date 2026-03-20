@@ -1,5 +1,4 @@
 import React from "react";
-
 export interface Curso {
   CurCodigo: string;
   CurDescricao: string;
@@ -7,7 +6,6 @@ export interface Curso {
   CurAbreviatura: string | null;
   EnsNumeroPeriodos: number | null;
 }
-
 interface TabelaCursosProps {
   dados: Curso[];
   loading: boolean;
@@ -15,7 +13,6 @@ interface TabelaCursosProps {
   onEdit: (curso: Curso) => void;
   onDelete: (id: string) => void;
 }
-
 const TabelaCursos: React.FC<TabelaCursosProps> = ({
   dados,
   loading,
@@ -25,7 +22,6 @@ const TabelaCursos: React.FC<TabelaCursosProps> = ({
 }) => {
   if (loading) return <div className="p-4 text-center">Carregando...</div>;
   if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
-
   return (
     <div className="overflow-x-auto m-5 rounded-lg shadow">
       <table className="min-w-full bg-white border border-gray-200">
@@ -127,5 +123,4 @@ const TabelaCursos: React.FC<TabelaCursosProps> = ({
     </div>
   );
 };
-
-export default TabelaCursos;
+export default TabelaCursos;

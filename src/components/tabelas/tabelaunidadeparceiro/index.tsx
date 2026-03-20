@@ -1,5 +1,4 @@
 import React from "react";
-
 export interface UnidadeParceiro {
   ParUniCodigo: number;
   ParUniCodigoParceiro: number;
@@ -9,7 +8,6 @@ export interface UnidadeParceiro {
   ParUniEstado?: string;
   EmpresaNome?: string;
 }
-
 interface TabelaProps {
   dados: UnidadeParceiro[];
   loading: boolean;
@@ -17,7 +15,6 @@ interface TabelaProps {
   onEdit: (item: UnidadeParceiro) => void;
   onDelete: (id: number, parceiroId: number) => void;
 }
-
 const TabelaUnidadeParceiro: React.FC<TabelaProps> = ({
   dados,
   loading,
@@ -28,7 +25,6 @@ const TabelaUnidadeParceiro: React.FC<TabelaProps> = ({
   if (loading) {
     return <div className="text-center p-8 text-[#133c86]">Carregando...</div>;
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -36,7 +32,6 @@ const TabelaUnidadeParceiro: React.FC<TabelaProps> = ({
       </div>
     );
   }
-
   if (!dados || dados.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -44,7 +39,6 @@ const TabelaUnidadeParceiro: React.FC<TabelaProps> = ({
       </div>
     );
   }
-
   return (
     <div className="p-4 overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200 border-collapse">
@@ -110,5 +104,4 @@ const TabelaUnidadeParceiro: React.FC<TabelaProps> = ({
     </div>
   );
 };
-
-export default TabelaUnidadeParceiro;
+export default TabelaUnidadeParceiro;

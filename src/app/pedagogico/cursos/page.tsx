@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
@@ -8,11 +7,9 @@ import api from "@/services/api";
 import TabelaCursos, { Curso } from "@/components/tabelas/tabelacursos";
 import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
-
 export default function CursosPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [lista, setLista] = useState<Curso[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +20,6 @@ export default function CursosPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState<Partial<Curso>>({
     CurCodigo: "",
     CurDescricao: "",
@@ -31,7 +27,6 @@ export default function CursosPage() {
     CurAbreviatura: "",
     EnsNumeroPeriodos: 0,
   });
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -43,18 +38,15 @@ export default function CursosPage() {
     });
     setIsModalOpen(true);
   };
-
   const handleEdit = (item: Curso) => {
     setEditingId(item.CurCodigo);
     setFormData(item);
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   async function fetchData(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -70,26 +62,21 @@ export default function CursosPage() {
       setLoading(false);
     }
   }
-
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSearch();
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -100,15 +87,12 @@ export default function CursosPage() {
           : value,
     }));
   };
-
   const handleDelete = (id: string) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/cursos/${itemToDelete}`);
@@ -122,7 +106,6 @@ export default function CursosPage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     setSaving(true);
     try {
@@ -142,11 +125,9 @@ export default function CursosPage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-screen w-screen overflow-hidden">
       <PedagogicoSidebar />
-
       <div className="flex flex-col w-full h-full overflow-y-auto">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center shadow-sm">
           <div className="flex items-center gap-2 ml-4">
@@ -195,7 +176,6 @@ export default function CursosPage() {
             Novo Curso
           </button>
         </div>
-
         <div className="flex-1">
           <TabelaCursos
             dados={lista}
@@ -204,7 +184,6 @@ export default function CursosPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -215,12 +194,10 @@ export default function CursosPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Curso" : "Novo Curso"}
           </h2>
-
           <div className="p-4 grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -287,7 +264,6 @@ export default function CursosPage() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -304,7 +280,6 @@ export default function CursosPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -315,4 +290,4 @@ export default function CursosPage() {
       </div>
     </div>
   );
-}
+}

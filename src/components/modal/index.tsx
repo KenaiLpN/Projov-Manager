@@ -1,16 +1,12 @@
 "use client";
-
 import React, { ReactNode } from "react";
-
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
 };
-
 const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   if (!isOpen) return null;
-
   return (
     <div
       onClick={onClose}
@@ -26,11 +22,9 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
         >
           &times;
         </button>
-
         {children}
       </div>
     </div>
   );
 };
-
-export default Modal;
+export default Modal;

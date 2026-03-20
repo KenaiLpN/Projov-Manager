@@ -3,19 +3,14 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import PrivateLayout from "@/components/PrivateLayout";
 const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
   title: "ProSis ",
   description: "Sistema de Gestão",
 };
-
 import { Toaster } from "react-hot-toast";
 import { PrimeReactProvider } from "primereact/api";
-
-// Estilos do PrimeReact
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
-
 export default function RootLayout({
   children,
 }: Readonly<{

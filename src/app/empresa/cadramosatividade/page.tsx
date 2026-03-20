@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
 import Modal from "../../../components/modal";
@@ -10,18 +9,15 @@ import TabelaRamosAtividade, {
   RamoAtividade,
 } from "@/components/tabelas/tabelaramosatividade";
 import Pagination from "@/components/pagination";
-
 interface RamoFormData {
   Descricao: string;
   CodigoCNAE: string;
   Observacao: string;
   Ativo: boolean;
 }
-
 export default function CadRamosAtividadePage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [lista, setLista] = useState<RamoAtividade[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,14 +28,12 @@ export default function CadRamosAtividadePage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState<RamoFormData>({
     Descricao: "",
     CodigoCNAE: "",
     Observacao: "",
     Ativo: true,
   });
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -50,7 +44,6 @@ export default function CadRamosAtividadePage() {
     });
     setIsModalOpen(true);
   };
-
   const handleEdit = (item: RamoAtividade) => {
     setEditingId(item.IdRamo);
     setFormData({
@@ -61,12 +54,10 @@ export default function CadRamosAtividadePage() {
     });
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   async function fetchData(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -82,36 +73,29 @@ export default function CadRamosAtividadePage() {
       setLoading(false);
     }
   }
-
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -120,15 +104,12 @@ export default function CadRamosAtividadePage() {
       type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
     setFormData((prev) => ({ ...prev, [name]: val }));
   };
-
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/ramos-atividade/${itemToDelete}`);
@@ -142,13 +123,11 @@ export default function CadRamosAtividadePage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     if (!formData.Descricao.trim()) {
       toast.error("A descrição é obrigatória.");
       return;
     }
-
     setSaving(true);
     try {
       if (editingId) {
@@ -167,13 +146,11 @@ export default function CadRamosAtividadePage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <EmpSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -223,7 +200,6 @@ export default function CadRamosAtividadePage() {
             Novo Ramo
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaRamosAtividade
             dados={lista}
@@ -232,7 +208,6 @@ export default function CadRamosAtividadePage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -243,12 +218,10 @@ export default function CadRamosAtividadePage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Ramo de Atividade" : "Novo Ramo de Atividade"}
           </h2>
-
           <div className="p-4 grid grid-cols-1 gap-4 max-h-[70vh] overflow-y-auto">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -264,7 +237,6 @@ export default function CadRamosAtividadePage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Código CNAE (Máx 20)
@@ -279,7 +251,6 @@ export default function CadRamosAtividadePage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Observação
@@ -293,7 +264,6 @@ export default function CadRamosAtividadePage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none resize-none"
               />
             </div>
-
             <div className="flex items-center gap-2">
               <input
                 id="Ativo"
@@ -311,7 +281,6 @@ export default function CadRamosAtividadePage() {
               </label>
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -328,7 +297,6 @@ export default function CadRamosAtividadePage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -339,4 +307,4 @@ export default function CadRamosAtividadePage() {
       </div>
     </div>
   );
-}
+}

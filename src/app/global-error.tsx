@@ -1,5 +1,4 @@
 "use client";
-
 export default function GlobalError({
   error,
   reset,
@@ -7,7 +6,6 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  // Mesmo tratamento para falha de chunk em nível global
   if (
     error.message.includes("Loading chunk") ||
     error.message.includes("ChunkLoadError")
@@ -16,7 +14,6 @@ export default function GlobalError({
       window.location.reload();
     }
   }
-
   return (
     <html lang="pt-br">
       <body>
@@ -35,4 +32,4 @@ export default function GlobalError({
       </body>
     </html>
   );
-}
+}

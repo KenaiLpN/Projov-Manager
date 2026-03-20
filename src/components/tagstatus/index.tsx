@@ -1,10 +1,8 @@
 type TagStatusProps = {
   chkAtivo: string;
 };
-
 export function TagStatus({ chkAtivo }: TagStatusProps) {
   const isAtivo = chkAtivo === "T";
-
   return (
     <span
       className={`px-3 py-1 rounded-full text-sm font-semibold ${
@@ -16,4 +14,4 @@ export function TagStatus({ chkAtivo }: TagStatusProps) {
       {isAtivo ? "Ativo" : "Inativo"}
     </span>
   );
-}
+}

@@ -2,20 +2,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-
 import { UserMenu } from "../perfildropdown";
 import { NotificationsMenu } from "../notifications";
 import { getRoleLabel } from "@/utils/roles";
-
 interface NavItem {
   name: string;
   href: string;
 }
-
 interface NavItemWithSub extends NavItem {
   subMenu?: NavItem[];
 }
-
 const navItems: NavItemWithSub[] = [
   {
     name: "Cadastros",
@@ -89,18 +85,14 @@ const navItems: NavItemWithSub[] = [
   },
   { name: "Estatísticas", href: "/estatisticas" },
 ];
-
 export function Header() {
   const [user, setUser] = useState({
     nome: "",
     role: "",
   });
-
   const pathname = usePathname();
-
   useEffect(() => {
     const dadosSalvos = localStorage.getItem("projov_user");
-
     if (dadosSalvos) {
       const usuarioParseado = JSON.parse(dadosSalvos);
       setUser({
@@ -109,19 +101,16 @@ export function Header() {
       });
     }
   }, []);
-
   const baseLinkClasses =
     "flex items-center gap-2 text-[#52E8FB] transition font-medium duration-500 ease-in-out h-20 p-5";
   const activeLinkClasses =
     "text-[#F6F6F6] bg-[#253341a4] font-medium focus:ring-2 focus:ring-gray-500/10";
   const inactive =
     "text-[#F6F6F6] transition font-medium duration-300 ease-in-out hover:text-[#FDFDFD] hover:bg-[#253341a4]";
-
   const getLinkClasses = (href: string) => {
     const isActive = pathname === href;
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
-
   return (
     <header className="flex bg-[#34495E] border-b border-[#e4e9f0] justify-between items-center">
       <div className="ml-5">
@@ -137,7 +126,6 @@ export function Header() {
           const isActive = pathname.startsWith(
             item.href === "/" ? "/NONE" : item.href,
           );
-
           return (
             <div key={item.name} className="relative group flex items-center">
               <Link href={item.href} className={getLinkClasses(item.href)}>
@@ -159,7 +147,6 @@ export function Header() {
                   </svg>
                 )}
               </Link>
-
               {item.subMenu && (
                 <div className="absolute top-20 left-0 w-64 bg-[#34495E] shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 backdrop-blur-sm bg-opacity-95 rounded-b-lg overflow-hidden">
                   <div className="flex flex-col py-2">
@@ -186,11 +173,10 @@ export function Header() {
           );
         })}
       </div>
-
       <div className="flex items-center gap-6 pr-5">
         <NotificationsMenu />
         <UserMenu nome={user.nome} role={getRoleLabel(user.role)} />
       </div>
     </header>
   );
-}
+}

@@ -1,10 +1,8 @@
 import React from "react";
-
 export interface GrauParentesco {
   GpaCodigo: number;
   GpaDescricao: string;
 }
-
 interface TabelaGrausProps {
   dados: GrauParentesco[];
   loading: boolean;
@@ -12,7 +10,6 @@ interface TabelaGrausProps {
   onEdit: (item: GrauParentesco) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaGrauParentesco: React.FC<TabelaGrausProps> = ({
   dados,
   loading,
@@ -23,7 +20,6 @@ const TabelaGrauParentesco: React.FC<TabelaGrausProps> = ({
   if (loading) {
     return <div className="text-center p-8 text-[#133c86]">Carregando...</div>;
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -31,7 +27,6 @@ const TabelaGrauParentesco: React.FC<TabelaGrausProps> = ({
       </div>
     );
   }
-
   if (!dados || dados.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -39,7 +34,6 @@ const TabelaGrauParentesco: React.FC<TabelaGrausProps> = ({
       </div>
     );
   }
-
   return (
     <div className="p-4 overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -86,5 +80,4 @@ const TabelaGrauParentesco: React.FC<TabelaGrausProps> = ({
     </div>
   );
 };
-
-export default TabelaGrauParentesco;
+export default TabelaGrauParentesco;

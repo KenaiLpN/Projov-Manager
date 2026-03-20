@@ -1,11 +1,9 @@
 import { Dropdown } from "primereact/dropdown";
 import { ROLE_OPTIONS } from "@/utils/roles";
-
 interface UserDropDownProps {
   selectedRole: string | null;
   onRoleChange: (role: string) => void;
 }
-
 export default function UserDropDown({
   selectedRole,
   onRoleChange,
@@ -24,4 +22,4 @@ export default function UserDropDown({
       />
     </button>
   );
-}
+}

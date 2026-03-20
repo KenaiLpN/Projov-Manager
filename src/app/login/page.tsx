@@ -4,11 +4,9 @@ import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import UserDropDown from "@/components/userdropdown";
 import Cookies from "js-cookie";
-
 import { toast } from "react-hot-toast";
-
 export default function LoginPage() {
-  const router = useRouter(); // F04
+  const router = useRouter(); 
   const [UsuCodigo, setUsuCodigo] = useState("");
   const [senha, setSenha] = useState("");
   const [UsuTipo, setUsuTipo] = useState<string | null>(null);
@@ -18,35 +16,25 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [createError, setCreateError] = useState("");
-  
-  // Estados para esqueci minha senha
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotError, setForgotError] = useState("");
-
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setLoginError(false);
-
     if (!UsuTipo) {
       toast.error("Selecione o tipo de perfil.");
       setLoading(false);
       return;
     }
-
     try {
       const response = await api.post("/login", { UsuCodigo, senha, UsuTipo });
-
       const { user, token } = response.data;
-
       localStorage.setItem("projov_user", JSON.stringify(user));
-
       if (token) {
         Cookies.set("token", token, { expires: 8 / 24 });
       }
-
-      // F04: Navegação sem reload usando Next Router
       if (user.UsuTipo === "APRENDIZ") {
         router.push(`/aprendizes/cadaprendizes?id=${user.UsuCodigo}`);
       } else {
@@ -65,45 +53,36 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-
   async function handleCreatePassword(e: React.FormEvent) {
     e.preventDefault();
     setCreateError("");
     setLoading(true);
-
     if (newPassword.length < 6) {
       setCreateError("A senha deve ter no mínimo 6 caracteres.");
       setLoading(false);
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setCreateError("As senhas não coincidem.");
       setLoading(false);
       return;
     }
-
     try {
       await api.post("/primeiro-acesso", {
         UsuCodigo,
         senha: newPassword,
       });
-
       toast.success("Senha criada com sucesso! Você já pode entrar.");
       setNeedsPassword(false);
       setSenha(newPassword);
       setNewPassword("");
       setConfirmPassword("");
-      
-      // Attempt login immediately
       const response = await api.post("/login", { UsuCodigo, senha: newPassword, UsuTipo });
       const { user, token } = response.data;
       localStorage.setItem("projov_user", JSON.stringify(user));
-
       if (token) {
         Cookies.set("token", token, { expires: 8 / 24 });
       }
-      
       if (user.UsuTipo === "APRENDIZ") {
         router.push(`/aprendizes/cadaprendizes?id=${user.UsuCodigo}`);
       } else {
@@ -115,18 +94,15 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
     setForgotError("");
     setLoading(true);
-
     if (!forgotEmail) {
       setForgotError("Por favor, informe seu e-mail.");
       setLoading(false);
       return;
     }
-
     try {
       const response = await api.post("/forgot-password", { email: forgotEmail });
       toast.success(response.data.message || "Um e-mail para troca da senha será enviado para você.");
@@ -139,7 +115,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-
   if (needsPassword) {
     return (
       <div className="flex items-center justify-center h-screen bg-[#253442]">
@@ -155,7 +130,6 @@ export default function LoginPage() {
               Olá, Aprendiz! Crie sua nova senha para acessar o sistema.
             </p>
           </div>
-
           <div className="flex flex-col gap-4">
             <div>
               <input
@@ -189,14 +163,12 @@ export default function LoginPage() {
                 }`}
               />
             </div>
-
             {createError && (
               <div className="text-red-500 text-sm text-center rounded">
                 {createError}
               </div>
             )}
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -209,7 +181,6 @@ export default function LoginPage() {
           >
             {loading ? "Processando..." : "Confirmar Senha"}
           </button>
-          
           <button
             type="button"
             onClick={() => {
@@ -224,7 +195,6 @@ export default function LoginPage() {
       </div>
     );
   }
-
   if (forgotPasswordMode) {
     return (
       <div className="flex items-center justify-center h-screen bg-[#253442]">
@@ -240,7 +210,6 @@ export default function LoginPage() {
               Informe seu e-mail cadastrado para receber as instruções e recuperar o acesso.
             </p>
           </div>
-
           <div className="flex flex-col gap-4">
             <div>
               <input
@@ -258,14 +227,12 @@ export default function LoginPage() {
                 }`}
               />
             </div>
-
             {forgotError && (
               <div className="text-red-500 text-sm text-center rounded">
                 {forgotError}
               </div>
             )}
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -278,7 +245,6 @@ export default function LoginPage() {
           >
             {loading ? "Processando..." : "Enviar E-mail"}
           </button>
-          
           <button
             type="button"
             onClick={() => {
@@ -293,7 +259,6 @@ export default function LoginPage() {
       </div>
     );
   }
-
   return (
     <div className="flex items-center justify-center h-screen bg-[#253442]">
       <form
@@ -308,14 +273,12 @@ export default function LoginPage() {
             Gestão do Programa Jovem Aprendiz
           </p>
         </div>
-
         <div>
           <UserDropDown selectedRole={UsuTipo} onRoleChange={(val) => {
             setUsuTipo(val);
             setSenha("");
           }} />
         </div>
-
         <div>
           <input
             type="text"
@@ -332,7 +295,6 @@ export default function LoginPage() {
             }`}
           />
         </div>
-
         <div>
           <input
             type="password"
@@ -349,16 +311,14 @@ export default function LoginPage() {
             }`}
           />
         </div>
-
         {loginError && (
           <div className="text-red-500 text-sm text-center rounded">
             Credenciais inválidas. Verifique seu usuário e senha.
           </div>
         )}
-
         <button
           type="submit"
-          disabled={loading} // Desabilita o botão enquanto carrega
+          disabled={loading} 
           className={`w-full text-white p-3 rounded cursor-pointer transition-[background-position] duration-500 ease-in-out
     ${
       loading
@@ -366,7 +326,7 @@ export default function LoginPage() {
         : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top" // Estilo normal com animação
     }`}
         >
-          {loading ? "Entrando..." : "Entrar"} {/* Muda o texto */}
+          {loading ? "Entrando..." : "Entrar"} {}
         </button>
         <button
           type="button"
@@ -385,4 +345,4 @@ export default function LoginPage() {
       </form>
     </div>
   );
-}
+}

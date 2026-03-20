@@ -1,7 +1,6 @@
 import React from "react";
 import { GraduationCap } from "lucide-react";
 import { AprendizFormData } from "./types";
-
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -11,7 +10,6 @@ interface Props {
   ) => void;
   escolas: any[];
 }
-
 export function EscolaridadeTurmasForm({
   formData,
   handleChange,
@@ -40,7 +38,6 @@ export function EscolaridadeTurmasForm({
             <option value="Não">Não</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Escolaridade / Nível
@@ -62,7 +59,6 @@ export function EscolaridadeTurmasForm({
             <option value="Superior Completo">Superior Completo</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Instituição de Ensino
@@ -81,7 +77,6 @@ export function EscolaridadeTurmasForm({
             ))}
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Turno Escolar
@@ -99,7 +94,6 @@ export function EscolaridadeTurmasForm({
             <option value="Integral">Integral</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Turma Simultaneidade
@@ -111,7 +105,6 @@ export function EscolaridadeTurmasForm({
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Turma CCI
@@ -126,4 +119,4 @@ export function EscolaridadeTurmasForm({
       </div>
     </section>
   );
-}
+}

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -10,8 +9,6 @@ import TabelaInstituicoes, {
   Instituicao,
 } from "@/components/tabelas/tabelainstituicoes";
 import Pagination from "@/components/pagination";
-
-// Interface do Form
 interface InstituicaoFormData {
   EscNome: string;
   EscEmail: string;
@@ -25,11 +22,9 @@ interface InstituicaoFormData {
   EscComplemento: string;
   EscDiretor: string;
 }
-
 export default function Instituicoes() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [instituicoes, setInstituicoes] = useState<Instituicao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,8 +34,6 @@ export default function Instituicoes() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  // Estado inicial do formulário
   const initialFormState: InstituicaoFormData = {
     EscNome: "",
     EscEmail: "",
@@ -54,13 +47,10 @@ export default function Instituicoes() {
     EscComplemento: "",
     EscDiretor: "",
   };
-
   const [formData, setFormData] =
     useState<InstituicaoFormData>(initialFormState);
   const [saving, setSaving] = useState<boolean>(false);
-
   const roles = ["Diretor", "Coordenador", "Secretaria", "TI", "Outro"];
-
   const estados = [
     "AC",
     "AL",
@@ -90,7 +80,6 @@ export default function Instituicoes() {
     "SE",
     "TO",
   ];
-
   const buscaCEP = async (cep: string) => {
     const cepLimpo = cep.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
@@ -113,13 +102,11 @@ export default function Instituicoes() {
       }
     }
   };
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData(initialFormState);
     setIsModalOpen(true);
   };
-
   const handleEdit = (item: Instituicao) => {
     setEditingId(item.EscCodigo);
     setFormData({
@@ -137,12 +124,10 @@ export default function Instituicoes() {
     });
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   async function fetchInstituicoes(
     paginaParaBuscar: number,
     searchTerm: string = "",
@@ -161,36 +146,29 @@ export default function Instituicoes() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     fetchInstituicoes(page, search);
   }, [page]);
-
   const handleSearch = () => {
     setPage(1);
     fetchInstituicoes(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchInstituicoes(1, "");
   };
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -200,15 +178,12 @@ export default function Instituicoes() {
       [name]: value,
     }));
   };
-
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/instituicao/${itemToDelete}`);
@@ -224,21 +199,16 @@ export default function Instituicoes() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     setSaving(true);
-
     try {
       if (editingId) {
-        // --- PUT ---
         await api.put(`/instituicao/${editingId}`, formData);
         toast.success("Instituição atualizada com sucesso!");
       } else {
-        // --- POST ---
         await api.post("/instituicao", formData);
         toast.success("Instituição cadastrada com sucesso!");
       }
-
       closeModal();
       fetchInstituicoes(page, search);
     } catch (err: any) {
@@ -252,13 +222,11 @@ export default function Instituicoes() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <CadSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -308,7 +276,6 @@ export default function Instituicoes() {
             Nova Instituição
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaInstituicoes
             instituicoes={instituicoes}
@@ -317,7 +284,6 @@ export default function Instituicoes() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -328,14 +294,12 @@ export default function Instituicoes() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Instituição" : "Nova Instituição"}
           </h2>
-
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Linha 1: Nome e Diretor */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome da Instituição <span className="text-red-500">*</span>
@@ -348,7 +312,6 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Diretor / Responsável
@@ -361,8 +324,7 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 2: Email e Telefone */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Email <span className="text-red-500">*</span>
@@ -375,7 +337,6 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Telefone da Instituição
@@ -388,13 +349,11 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <hr className="md:col-span-2 my-2" />
             <p className="md:col-span-2 text-sm font-bold text-gray-500">
               Endereço
             </p>
-
-            {/* Linha 3: CEP e Estado */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">CEP</label>
               <input
@@ -406,7 +365,6 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Estado
@@ -425,8 +383,7 @@ export default function Instituicoes() {
                 ))}
               </select>
             </div>
-
-            {/* Linha 4: Cidade e bairro */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Cidade
@@ -439,7 +396,6 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Bairro
@@ -452,8 +408,7 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 5: Endereço e Número */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Endereço
@@ -466,7 +421,6 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Número
@@ -479,8 +433,7 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 6: Complemento */}
+            {}
             <div className="flex flex-col gap-1 md:col-span-2">
               <label className="text-sm font-semibold text-gray-600">
                 Complemento
@@ -494,7 +447,6 @@ export default function Instituicoes() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -511,7 +463,6 @@ export default function Instituicoes() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -522,4 +473,4 @@ export default function Instituicoes() {
       </div>
     </div>
   );
-}
+}

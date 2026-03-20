@@ -1,7 +1,6 @@
 import React from "react";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { AprendizFormData, ufOptions } from "./types";
-
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -11,7 +10,6 @@ interface Props {
   ) => void;
   buscaCEP: (cep: string) => void;
 }
-
 export function EnderecoContatoForm({
   formData,
   handleChange,
@@ -117,7 +115,6 @@ export function EnderecoContatoForm({
             </select>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-gray-100">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">
@@ -184,4 +181,4 @@ export function EnderecoContatoForm({
       </div>
     </section>
   );
-}
+}

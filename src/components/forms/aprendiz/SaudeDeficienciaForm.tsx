@@ -1,7 +1,6 @@
 import React from "react";
 import { HeartPulse } from "lucide-react";
 import { AprendizFormData } from "./types";
-
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -10,7 +9,6 @@ interface Props {
     >,
   ) => void;
 }
-
 export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-10">
@@ -22,7 +20,7 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
       </div>
       <div className="p-8 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Medicamentos */}
+          {}
           <div className="space-y-4 p-4 rounded-xl bg-orange-50/30 border border-orange-100">
             <div className="flex items-center gap-2">
               <input
@@ -59,8 +57,7 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
               </div>
             )}
           </div>
-
-          {/* Alergias */}
+          {}
           <div className="space-y-4 p-4 rounded-xl bg-red-50/30 border border-red-100">
             <div className="flex items-center gap-2">
               <input
@@ -89,9 +86,8 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
             )}
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Deficiência */}
+          {}
           <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-blue-50/30 border border-blue-100">
             <label className="font-bold text-blue-900">
               Possui alguma Deficiência?
@@ -110,8 +106,7 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
               <option value="Múltipla">Múltipla</option>
             </select>
           </div>
-
-          {/* Problemas de Saúde */}
+          {}
           <div className="space-y-4 p-4 rounded-xl bg-purple-50/30 border border-purple-100">
             <div className="flex items-center gap-2">
               <input
@@ -140,10 +135,9 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
             )}
           </div>
         </div>
-
         {formData.Sexo === "Feminino" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-gray-100 pt-8">
-            {/* Gestação */}
+            {}
             <div className="space-y-4 p-4 rounded-xl bg-pink-50/30 border border-pink-100">
               <div className="flex items-center gap-2">
                 <input
@@ -179,8 +173,7 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
                 </div>
               )}
             </div>
-
-            {/* Parto */}
+            {}
             <div className="space-y-4 p-4 rounded-xl bg-rose-50/30 border border-rose-100">
               <div className="flex items-center gap-2">
                 <input
@@ -221,4 +214,4 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
       </div>
     </section>
   );
-}
+}

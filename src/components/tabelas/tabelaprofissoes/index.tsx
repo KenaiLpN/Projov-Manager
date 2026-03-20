@@ -1,10 +1,8 @@
 import React from "react";
-
 export interface Profissao {
   ProfCodigo: number;
   ProfDescricao: string;
 }
-
 interface TabelaProfissoesProps {
   dados: Profissao[];
   loading: boolean;
@@ -12,7 +10,6 @@ interface TabelaProfissoesProps {
   onEdit: (item: Profissao) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaProfissoes: React.FC<TabelaProfissoesProps> = ({
   dados,
   loading,
@@ -27,7 +24,6 @@ const TabelaProfissoes: React.FC<TabelaProfissoesProps> = ({
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -35,7 +31,6 @@ const TabelaProfissoes: React.FC<TabelaProfissoesProps> = ({
       </div>
     );
   }
-
   if (!dados || dados.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -43,7 +38,6 @@ const TabelaProfissoes: React.FC<TabelaProfissoesProps> = ({
       </div>
     );
   }
-
   return (
     <div className="p-4 overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -90,5 +84,4 @@ const TabelaProfissoes: React.FC<TabelaProfissoesProps> = ({
     </div>
   );
 };
-
-export default TabelaProfissoes;
+export default TabelaProfissoes;

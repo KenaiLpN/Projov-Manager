@@ -1,12 +1,10 @@
 import React from "react";
-
 export interface Disciplina {
   DisCodigo: number;
   DisDescricao: string;
   DisAbreviatura: string | null;
   DisCor: string | null;
 }
-
 interface TabelaDisciplinasProps {
   dados: Disciplina[];
   loading: boolean;
@@ -14,7 +12,6 @@ interface TabelaDisciplinasProps {
   onEdit: (disciplina: Disciplina) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaDisciplinas: React.FC<TabelaDisciplinasProps> = ({
   dados,
   loading,
@@ -24,7 +21,6 @@ const TabelaDisciplinas: React.FC<TabelaDisciplinasProps> = ({
 }) => {
   if (loading) return <div className="p-4 text-center">Carregando...</div>;
   if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
-
   return (
     <div className="overflow-x-auto m-5 rounded-lg shadow">
       <table className="min-w-full bg-white border border-gray-200">
@@ -128,5 +124,4 @@ const TabelaDisciplinas: React.FC<TabelaDisciplinasProps> = ({
     </div>
   );
 };
-
-export default TabelaDisciplinas;
+export default TabelaDisciplinas;

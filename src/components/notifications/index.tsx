@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from "react";
 import { Bell, UserPlus, Clock } from "lucide-react";
 import Link from "next/link";
 import api from "@/services/api";
-
 interface Notification {
   id: string;
   title: string;
@@ -11,20 +10,16 @@ interface Notification {
   time: string;
   type: "cadastro" | "info";
 }
-
 export function NotificationsMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
   const fetchRecentRegistrations = async () => {
     setLoading(true);
     try {
-      // Buscando aprendizes recentes como exemplo de "cadastros"
       const response = await api.get("/aprendiz?limit=5");
       const list = response.data.data || [];
-
       const formatted: Notification[] = list.map((item: any) => ({
         id: item.IdAluno,
         title: "Novo Aprendiz",
@@ -32,11 +27,9 @@ export function NotificationsMenu() {
         time: item.DataUltimaInteracao || new Date().toISOString(),
         type: "cadastro",
       }));
-
       setNotifications(formatted);
     } catch (err) {
       console.error("Erro ao buscar notificações", err);
-      // Fallback com mock se a API falhar ou não retornar dados
       setNotifications([
         {
           id: "1",
@@ -50,14 +43,11 @@ export function NotificationsMenu() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     if (isOpen) {
       fetchRecentRegistrations();
     }
   }, [isOpen]);
-
-  // Fecha o menu se clicar fora dele
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -67,7 +57,6 @@ export function NotificationsMenu() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -79,7 +68,6 @@ export function NotificationsMenu() {
           <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border-2 border-[#34495E]"></span>
         )}
       </button>
-
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
@@ -90,7 +78,6 @@ export function NotificationsMenu() {
               RECENTES
             </span>
           </div>
-
           <div className="max-h-[350px] overflow-y-auto">
             {loading ? (
               <div className="p-8 text-center text-gray-400">
@@ -138,7 +125,6 @@ export function NotificationsMenu() {
               </div>
             )}
           </div>
-
           <Link
             href="/aprendizes"
             onClick={() => setIsOpen(false)}
@@ -150,4 +136,4 @@ export function NotificationsMenu() {
       )}
     </div>
   );
-}
+}

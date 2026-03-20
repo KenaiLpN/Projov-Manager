@@ -1,12 +1,10 @@
 import React from "react";
 import { CalendarioGerado, TipoDia } from "@/utils/calendarioAprendizagem";
 import { X, Printer } from "lucide-react";
-
 interface Props {
   calendario: CalendarioGerado;
   onClose: () => void;
 }
-
 const CORES: Record<TipoDia, { bg: string; text: string; border: string }> = {
   introducao: {
     bg: "bg-yellow-300",
@@ -59,18 +57,15 @@ const CORES: Record<TipoDia, { bg: string; text: string; border: string }> = {
     border: "border-transparent",
   },
 };
-
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-
 export function CalendarioPreview({ calendario, onClose }: Props) {
   const handlePrint = () => {
     window.print();
   };
-
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-auto">
       <div className="min-h-screen py-8 px-4">
-        {/* Header flutuante - escondido na impressão */}
+        {}
         <div className="print:hidden sticky top-0 z-10 max-w-7xl mx-auto mb-6 flex justify-between items-center bg-white/90 backdrop-blur-md rounded-2xl shadow-xl px-6 py-4 border border-gray-200">
           <h2 className="text-xl font-bold text-[#133c86]">
             📅 ANEXO - CALENDÁRIO DA APRENDIZAGEM
@@ -92,13 +87,12 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
             </button>
           </div>
         </div>
-
-        {/* Conteúdo imprimível */}
+        {}
         <div
           id="calendario-print"
           className="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl p-8 print:shadow-none print:rounded-none print:p-4"
         >
-          {/* Cabeçalho */}
+          {}
           <div className="mb-8 border-b border-gray-200 pb-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-4 print:text-lg">
               ANEXO - CALENDÁRIO DA APRENDIZAGEM
@@ -133,8 +127,7 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
                 {calendario.duracaoContrato}
               </p>
             </div>
-
-            {/* Legenda */}
+            {}
             <div className="mt-4 flex flex-wrap gap-3 text-xs">
               <span className="flex items-center gap-1">
                 <span className="w-4 h-4 rounded bg-yellow-300 border border-yellow-400 inline-block"></span>
@@ -162,20 +155,18 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
               </span>
             </div>
           </div>
-
-          {/* Grid de meses */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 print:grid-cols-4 print:gap-2">
             {calendario.meses.map((mes) => (
               <div
                 key={`${mes.ano}-${mes.mes}`}
                 className="border border-gray-200 rounded-xl overflow-hidden shadow-sm print:shadow-none print:border-gray-300"
               >
-                {/* Nome do mês */}
+                {}
                 <div className="bg-[#133c86] text-white text-center py-2 font-bold text-xs tracking-wider print:py-1 print:text-[10px]">
                   {mes.nome}
                 </div>
-
-                {/* Dias da semana */}
+                {}
                 <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
                   {DIAS_SEMANA.map((dia) => (
                     <div
@@ -186,8 +177,7 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
                     </div>
                   ))}
                 </div>
-
-                {/* Semanas */}
+                {}
                 <div className="p-1">
                   {mes.semanas.map((semana, si) => (
                     <div key={si} className="grid grid-cols-7 gap-px">
@@ -197,9 +187,7 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
                             <div key={di} className="aspect-square p-0.5"></div>
                           );
                         }
-
                         const cor = CORES[dia.tipo];
-
                         return (
                           <div
                             key={di}
@@ -227,8 +215,7 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
               </div>
             ))}
           </div>
-
-          {/* Resumo Geral */}
+          {}
           <div className="mt-8 border-t border-gray-200 pt-6">
             <h2 className="text-lg font-bold text-gray-800 mb-4 print:text-sm">
               Resumo Geral
@@ -294,8 +281,7 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
               </table>
             </div>
           </div>
-
-          {/* Assinaturas */}
+          {}
           <div className="mt-12 grid grid-cols-2 gap-8 text-center text-sm text-gray-600 print:mt-8">
             <div>
               <div className="border-t border-gray-400 pt-2 mx-8">
@@ -322,4 +308,4 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
       </div>
     </div>
   );
-}
+}

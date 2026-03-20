@@ -2,17 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { LogOut, User, Settings, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { BotaoSair } from "../LogoutButton";
-
 interface UserMenuProps {
   nome: string;
   role: string;
 }
-
 export function UserMenu({ nome, role }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  // Lógica para obter as iniciais (Ex: "João Silva" -> "JS")
   const getInitials = (fullName: string) => {
     if (!fullName) return "U";
     const names = fullName.trim().split(" ").filter(Boolean);
@@ -21,8 +17,6 @@ export function UserMenu({ nome, role }: UserMenuProps) {
     }
     return names[0][0].toUpperCase();
   };
-
-  // Fecha o menu se clicar fora dele
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -32,16 +26,15 @@ export function UserMenu({ nome, role }: UserMenuProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   return (
     <div className="relative" ref={menuRef}>
-      {/* Botão Trigger (O que aparece na Topbar) */}
+      {}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#253341a4] transition-colors duration-200 outline-none focus:ring-2 focus:ring-gray-500/10"
       >
         <div className="flex items-end gap-2">
-          {/* Avatar Circle */}
+          {}
           <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-sm">
             {getInitials(nome)}
           </div>
@@ -51,7 +44,6 @@ export function UserMenu({ nome, role }: UserMenuProps) {
             <span className="text-xs text-[#ffff]">{role}</span>
           </div>
         </div>
-
         <ChevronDown
           size={16}
           className={`text-gray-400 transition-transform ${
@@ -59,17 +51,15 @@ export function UserMenu({ nome, role }: UserMenuProps) {
           }`}
         />
       </button>
-
-      {/* Dropdown Menu */}
+      {}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-          {/* Cabeçalho do Mobile (caso esconda o nome no botão acima) */}
+          {}
           <div className="px-4 py-3 border-b border-gray-100 sm:hidden">
             <p className="text-sm font-medium text-gray-900">{nome}</p>
             <p className="text-xs text-gray-500 truncate">{role}</p>
           </div>
-
-          {/* Itens do Menu */}
+          {}
           <div className="py-1">
             <Link
               href="/perfil"
@@ -86,12 +76,10 @@ export function UserMenu({ nome, role }: UserMenuProps) {
               Configurações
             </Link>
           </div>
-
           <BotaoSair />
-
           <div className="border-t border-gray-100 py-1"></div>
         </div>
       )}
     </div>
   );
-}
+}

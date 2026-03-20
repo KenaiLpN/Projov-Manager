@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { OcorrenciaTipo } from "@/services/ocorrenciaTipoService";
-
 const schema = z.object({
   OcoDescricao: z
     .string()
@@ -14,16 +13,13 @@ const schema = z.object({
     .min(1, "Tipo é obrigatório")
     .max(1, "Tipo deve ter no máximo 1 caractere"),
 });
-
 type FormData = z.infer<typeof schema>;
-
 interface OcorrenciaTipoFormProps {
   initialData?: OcorrenciaTipo | null;
   onSubmit: (data: FormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
-
 const OcorrenciaTipoForm: React.FC<OcorrenciaTipoFormProps> = ({
   initialData,
   onSubmit,
@@ -42,7 +38,6 @@ const OcorrenciaTipoForm: React.FC<OcorrenciaTipoFormProps> = ({
       OcoTipo: "",
     },
   });
-
   useEffect(() => {
     if (initialData) {
       reset({
@@ -56,7 +51,6 @@ const OcorrenciaTipoForm: React.FC<OcorrenciaTipoFormProps> = ({
       });
     }
   }, [initialData, reset]);
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
@@ -79,7 +73,6 @@ const OcorrenciaTipoForm: React.FC<OcorrenciaTipoFormProps> = ({
           </p>
         )}
       </div>
-
       <div>
         <label
           htmlFor="OcoTipo"
@@ -100,12 +93,10 @@ const OcorrenciaTipoForm: React.FC<OcorrenciaTipoFormProps> = ({
             Ex: P (Positivo), N (Negativo)
           </span>
         </div>
-
         {errors.OcoTipo && (
           <p className="mt-1 text-sm text-red-600">{errors.OcoTipo.message}</p>
         )}
       </div>
-
       <div className="flex justify-end space-x-3 pt-4 border-t">
         <button
           type="button"
@@ -126,5 +117,4 @@ const OcorrenciaTipoForm: React.FC<OcorrenciaTipoFormProps> = ({
     </form>
   );
 };
-
-export default OcorrenciaTipoForm;
+export default OcorrenciaTipoForm;

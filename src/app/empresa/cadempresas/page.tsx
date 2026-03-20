@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
 import Modal from "../../../components/modal";
@@ -10,12 +9,10 @@ import TabelaParceiros, {
   Parceiro,
 } from "@/components/tabelas/tabelaparceiros";
 import Pagination from "@/components/pagination";
-
 interface Ramo {
   IdRamo: number;
   Descricao: string;
 }
-
 interface ParceiroFormData {
   ParDescricao: string;
   ParNomeFantasia: string;
@@ -34,11 +31,9 @@ interface ParceiroFormData {
   ParSituacao: string;
   ParObservacoes: string;
 }
-
 export default function CadEmpresasPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [lista, setLista] = useState<Parceiro[]>([]);
   const [ramos, setRamos] = useState<Ramo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -50,7 +45,6 @@ export default function CadEmpresasPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState<ParceiroFormData>({
     ParDescricao: "",
     ParNomeFantasia: "",
@@ -69,11 +63,9 @@ export default function CadEmpresasPage() {
     ParSituacao: "A",
     ParObservacoes: "",
   });
-
   useEffect(() => {
     fetchRamos();
   }, []);
-
   async function fetchRamos() {
     try {
       const response = await api.get("/ramos-atividade?limit=100");
@@ -82,7 +74,6 @@ export default function CadEmpresasPage() {
       console.error("Erro ao carregar ramos:", err);
     }
   }
-
   async function fetchData(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -98,11 +89,9 @@ export default function CadEmpresasPage() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -125,7 +114,6 @@ export default function CadEmpresasPage() {
     });
     setIsModalOpen(true);
   };
-
   const handleEdit = async (item: Parceiro) => {
     try {
       const response = await api.get(`/parceiros/${item.ParCodigo}`);
@@ -154,35 +142,28 @@ export default function CadEmpresasPage() {
       toast.error("Erro ao carregar detalhes da empresa.");
     }
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSearch();
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -191,15 +172,12 @@ export default function CadEmpresasPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/parceiros/${itemToDelete}`);
@@ -213,13 +191,11 @@ export default function CadEmpresasPage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     if (!formData.ParDescricao.trim() || !formData.ParAtividadeId) {
       toast.error("Razão Social e Ramo de Atividade são obrigatórios.");
       return;
     }
-
     setSaving(true);
     try {
       if (editingId) {
@@ -238,13 +214,11 @@ export default function CadEmpresasPage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <EmpSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -293,7 +267,6 @@ export default function CadEmpresasPage() {
             Nova Empresa
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaParceiros
             dados={lista}
@@ -302,7 +275,6 @@ export default function CadEmpresasPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -313,12 +285,10 @@ export default function CadEmpresasPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Empresa" : "Nova Empresa"}
           </h2>
-
           <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -333,7 +303,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome Fantasia
@@ -347,7 +316,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 CNPJ
@@ -361,7 +329,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Ramo de Atividade *
@@ -380,7 +347,6 @@ export default function CadEmpresasPage() {
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Telefone
@@ -394,7 +360,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Celular
@@ -408,7 +373,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 E-mail
@@ -422,7 +386,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Status
@@ -437,11 +400,9 @@ export default function CadEmpresasPage() {
                 <option value="I">Inativo</option>
               </select>
             </div>
-
             <div className="col-span-2 border-t mt-2 pt-2">
               <h3 className="font-bold text-gray-700 mb-2">Endereço</h3>
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">CEP</label>
               <input
@@ -453,7 +414,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Estado (UF)
@@ -467,7 +427,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Logradouro
@@ -481,7 +440,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Número
@@ -495,7 +453,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Bairro
@@ -509,7 +466,6 @@ export default function CadEmpresasPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Observações
@@ -523,7 +479,6 @@ export default function CadEmpresasPage() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -540,7 +495,6 @@ export default function CadEmpresasPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -551,4 +505,4 @@ export default function CadEmpresasPage() {
       </div>
     </div>
   );
-}
+}

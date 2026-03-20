@@ -1,12 +1,9 @@
 "use client";
-
 import { useState, useEffect, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AprendizSidebar } from "@/components/aprendizsidebar";
 import { Filter, X } from "lucide-react";
 import api from "@/services/api";
-
-// Interface para o Aprendiz baseada no modelo do Prisma
 interface AprendizFormData {
   NomeJovem: string;
   NomeSocial?: string;
@@ -28,18 +25,15 @@ interface AprendizFormData {
   UF_Endereco?: string;
   StatusJovem?: string;
 }
-
 function AprendizesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter") || "";
-
   const [aprendizes, setAprendizes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
-
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [advancedFilterForm, setAdvancedFilterForm] = useState({
     Nome: "",
@@ -54,7 +48,6 @@ function AprendizesContent() {
   const [cursos, setCursos] = useState<any[]>([]);
   const [auxDataLoaded, setAuxDataLoaded] = useState(false);
   const [activeAdvancedFilter, setActiveAdvancedFilter] = useState<any>(null);
-
   const loadAuxData = async () => {
     if (auxDataLoaded) return;
     try {
@@ -71,12 +64,9 @@ function AprendizesContent() {
       console.error("Erro ao carregar dados do filtro", err);
     }
   };
-
-  // Carregar dados iniciais
   useEffect(() => {
     fetchAprendizes(page, search, filter, activeAdvancedFilter);
   }, [page, filter, activeAdvancedFilter]);
-
   const fetchAprendizes = async (
     p: number,
     s: string = search,
@@ -89,7 +79,6 @@ function AprendizesContent() {
       if (s) url += `&search=${s}`;
       if (f) url += `&filter=${f}`;
       if (adv) url += `&advancedFilter=${encodeURIComponent(JSON.stringify(adv))}`;
-      
       const response = await api.get(url);
       setAprendizes(response.data.data);
       setTotalPages(response.data.meta.totalPages);
@@ -99,30 +88,25 @@ function AprendizesContent() {
       setLoading(false);
     }
   };
-
   const handleSearch = () => {
     setPage(1);
     fetchAprendizes(1, search, filter, activeAdvancedFilter);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchAprendizes(1, "", filter, activeAdvancedFilter);
   };
-
   const handleApplyAdvancedFilter = () => {
     setActiveAdvancedFilter({ ...advancedFilterForm });
     setIsFilterModalOpen(false);
     setPage(1);
   };
-  
   const handleClearAdvancedFilter = () => {
     setAdvancedFilterForm({
       Nome: "",
@@ -136,11 +120,9 @@ function AprendizesContent() {
     setIsFilterModalOpen(false);
     setPage(1);
   };
-
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       <AprendizSidebar />
-
       <main className="flex-1 flex flex-col p-6 overflow-auto bg-gray-100">
         <div className="flex justify-between items-center mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div>
@@ -158,8 +140,7 @@ function AprendizesContent() {
             <span className="text-xl">+</span> Novo Aprendiz
           </button>
         </div>
-
-        {/* Search Bar Standardized */}
+        {}
         <div className="flex bg-[#bacce6] p-2 h-20 mb-6 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
             <div className="relative">
@@ -245,8 +226,7 @@ function AprendizesContent() {
             </div>
           )}
         </div>
-
-        {/* Tabela Modernizada */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -292,7 +272,6 @@ function AprendizesContent() {
                   } else if (a.StatusJovem === "Licença Maternidade") {
                     rowBg = "hover:bg-pink-100 transition-colors bg-pink-50/50";
                   }
-
                   return (
                     <tr
                       key={a.IdAluno}
@@ -332,7 +311,6 @@ function AprendizesContent() {
                         Calendário
                       </button>
                     </td>
-
                     <td className="p-4 text-center">
                       <button
                         onClick={() =>
@@ -352,8 +330,7 @@ function AprendizesContent() {
             </tbody>
           </table>
         </div>
-
-        {/* Pagination placeholder */}
+        {}
         <div className="mt-4 flex justify-between items-center text-gray-500 text-sm italic">
           <span>
             Mostrando página {page} de {totalPages}
@@ -373,7 +350,7 @@ function AprendizesContent() {
             </button>
           </div>
         </div>
-        {/* Modal de Filtro Avançado */}
+        {}
         {isFilterModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
@@ -386,7 +363,6 @@ function AprendizesContent() {
               <h2 className="text-2xl font-bold text-[#133c86] mb-6 border-b pb-2">
                 Filtro de Pesquisa
               </h2>
-              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Nome</label>
@@ -462,7 +438,6 @@ function AprendizesContent() {
                   </select>
                 </div>
               </div>
-
               <div className="flex justify-end gap-3 mt-8">
                 <button
                   onClick={handleClearAdvancedFilter}
@@ -484,7 +459,6 @@ function AprendizesContent() {
     </div>
   );
 }
-
 export default function Aprendizes() {
   return (
     <Suspense
@@ -497,4 +471,4 @@ export default function Aprendizes() {
       <AprendizesContent />
     </Suspense>
   );
-}
+}

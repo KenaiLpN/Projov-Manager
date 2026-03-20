@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
 import { gerarCalendario } from "./calendarioAprendizagem";
-
 test("gerarCalendario deve inicializar calendário corretamente e contabilizar carga horária básica", () => {
   const mockCalendario = gerarCalendario({
     nomeAprendiz: "Jovem Teste",
@@ -20,29 +19,18 @@ test("gerarCalendario deve inicializar calendário corretamente e contabilizar c
     folga: "Sábado e Domingo",
     feriados: [new Date("2026-12-25")],
   });
-
-  // O mock de calendário deve gerar um resumo
   assert.ok(mockCalendario.resumo !== undefined);
-
-  // O nome do jovem e detalhes devem corresponder
   assert.strictEqual(mockCalendario.nomeAprendiz, "Jovem Teste");
   assert.strictEqual(mockCalendario.curso, "Administração");
-
-  // Como são gerados muitos dias práticos e teóricos entre 2026 e 2027, as contagens devem ser maiores que 0
   assert.ok(mockCalendario.resumo.totalEncontros > 0);
   assert.ok(mockCalendario.resumo.totalHoras > 0);
   assert.ok(mockCalendario.resumo.encontrosTeoria > 0);
   assert.ok(mockCalendario.resumo.encontrosPratica > 0);
-
-  // Exemplo de verificação dos meses (pelo menos 12 meses gerados para 1 ano de contrato)
   assert.ok(mockCalendario.meses.length >= 12);
-
-  // O primeiro mês deve ser março de 2026 (mes 2 em JS, mas o nome é indexado)
   const primeiroMes = mockCalendario.meses[0];
   assert.strictEqual(primeiroMes.ano, 2026);
   assert.strictEqual(primeiroMes.mes, 2);
 });
-
 test("gerarCalendario deve calcular ausências e dias inativos com base nas férias e suspensão", () => {
   const mockComFerias = gerarCalendario({
     nomeAprendiz: "Aprendiz de Férias",
@@ -65,14 +53,9 @@ test("gerarCalendario deve calcular ausências e dias inativos com base nas fér
     periodoSuspensaoDe: "2026-08-01",
     periodoSuspensaoAte: "2026-08-15",
   });
-
-  // Identifica que a geração inicializou considerando os períodos extras previstos
   assert.ok(mockComFerias.meses.length > 0);
-
-  // Varre os meses gerados para encontrar tipos de dias 'ferias' e 'suspensao'
   let temDiaFerias = false;
   let temDiaSuspensao = false;
-
   mockComFerias.meses.forEach((m) => {
     m.semanas.forEach((sem) => {
       sem.forEach((dia) => {
@@ -83,7 +66,6 @@ test("gerarCalendario deve calcular ausências e dias inativos com base nas fér
       });
     });
   });
-
   assert.ok(temDiaFerias, "Deveria conter dias previstos como férias");
   assert.ok(temDiaSuspensao, "Deveria conter dias previstos na suspensão");
-});
+});

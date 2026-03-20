@@ -1,34 +1,27 @@
 import React, { ChangeEvent, KeyboardEvent, useState, useEffect } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-
 interface SearchBoxProps {
   onSearch: (searchTerm: string) => void;
   placeholder?: string;
   initialValue?: string;
 }
-
 const SearchBox: React.FC<SearchBoxProps> = ({
   onSearch,
   placeholder = "Buscar...",
   initialValue = "",
 }) => {
   const [searchTerm, setSearchTerm] = useState(initialValue);
-
-  // Updates local state if initialValue changes (optional, but good for controlled scenarios)
   useEffect(() => {
     setSearchTerm(initialValue);
   }, [initialValue]);
-
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       onSearch(searchTerm);
     }
   };
-
   return (
     <div className="relative">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -48,5 +41,4 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     </div>
   );
 };
-
-export default SearchBox;
+export default SearchBox;

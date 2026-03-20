@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -10,18 +9,14 @@ import TabelaOcorrencias, {
   Ocorrencia,
 } from "@/components/tabelas/tabelaocorrencias";
 import Pagination from "@/components/pagination";
-
 interface OcorrenciaFormData {
-  OcadCodAprendiz: string;
-  OcadCodOcorrencia: string;
-  OcadDataOcorrencia: string;
-  OcadObservacoes: string;
+  OcoCodigo: string;
+  OcoDescricao: string;
+  OcoTipo: string;
 }
-
 export default function OcorrenciasPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [ocorrencias, setOcorrencias] = useState<Ocorrencia[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,19 +26,14 @@ export default function OcorrenciasPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const initialFormState: OcorrenciaFormData = {
-    OcadCodAprendiz: "",
-    OcadCodOcorrencia: "",
-    OcadDataOcorrencia: "",
-    OcadObservacoes: "",
+    OcoCodigo: "",
+    OcoDescricao: "",
+    OcoTipo: "",
   };
-
   const [formData, setFormData] =
     useState<OcorrenciaFormData>(initialFormState);
   const [saving, setSaving] = useState<boolean>(false);
-
-  // Busca dados
   async function fetchOcorrencias(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -59,55 +49,41 @@ export default function OcorrenciasPage() {
       setLoading(false);
     }
   }
-
   const handleSearch = () => {
     setPage(1);
     fetchOcorrencias(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchOcorrencias(1, "");
   };
-
   useEffect(() => {
     fetchOcorrencias(page);
   }, [page]);
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData(initialFormState);
     setIsModalOpen(true);
   };
-
   const handleEdit = (item: Ocorrencia) => {
-    setEditingId(item.OcadOrdem);
-
-    const isoDate = item.OcadDataOcorrencia
-      ? item.OcadDataOcorrencia.split("T")[0]
-      : "";
-
+    setEditingId(item.OcoCodigo);
     setFormData({
-      OcadCodAprendiz: String(item.OcadCodAprendiz),
-      OcadCodOcorrencia: String(item.OcadCodOcorrencia),
-      OcadDataOcorrencia: isoDate,
-      OcadObservacoes: item.OcadObservacoes,
+      OcoCodigo: String(item.OcoCodigo),
+      OcoDescricao: item.OcoDescricao || "",
+      OcoTipo: item.OcoTipo || "",
     });
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -117,15 +93,12 @@ export default function OcorrenciasPage() {
       [name]: value,
     }));
   };
-
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/ocorrencia/${itemToDelete}`);
@@ -140,29 +113,21 @@ export default function OcorrenciasPage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     setSaving(true);
     try {
-      if (
-        !formData.OcadCodAprendiz ||
-        !formData.OcadCodOcorrencia ||
-        !formData.OcadDataOcorrencia ||
-        !formData.OcadObservacoes
-      ) {
-        toast.error("Preencha todos os campos obrigatórios.");
+      if (!formData.OcoDescricao) {
+        toast.error("A descrição é obrigatória.");
         setSaving(false);
         return;
       }
-
-      // Converte dados antes de enviar
-      const payload = {
-        OcadCodAprendiz: Number(formData.OcadCodAprendiz),
-        OcadCodOcorrencia: Number(formData.OcadCodOcorrencia),
-        OcadDataOcorrencia: formData.OcadDataOcorrencia,
-        OcadObservacoes: formData.OcadObservacoes,
+      const payload: any = {
+        OcoDescricao: formData.OcoDescricao,
+        OcoTipo: formData.OcoTipo || null,
       };
-
+      if (formData.OcoCodigo) {
+        payload.OcoCodigo = Number(formData.OcoCodigo);
+      }
       if (editingId) {
         await api.put(`/ocorrencia/${editingId}`, payload);
         toast.success("Atualizado com sucesso!");
@@ -183,21 +148,17 @@ export default function OcorrenciasPage() {
       setSaving(false);
     }
   };
-
-  // Paginação handlers
   const handlePreviousPage = () => {
     if (page > 1) setPage(page - 1);
   };
   const handleNextPage = () => {
     if (page < totalPages) setPage(page + 1);
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <CadSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -247,7 +208,6 @@ export default function OcorrenciasPage() {
             Nova Ocorrência
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaOcorrencias
             dados={ocorrencias}
@@ -256,7 +216,6 @@ export default function OcorrenciasPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -267,72 +226,54 @@ export default function OcorrenciasPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Ocorrência" : "Nova Ocorrência"}
           </h2>
-
           <div className="p-4 grid grid-cols-1 gap-4">
-            {/* Aprendiz */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                ID do Aprendiz <span className="text-red-500">*</span>
+                Código da Ocorrência
               </label>
               <input
-                name="OcadCodAprendiz"
-                value={formData.OcadCodAprendiz}
+                name="OcoCodigo"
+                value={formData.OcoCodigo}
                 onChange={handleChange}
                 type="number"
-                placeholder="ID do aluno"
-                className="p-2 w-full rounded border border-gray-300"
+                placeholder="Gerado automaticamente se vazio"
+                disabled={!!editingId}
+                className="p-2 w-full rounded border border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
-
-            {/* Código Ocorrência */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Código da Ocorrência <span className="text-red-500">*</span>
-              </label>
-              <input
-                name="OcadCodOcorrencia"
-                value={formData.OcadCodOcorrencia}
-                onChange={handleChange}
-                type="number"
-                placeholder="Ex: 1"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            {/* Data */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Data da Ocorrência <span className="text-red-500">*</span>
-              </label>
-              <input
-                name="OcadDataOcorrencia"
-                value={formData.OcadDataOcorrencia}
-                onChange={handleChange}
-                type="date"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-
-            {/* Observações */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Observações <span className="text-red-500">*</span>
+                Descrição <span className="text-red-500">*</span>
               </label>
               <textarea
-                name="OcadObservacoes"
-                value={formData.OcadObservacoes}
+                name="OcoDescricao"
+                value={formData.OcoDescricao}
                 onChange={handleChange}
-                placeholder="Detalhes da ocorrência..."
-                className="p-2 w-full rounded border border-gray-300 min-h-[100px]"
+                placeholder="Ex: Falta não justificada..."
+                className="p-2 w-full rounded border border-gray-300 min-h-[80px]"
+              />
+            </div>
+            {}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Tipo (1 caractere)
+              </label>
+              <input
+                name="OcoTipo"
+                value={formData.OcoTipo}
+                onChange={handleChange}
+                maxLength={1}
+                placeholder="Ex: F, A, E..."
+                className="p-2 w-full rounded border border-gray-300"
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -349,7 +290,6 @@ export default function OcorrenciasPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -360,4 +300,4 @@ export default function OcorrenciasPage() {
       </div>
     </div>
   );
-}
+}

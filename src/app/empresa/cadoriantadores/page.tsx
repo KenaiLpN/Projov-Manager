@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
 import Modal from "../../../components/modal";
@@ -10,24 +9,20 @@ import TabelaOrientadores, {
   Orientador,
 } from "@/components/tabelas/tabelaorientadores";
 import Pagination from "@/components/pagination";
-
 interface Unidade {
   ParUniCodigo: number;
   ParUniDescricao: string;
   EmpresaNome?: string;
 }
-
 interface OrientadorFormData {
   OriUnidadeParceiro: string;
   OriNome: string;
   OriTelefone: string;
   OriEmail: string;
 }
-
 export default function CadOrientadoresPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [lista, setLista] = useState<Orientador[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -39,18 +34,15 @@ export default function CadOrientadoresPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState<OrientadorFormData>({
     OriUnidadeParceiro: "",
     OriNome: "",
     OriTelefone: "",
     OriEmail: "",
   });
-
   useEffect(() => {
     fetchUnidades();
   }, []);
-
   async function fetchUnidades() {
     try {
       const response = await api.get("/unidades-parceiro?limit=100");
@@ -59,7 +51,6 @@ export default function CadOrientadoresPage() {
       console.error("Erro ao carregar unidades:", err);
     }
   }
-
   async function fetchData(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -75,11 +66,9 @@ export default function CadOrientadoresPage() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -90,7 +79,6 @@ export default function CadOrientadoresPage() {
     });
     setIsModalOpen(true);
   };
-
   const handleEdit = (item: Orientador) => {
     setEditingId(item.OriCodigo);
     setFormData({
@@ -101,46 +89,37 @@ export default function CadOrientadoresPage() {
     });
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/orientadores/${itemToDelete}`);
@@ -154,13 +133,11 @@ export default function CadOrientadoresPage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     if (!formData.OriNome.trim() || !formData.OriUnidadeParceiro) {
       toast.error("Nome e Unidade são obrigatórios.");
       return;
     }
-
     setSaving(true);
     try {
       if (editingId) {
@@ -179,13 +156,11 @@ export default function CadOrientadoresPage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <EmpSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -234,7 +209,6 @@ export default function CadOrientadoresPage() {
             Novo Orientador
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaOrientadores
             dados={lista}
@@ -243,7 +217,6 @@ export default function CadOrientadoresPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -254,12 +227,10 @@ export default function CadOrientadoresPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Orientador" : "Novo Orientador"}
           </h2>
-
           <div className="p-4 grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -279,7 +250,6 @@ export default function CadOrientadoresPage() {
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome do Orientador *
@@ -293,7 +263,6 @@ export default function CadOrientadoresPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 E-mail
@@ -307,7 +276,6 @@ export default function CadOrientadoresPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Telefone
@@ -322,7 +290,6 @@ export default function CadOrientadoresPage() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -339,7 +306,6 @@ export default function CadOrientadoresPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -350,4 +316,4 @@ export default function CadOrientadoresPage() {
       </div>
     </div>
   );
-}
+}

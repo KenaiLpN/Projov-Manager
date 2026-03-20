@@ -1,5 +1,4 @@
 "use client";
-
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
 import ConfirmModal from "@/components/modal/ConfirmModal";
@@ -9,11 +8,9 @@ import TabelaGrauEscolaridade, {
 import Pagination from "@/components/pagination";
 import { useCrud } from "@/hooks/useCrud";
 import { useForm } from "react-hook-form";
-
 interface GrauFormData {
   GreDescricao: string;
 }
-
 export default function GrauEscolaridadePage() {
   const {
     lista,
@@ -37,7 +34,6 @@ export default function GrauEscolaridadePage() {
     handleSalvar,
     resetFormAndLoad,
   } = useCrud<GrauEscolaridade>({ endpoint: "/grau-escolaridade" });
-
   const {
     register,
     handleSubmit,
@@ -47,36 +43,30 @@ export default function GrauEscolaridadePage() {
   } = useForm<GrauFormData>({
     defaultValues: { GreDescricao: "" },
   });
-
   const openModalNew = () => {
     reset();
     resetFormAndLoad();
   };
-
   const handleEdit = (item: GrauEscolaridade) => {
     setValue("GreDescricao", item.GreDescricao);
     setEditingId(item.GreCodigo);
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   const onSubmit = async (data: GrauFormData) => {
     const success = await handleSalvar(editingId as number, data);
     if (success) {
       reset();
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <CadSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -119,7 +109,6 @@ export default function GrauEscolaridadePage() {
             Novo Grau
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaGrauEscolaridade
             dados={lista}
@@ -131,7 +120,6 @@ export default function GrauEscolaridadePage() {
               setIsConfirmOpen(true);
             }}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -142,12 +130,10 @@ export default function GrauEscolaridadePage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Grau" : "Novo Grau"}
           </h2>
-
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col h-full"
@@ -175,7 +161,6 @@ export default function GrauEscolaridadePage() {
                 )}
               </div>
             </div>
-
             <div className="flex justify-end gap-4 m-4 pt-4 border-t mt-auto">
               <button
                 type="button"
@@ -194,7 +179,6 @@ export default function GrauEscolaridadePage() {
             </div>
           </form>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -205,4 +189,4 @@ export default function GrauEscolaridadePage() {
       </div>
     </div>
   );
-}
+}

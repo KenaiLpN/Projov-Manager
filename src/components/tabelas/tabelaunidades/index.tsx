@@ -1,8 +1,5 @@
-// src/components/TabelaClientes.tsx
-
 import React from "react";
 import { Unidade } from "@/types";
-
 interface TabelaUnidadesProps {
   unidades: Unidade[];
   loading: boolean;
@@ -10,7 +7,6 @@ interface TabelaUnidadesProps {
   onEdit: (unidade: Unidade) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaUnidades: React.FC<TabelaUnidadesProps> = ({
   unidades,
   loading,
@@ -25,7 +21,6 @@ const TabelaUnidades: React.FC<TabelaUnidadesProps> = ({
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -33,7 +28,6 @@ const TabelaUnidades: React.FC<TabelaUnidadesProps> = ({
       </div>
     );
   }
-
   if (!unidades || unidades.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -41,11 +35,9 @@ const TabelaUnidades: React.FC<TabelaUnidadesProps> = ({
       </div>
     );
   }
-
   function formatCPF(cpf: string) {
     return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
   }
-
   return (
     <div className="p-4 overflow-x-auto ">
       <table className="min-w-full divide-y divide-gray-200">
@@ -116,5 +108,4 @@ const TabelaUnidades: React.FC<TabelaUnidadesProps> = ({
     </div>
   );
 };
-
-export default TabelaUnidades;
+export default TabelaUnidades;

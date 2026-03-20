@@ -1,21 +1,14 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { PlusIcon } from "@heroicons/react/24/outline";
-
-// Componentes
 import Modal from "@/components/modal";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import SearchBox from "@/components/searchbox";
 import Pagination from "@/components/pagination";
-
-// Nossos novos componentes
 import TabelaOcorrenciaTipo from "@/components/tabelas/TabelaOcorrenciaTipo";
 import OcorrenciaTipoForm from "@/components/forms/OcorrenciaTipoForm";
 import { AprendizSidebar } from "@/components/aprendizsidebar";
-
-// Serviço e Tipos
 import {
   getAllOcorrenciaTipos,
   createOcorrenciaTipo,
@@ -23,30 +16,18 @@ import {
   deleteOcorrenciaTipo,
   OcorrenciaTipo,
 } from "@/services/ocorrenciaTipoService";
-
 export default function OcorrenciasPage() {
-  // Estados para dados e carregamento
   const [data, setData] = useState<OcorrenciaTipo[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Paginação e Busca
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
   const [search, setSearch] = useState("");
-
-  // Modais
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
-  // Item sendo editado ou excluído
   const [selectedItem, setSelectedItem] = useState<OcorrenciaTipo | null>(null);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
-
-  // Estado de envio do formulário
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Carregar dados
   const loadData = async () => {
     try {
       setLoading(true);
@@ -64,33 +45,25 @@ export default function OcorrenciasPage() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, search]); // Recarrega quando página ou busca mudam
-
-  // Handlers
+  }, [currentPage, search]); 
   const handleSearch = (term: string) => {
     setSearch(term);
-    setCurrentPage(1); // Volta para pagina 1 ao buscar
+    setCurrentPage(1); 
   };
-
   const handleCreate = () => {
     setSelectedItem(null);
     setIsFormOpen(true);
   };
-
   const handleEdit = (item: OcorrenciaTipo) => {
     setSelectedItem(item);
     setIsFormOpen(true);
   };
-
   const handleDeleteClick = (id: number) => {
     setItemToDelete(id);
     setIsDeleteOpen(true);
   };
-
   const handleFormSubmit = async (formData: {
     OcoDescricao: string;
     OcoTipo: string;
@@ -98,16 +71,14 @@ export default function OcorrenciasPage() {
     try {
       setIsSubmitting(true);
       if (selectedItem) {
-        // Update
         await updateOcorrenciaTipo(selectedItem.OcoCodigo, formData);
         toast.success("Tipo de ocorrência atualizado com sucesso!");
       } else {
-        // Create
         await createOcorrenciaTipo(formData);
         toast.success("Tipo de ocorrência criado com sucesso!");
       }
       setIsFormOpen(false);
-      loadData(); // Recarrega a tabela
+      loadData(); 
     } catch (error) {
       toast.error("Erro ao salvar tipo de ocorrência.");
       console.error(error);
@@ -115,7 +86,6 @@ export default function OcorrenciasPage() {
       setIsSubmitting(false);
     }
   };
-
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
     try {
@@ -130,11 +100,9 @@ export default function OcorrenciasPage() {
       setItemToDelete(null);
     }
   };
-
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       <AprendizSidebar />
-
       <main className="flex-1 flex flex-col p-6 overflow-auto bg-gray-100">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold text-[#133c86]">
@@ -148,7 +116,6 @@ export default function OcorrenciasPage() {
             Novo Tipo
           </button>
         </div>
-
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <SearchBox
             onSearch={handleSearch}
@@ -156,14 +123,12 @@ export default function OcorrenciasPage() {
             initialValue={search}
           />
         </div>
-
         <TabelaOcorrenciaTipo
           dados={data}
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
         />
-
         <div className="mt-4">
           <Pagination
             currentPage={currentPage}
@@ -171,8 +136,7 @@ export default function OcorrenciasPage() {
             onPageChange={setCurrentPage}
           />
         </div>
-
-        {/* Modal de Formulário (Criar/Editar) */}
+        {}
         <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)}>
           <div className="mb-4">
             <h2 className="text-xl font-bold text-[#133c86]">
@@ -188,8 +152,7 @@ export default function OcorrenciasPage() {
             isLoading={isSubmitting}
           />
         </Modal>
-
-        {/* Modal de Confirmação de Exclusão */}
+        {}
         <ConfirmModal
           isOpen={isDeleteOpen}
           onClose={() => setIsDeleteOpen(false)}
@@ -200,4 +163,4 @@ export default function OcorrenciasPage() {
       </main>
     </div>
   );
-}
+}

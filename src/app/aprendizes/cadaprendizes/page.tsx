@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AprendizSidebar } from "@/components/aprendizsidebar";
@@ -24,12 +23,10 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
-
 function CadastroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editingId = searchParams.get("id");
-
   const [unidades, setUnidades] = useState<any[]>([]);
   const [instituicoes, setInstituicoes] = useState<any[]>([]);
   const [escolas, setEscolas] = useState<any[]>([]);
@@ -37,7 +34,6 @@ function CadastroForm() {
   const [cursos, setCursos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(true);
-
   const [formData, setFormData] = useState<AprendizFormData>({
     NomeJovem: "",
     NomeSocial: "",
@@ -108,7 +104,6 @@ function CadastroForm() {
     MesesGestacao: undefined,
     PartoRealizado: false,
     DataParto: "",
-    // Calendário
     CalCurso: "",
     CalJornadaDiaria: "",
     CalDiasAprendizagemTeorica: "",
@@ -131,7 +126,6 @@ function CadastroForm() {
     CalPeriodoSuspensaoDe: "",
     CalPeriodoSuspensaoAte: "",
   });
-
   const tabs = [
     { id: "jovem", label: "Jovem", icon: <User size={18} /> },
     { id: "trabalho", label: "Trabalho", icon: <Briefcase size={18} /> },
@@ -145,9 +139,7 @@ function CadastroForm() {
     { id: "saude", label: "Saúde", icon: <HeartPulse size={18} /> },
     { id: "calendario", label: "Calendário", icon: <CalendarDays size={18} /> },
   ];
-
   const [activeTab, setActiveTab] = useState("jovem");
-
   useEffect(() => {
     const userStr = localStorage.getItem("projov_user");
     if (userStr) {
@@ -161,7 +153,6 @@ function CadastroForm() {
       fetchAprendiz(editingId);
     }
   }, [editingId]);
-
   const loadSelectData = async () => {
     try {
       const [resUnidades, resParceiros, resEscolas, resUsuarios, resCursos] =
@@ -181,21 +172,16 @@ function CadastroForm() {
       console.error("Erro ao carregar dados auxiliares", err);
     }
   };
-
   const formatDateForInput = (dateStr: string | null | undefined) => {
     if (!dateStr) return "";
     return new Date(dateStr).toISOString().split("T")[0];
   };
-
   const fetchAprendiz = async (id: string) => {
     setLoading(true);
     try {
       const response = await api.get(`/aprendiz/${id}`);
       const data = response.data;
-
       const formattedData = { ...data };
-
-      // Garantir que nenhum campo de texto seja null/undefined para o React
       Object.keys(formattedData).forEach((key) => {
         const val = formattedData[key];
         const isBooleanField =
@@ -204,7 +190,6 @@ function CadastroForm() {
           key === "TemProblemaSaude" ||
           key === "Gestante" ||
           key === "PartoRealizado";
-
         if (val === null || val === undefined) {
           if (isBooleanField) {
             formattedData[key] = false;
@@ -212,7 +197,6 @@ function CadastroForm() {
             key.startsWith("Id") ||
             typeof (formData as any)[key] === "number"
           ) {
-            // Mantém undefined para Ids
           } else {
             formattedData[key] = "";
           }
@@ -220,8 +204,6 @@ function CadastroForm() {
           formattedData[key] = Boolean(val);
         }
       });
-
-      // Formatar todas as datas para input date (YYYY-MM-DD)
       const dateFields = [
         "DataNascimento",
         "DataInicioEmpresa",
@@ -242,7 +224,6 @@ function CadastroForm() {
         "CalPeriodoSuspensaoAte",
         "DataParto",
       ];
-
       dateFields.forEach((field) => {
         if (formattedData[field]) {
           formattedData[field] = new Date(formattedData[field])
@@ -252,7 +233,6 @@ function CadastroForm() {
           formattedData[field] = "";
         }
       });
-
       setFormData(formattedData);
     } catch (err) {
       console.error("Erro ao buscar aprendiz", err);
@@ -261,20 +241,17 @@ function CadastroForm() {
       setLoading(false);
     }
   };
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
     const { name, value, type } = e.target;
-
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData((prev) => ({ ...prev, [name]: checked }));
       return;
     }
-
     setFormData((prev) => ({
       ...prev,
       [name]:
@@ -284,26 +261,22 @@ function CadastroForm() {
           ? value
             ? Number(value)
             : undefined
-          : value || "", // Garante string vazia em vez de undefined
+          : value || "", 
     }));
   };
-
   const handleSave = async () => {
     if (!formData.NomeJovem) {
       toast.error("O nome completo é obrigatório.");
       return;
     }
-
     setLoading(true);
     try {
-      // Limpar dados antes de enviar: remove campos do calendário que não existem no banco
       const dataToSend: any = {};
       Object.keys(formData).forEach((key) => {
         if (!key.startsWith("Cal") && key !== "IdAluno") {
           dataToSend[key] = (formData as any)[key];
         }
       });
-
       if (editingId) {
         await api.put(`/aprendiz/${editingId}`, dataToSend);
         toast.success("Aprendiz atualizado com sucesso!");
@@ -325,7 +298,6 @@ function CadastroForm() {
       setLoading(false);
     }
   };
-
   const buscaCEP = async (CEP: string) => {
     const cepLimpo = CEP.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
@@ -348,11 +320,9 @@ function CadastroForm() {
       }
     }
   };
-
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc]">
       {isAdmin && <AprendizSidebar />}
-
       <main className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white border-b border-gray-200 px-8 py-6 sticky top-0 z-10 shadow-sm">
           <div className="flex justify-between items-center">
@@ -377,7 +347,6 @@ function CadastroForm() {
                 </p>
               </div>
             </div>
-
             <div className="flex gap-3">
               {isAdmin && (
                 <button
@@ -404,9 +373,8 @@ function CadastroForm() {
             </div>
           </div>
         </header>
-
         <div className="p-8 max-w-7xl mx-auto w-full">
-          {/* Tabs Navigation */}
+          {}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8 p-1 flex gap-1 overflow-x-auto no-scrollbar">
             {tabs.map((tab) => (
               <button
@@ -423,7 +391,6 @@ function CadastroForm() {
               </button>
             ))}
           </div>
-
           <div className="w-full pb-20">
             {activeTab === "jovem" && (
               <DadosPessoaisForm
@@ -475,8 +442,7 @@ function CadastroForm() {
                 cursos={cursos}
               />
             )}
-
-            {/* Navigation Buttons */}
+            {}
             <div className="mt-10 flex justify-between items-center border-t border-gray-100 pt-8">
               <button
                 disabled={activeTab === "jovem"}
@@ -492,7 +458,6 @@ function CadastroForm() {
                 <ArrowLeft size={18} />
                 Anterior
               </button>
-
               {activeTab !== "calendario" ? (
                 <button
                   onClick={() => {
@@ -527,7 +492,6 @@ function CadastroForm() {
     </div>
   );
 }
-
 export default function CadAprendizes() {
   return (
     <Suspense
@@ -540,4 +504,4 @@ export default function CadAprendizes() {
       <CadastroForm />
     </Suspense>
   );
-}
+}

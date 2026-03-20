@@ -1,8 +1,6 @@
 "use client";
-
 import React from "react";
 import Modal from "./index";
-
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,7 +11,6 @@ interface ConfirmModalProps {
   cancelText?: string;
   loading?: boolean;
 }
-
 const ConfirmModal = ({
   isOpen,
   onClose,
@@ -43,10 +40,8 @@ const ConfirmModal = ({
             />
           </svg>
         </div>
-
         <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
         <p className="text-gray-600 mb-6">{message}</p>
-
         <div className="flex gap-4 w-full">
           <button
             onClick={onClose}
@@ -66,5 +61,4 @@ const ConfirmModal = ({
     </Modal>
   );
 };
-
-export default ConfirmModal;
+export default ConfirmModal;

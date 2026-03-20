@@ -1,5 +1,4 @@
 import React from "react";
-
 export interface AreaAtuacao {
   AreaCodigo: number;
   AreaDescricao: string | null;
@@ -7,7 +6,6 @@ export interface AreaAtuacao {
   AreaCargaHoraria: number | null;
   AreaNomeCertificado: string | null;
 }
-
 interface TabelaAreasAtuacaoProps {
   dados: AreaAtuacao[];
   loading: boolean;
@@ -15,7 +13,6 @@ interface TabelaAreasAtuacaoProps {
   onEdit: (area: AreaAtuacao) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaAreasAtuacao: React.FC<TabelaAreasAtuacaoProps> = ({
   dados,
   loading,
@@ -25,7 +22,6 @@ const TabelaAreasAtuacao: React.FC<TabelaAreasAtuacaoProps> = ({
 }) => {
   if (loading) return <div className="p-4 text-center">Carregando...</div>;
   if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
-
   return (
     <div className="overflow-x-auto m-5 rounded-lg shadow">
       <table className="min-w-full bg-white border border-gray-200">
@@ -123,5 +119,4 @@ const TabelaAreasAtuacao: React.FC<TabelaAreasAtuacaoProps> = ({
     </div>
   );
 };
-
-export default TabelaAreasAtuacao;
+export default TabelaAreasAtuacao;

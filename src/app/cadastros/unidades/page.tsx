@@ -1,17 +1,12 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "@/components/modal";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import { toast } from "react-hot-toast";
-
 import api from "@/services/api";
-// import { Cliente } from "@/types"; // Se tiver um tipo específico para Unidade, use-o aqui
 import TabelaUnidades from "@/components/tabelas/tabelaunidades";
 import Pagination from "@/components/pagination";
-
-// Definição da interface do Form para garantir tipagem
 interface UnidadeFormData {
   UniNome: string;
   UniCGC: string;
@@ -29,12 +24,9 @@ interface UnidadeFormData {
   UniEnderecoWeb: string;
   UniTipo: string;
 }
-
 export default function Unidades() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
-  // Se possível, mude o tipo de Cliente[] para algo como Unidade[]
   const [unidades, setUnidades] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +36,6 @@ export default function Unidades() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  // Estado inicializado com os campos corretos da Unidade
   const [formData, setFormData] = useState<UnidadeFormData>({
     UniNome: "",
     UniCGC: "",
@@ -63,7 +53,6 @@ export default function Unidades() {
     UniEnderecoWeb: "",
     UniTipo: "",
   });
-
   const buscaCEP = async (cep: string) => {
     const cepLimpo = cep.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
@@ -86,11 +75,8 @@ export default function Unidades() {
       }
     }
   };
-
   const [saving, setSaving] = useState<boolean>(false);
-
   const roles = ["Matriz", "Filial", "Parceiro", "Outro"];
-
   const estados = [
     "AC",
     "AL",
@@ -120,7 +106,6 @@ export default function Unidades() {
     "SE",
     "TO",
   ];
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -140,10 +125,8 @@ export default function Unidades() {
       UniEnderecoWeb: "",
       UniTipo: "",
     });
-
     setIsModalOpen(true);
   };
-
   const handleEditUnity = (item: any) => {
     setEditingId(item.UniCodigo);
     setFormData({
@@ -165,12 +148,10 @@ export default function Unidades() {
     });
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   async function fetchUnidades(
     paginaParaBuscar: number,
     searchTerm: string = search,
@@ -189,36 +170,29 @@ export default function Unidades() {
       setLoading(false);
     }
   }
-
   const handleSearch = () => {
     setPage(1);
     fetchUnidades(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchUnidades(1, "");
   };
-
   useEffect(() => {
     fetchUnidades(page);
   }, [page]);
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -228,15 +202,12 @@ export default function Unidades() {
       [name]: value,
     }));
   };
-
   const handleDeleteUnity = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/unidade/${itemToDelete}`);
@@ -252,33 +223,22 @@ export default function Unidades() {
       setDeleting(false);
     }
   };
-
-  // --- FUNÇÃO CORRIGIDA E SEM SENHA ---
   const handleSalvar = async () => {
     setSaving(true);
-
     try {
-      // Preparação dos dados
       const payload: any = {};
-
-      // Limpeza de campos vazios
       Object.keys(formData).forEach((key) => {
         const value = formData[key as keyof UnidadeFormData];
         if (typeof value === "string" && value.trim() === "") return;
         payload[key] = value;
       });
-
-      // Envio para API
       if (editingId) {
-        // --- PUT ---
         await api.put(`/unidade/${editingId}`, payload);
         toast.success("Unidade atualizada com sucesso!");
       } else {
-        // --- POST ---
         await api.post("/unidade", payload);
         toast.success("Unidade cadastrada com sucesso!");
       }
-
       closeModal();
       fetchUnidades(page);
     } catch (err: any) {
@@ -292,13 +252,11 @@ export default function Unidades() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <CadSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full ">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -349,9 +307,8 @@ export default function Unidades() {
             Nova Unidade
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
-          {/* Certifique-se que o componente TabelaUnidades espera a prop 'unidades' e não 'clientes' se você mudou lá */}
+          {}
           <TabelaUnidades
             unidades={unidades}
             loading={loading}
@@ -359,7 +316,6 @@ export default function Unidades() {
             onEdit={handleEditUnity}
             onDelete={handleDeleteUnity}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -370,14 +326,12 @@ export default function Unidades() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Unidade" : "Cadastro de Unidades"}
           </h2>
-
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Linha 1 */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome da Unidade
@@ -392,7 +346,6 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 CGC / CNPJ
@@ -406,8 +359,7 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 2 */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Telefone da Unidade
@@ -422,7 +374,6 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Representante Legal
@@ -436,8 +387,7 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 3 */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Cargo do Representante
@@ -451,7 +401,6 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Email Padrão de Envio
@@ -465,8 +414,7 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 4 */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Tipo
@@ -484,7 +432,6 @@ export default function Unidades() {
                 <option value="O">Outro</option>
               </select>
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">CEP</label>
               <input
@@ -497,8 +444,7 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 5 */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Estado
@@ -517,7 +463,6 @@ export default function Unidades() {
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Cidade
@@ -531,8 +476,7 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 6 */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Bairro
@@ -546,7 +490,6 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Endereço (Logradouro)
@@ -560,8 +503,7 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 7 */}
+            {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Número
@@ -575,7 +517,6 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Complemento
@@ -589,8 +530,7 @@ export default function Unidades() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
-            {/* Linha 8 */}
+            {}
             <div className="flex flex-col gap-1 md:col-span-2">
               <label className="text-sm font-semibold text-gray-600">
                 Endereço Web (Site)
@@ -606,7 +546,6 @@ export default function Unidades() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -623,7 +562,6 @@ export default function Unidades() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -634,4 +572,4 @@ export default function Unidades() {
       </div>
     </div>
   );
-}
+}

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
@@ -10,11 +9,9 @@ import TabelaAreasAtuacao, {
 } from "@/components/tabelas/tabelaareasatuacao";
 import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
-
 export default function AreasAtuacaoPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [lista, setLista] = useState<AreaAtuacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +22,6 @@ export default function AreasAtuacaoPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState<
     Partial<
       AreaAtuacao & {
@@ -48,7 +44,6 @@ export default function AreasAtuacaoPage() {
     AreaCertificado: "",
     AreaNomeCertificado: "",
   });
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -64,18 +59,15 @@ export default function AreasAtuacaoPage() {
     });
     setIsModalOpen(true);
   };
-
   const handleEdit = (item: AreaAtuacao) => {
     setEditingId(item.AreaCodigo);
     setFormData(item as any);
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   async function fetchData(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -91,26 +83,21 @@ export default function AreasAtuacaoPage() {
       setLoading(false);
     }
   }
-
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSearch();
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -123,21 +110,17 @@ export default function AreasAtuacaoPage() {
       "AreaCargaPratica4h",
       "AreaCargaPratica6h",
     ];
-
     setFormData((prev) => ({
       ...prev,
       [name]: numericFields.includes(name) ? Number(value) : value,
     }));
   };
-
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/areas/${itemToDelete}`);
@@ -151,7 +134,6 @@ export default function AreasAtuacaoPage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     setSaving(true);
     try {
@@ -171,11 +153,9 @@ export default function AreasAtuacaoPage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-screen w-screen overflow-hidden">
       <PedagogicoSidebar />
-
       <div className="flex flex-col w-full h-full overflow-y-auto">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center shadow-sm">
           <div className="flex items-center gap-2 ml-4">
@@ -224,7 +204,6 @@ export default function AreasAtuacaoPage() {
             Nova Área
           </button>
         </div>
-
         <div className="flex-1">
           <TabelaAreasAtuacao
             dados={lista}
@@ -233,7 +212,6 @@ export default function AreasAtuacaoPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -244,12 +222,10 @@ export default function AreasAtuacaoPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Área de Atuação" : "Nova Área de Atuação"}
           </h2>
-
           <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
             <div className="flex flex-col col-span-2 gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -363,7 +339,6 @@ export default function AreasAtuacaoPage() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -380,7 +355,6 @@ export default function AreasAtuacaoPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -391,4 +365,4 @@ export default function AreasAtuacaoPage() {
       </div>
     </div>
   );
-}
+}

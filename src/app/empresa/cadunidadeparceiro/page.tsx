@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
 import Modal from "../../../components/modal";
@@ -10,12 +9,10 @@ import TabelaUnidadeParceiro, {
   UnidadeParceiro,
 } from "@/components/tabelas/tabelaunidadeparceiro";
 import Pagination from "@/components/pagination";
-
 interface Empresa {
   ParCodigo: number;
   ParDescricao: string;
 }
-
 interface UnidadeFormData {
   ParUniCodigoParceiro: string;
   ParUniDescricao: string;
@@ -29,14 +26,12 @@ interface UnidadeFormData {
   ParUniEmail: string;
   ParUniNomeContato: string;
 }
-
 export default function CadUnidadeParceiroPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<{
     codigo: number;
     parceiro: number;
   } | null>(null);
-
   const [lista, setLista] = useState<UnidadeParceiro[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -51,7 +46,6 @@ export default function CadUnidadeParceiroPage() {
     parceiroId: number;
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState<UnidadeFormData>({
     ParUniCodigoParceiro: "",
     ParUniDescricao: "",
@@ -65,11 +59,9 @@ export default function CadUnidadeParceiroPage() {
     ParUniEmail: "",
     ParUniNomeContato: "",
   });
-
   useEffect(() => {
     fetchEmpresas();
   }, []);
-
   async function fetchEmpresas() {
     try {
       const response = await api.get("/parceiros?limit=100");
@@ -78,7 +70,6 @@ export default function CadUnidadeParceiroPage() {
       console.error("Erro ao carregar empresas:", err);
     }
   }
-
   async function fetchData(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -94,11 +85,9 @@ export default function CadUnidadeParceiroPage() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -116,7 +105,6 @@ export default function CadUnidadeParceiroPage() {
     });
     setIsModalOpen(true);
   };
-
   const handleEdit = async (item: UnidadeParceiro) => {
     try {
       const response = await api.get(
@@ -145,46 +133,37 @@ export default function CadUnidadeParceiroPage() {
       toast.error("Erro ao carregar detalhes da unidade.");
     }
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleDelete = (codigo: number, parceiroId: number) => {
     setItemToDelete({ codigo, parceiroId });
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(
@@ -200,13 +179,11 @@ export default function CadUnidadeParceiroPage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     if (!formData.ParUniDescricao.trim() || !formData.ParUniCodigoParceiro) {
       toast.error("Descrição e Empresa (Parceiro) são obrigatórios.");
       return;
     }
-
     setSaving(true);
     try {
       if (editingId) {
@@ -228,13 +205,11 @@ export default function CadUnidadeParceiroPage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <EmpSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -283,7 +258,6 @@ export default function CadUnidadeParceiroPage() {
             Nova Unidade
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaUnidadeParceiro
             dados={lista}
@@ -292,7 +266,6 @@ export default function CadUnidadeParceiroPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -303,12 +276,10 @@ export default function CadUnidadeParceiroPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Unidade" : "Nova Unidade"}
           </h2>
-
           <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -329,7 +300,6 @@ export default function CadUnidadeParceiroPage() {
                 ))}
               </select>
             </div>
-
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Descrição da Unidade *
@@ -343,7 +313,6 @@ export default function CadUnidadeParceiroPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 CNPJ
@@ -357,7 +326,6 @@ export default function CadUnidadeParceiroPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome Contato
@@ -371,7 +339,6 @@ export default function CadUnidadeParceiroPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 E-mail
@@ -385,11 +352,9 @@ export default function CadUnidadeParceiroPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="col-span-2 border-t mt-2 pt-2">
               <h3 className="font-bold text-gray-700 mb-2">Endereço</h3>
             </div>
-
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Logradouro
@@ -403,7 +368,6 @@ export default function CadUnidadeParceiroPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Cidade
@@ -417,7 +381,6 @@ export default function CadUnidadeParceiroPage() {
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Estado (UF)
@@ -432,7 +395,6 @@ export default function CadUnidadeParceiroPage() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -449,7 +411,6 @@ export default function CadUnidadeParceiroPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -460,4 +421,4 @@ export default function CadUnidadeParceiroPage() {
       </div>
     </div>
   );
-}
+}

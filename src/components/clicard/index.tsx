@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { TagStatus } from "../tagstatus";
-
 type Client = {
   id: number;
   cod_cli: number;
@@ -22,11 +21,9 @@ type Client = {
   createdAt: string;
   updatedAt: string;
 };
-
 interface Props {
   client: Client;
 }
-
 function formatPhone(phone?: string) {
   if (!phone) return "";
   const cleaned = phone.replace(/\D/g, "");
@@ -41,17 +38,14 @@ function formatPhone(phone?: string) {
   }
   return phone;
 }
-
 function formatCNPJ(cnpj: string) {
   return cnpj.replace(
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
     "$1.$2.$3/$4-$5"
   );
 }
-
 export function ClientCard({ client }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="bg-[#FFFFFF] rounded-lg border border-[#E5E7EB] mb-5 m-7">
       <div className="m-10">
@@ -66,18 +60,14 @@ export function ClientCard({ client }: Props) {
             <TagStatus chkAtivo={client.chkAtivo} />
           </div>
         </div>
-
         <div className="bg-[#F7FAFC] m-5 border rounded-xl border-[#E5E7EB]">
           <header
             className="cursor-pointer p-5 flex justify-between items-center bg-[#FFFFFF] rounded-xl"
             onClick={() => setIsOpen(!isOpen)}
           >
             <span className="font-semibold">Dados da Empresa</span>
-            
-
             {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </header>
-
           <div
             className={`transition-all duration-500 ease-in-out overflow-hidden ${
               isOpen
@@ -86,7 +76,7 @@ export function ClientCard({ client }: Props) {
             }`}
           >
             <div className="grid grid-cols-2 m-5">
-              {/* Coluna da Esquerda */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Razão Social</p>
@@ -107,7 +97,7 @@ export function ClientCard({ client }: Props) {
                   <p className="font-medium">{formatPhone(client.telefone)}</p>
                 </div>
               </div>
-              {/* Coluna da Direita */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Nome Fantasia</p>
@@ -130,16 +120,16 @@ export function ClientCard({ client }: Props) {
               </div>
             </div>
             <hr className="text-[#E5E7EB]" />
-            {/* Endereço IP VPN e Porta */}
+            {}
             <div className="grid grid-cols-2 m-5">
-              {/* Coluna da Esquerda */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Razão Social</p>
                   <p className="font-medium">{client.razao_social}</p>
                 </div>
               </div>
-              {/* Coluna da Direita */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Nome Fantasia</p>
@@ -147,11 +137,9 @@ export function ClientCard({ client }: Props) {
                 </div>
               </div>
             </div>
-
             <hr className="text-[#E5E7EB]" />
-
             <div className="grid grid-cols-2 m-5">
-              {/* Coluna da Esquerda */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Sistema Operacional</p>
@@ -166,7 +154,7 @@ export function ClientCard({ client }: Props) {
                   <p className="font-medium">192.168.0.10</p>
                 </div>
               </div>
-              {/* Coluna da Direita */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Processador</p>
@@ -184,7 +172,7 @@ export function ClientCard({ client }: Props) {
             </div>
             <hr className="text-[#E5E7EB]" />
             <div className="grid grid-cols-2 m-5">
-              {/* Coluna da Esquerda */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Tipo de Banco</p>
@@ -199,7 +187,7 @@ export function ClientCard({ client }: Props) {
                   <p className="font-medium">Tecno2017Lince</p>
                 </div>
               </div>
-              {/* Coluna da Direita */}
+              {}
               <div className="space-y-5">
                 <div>
                   <p className="text-[#64748B]">Versão</p>
@@ -215,10 +203,9 @@ export function ClientCard({ client }: Props) {
                 </div>
               </div>
             </div>
-         
           </div>
         </div>
       </div>
     </div>
   );
-}
+}

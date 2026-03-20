@@ -3,17 +3,14 @@ import { useState, Suspense } from "react";
 import api from "@/services/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
-
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-
   if (!token) {
     return (
       <div className="flex flex-col items-center justify-center p-8 bg-[#34495E] shadow-2xl w-110 rounded-2xl gap-8">
@@ -32,24 +29,20 @@ function ResetPasswordForm() {
       </div>
     );
   }
-
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
     setErrorMsg("");
     setLoading(true);
-
     if (newPassword.length < 6) {
       setErrorMsg("A senha deve ter no mínimo 6 caracteres.");
       setLoading(false);
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setErrorMsg("As senhas não coincidem.");
       setLoading(false);
       return;
     }
-
     try {
       const response = await api.post("/reset-password", { token, newPassword });
       toast.success(response.data.message || "Senha alterada com sucesso!");
@@ -61,7 +54,6 @@ function ResetPasswordForm() {
       setLoading(false);
     }
   }
-
   return (
     <form
       onSubmit={handleReset}
@@ -75,7 +67,6 @@ function ResetPasswordForm() {
           Digite a sua nova senha abaixo.
         </p>
       </div>
-
       <div className="flex flex-col gap-4">
         <input
           type="password"
@@ -97,14 +88,12 @@ function ResetPasswordForm() {
           }}
           className="w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none border-[#34495E] focus:border-blue-500"
         />
-
         {errorMsg && (
           <div className="text-red-500 text-sm text-center rounded">
             {errorMsg}
           </div>
         )}
       </div>
-
       <button
         type="submit"
         disabled={loading}
@@ -117,7 +106,6 @@ function ResetPasswordForm() {
       >
         {loading ? "Processando..." : "Salvar Nova Senha"}
       </button>
-
       <button
         type="button"
         onClick={() => router.push("/login")}
@@ -128,7 +116,6 @@ function ResetPasswordForm() {
     </form>
   );
 }
-
 export default function ResetPasswordPage() {
   return (
     <div className="flex items-center justify-center h-screen bg-[#253442]">

@@ -1,15 +1,10 @@
 import api from "./api";
-
-import { DefaultResponse } from "@/types/api"; // Assuming a default response type exists or I just define it here.
-// Actually, I'll allow defining types inline as user didn't show `types/api.ts`.
-// But I saw `types` folder. Better safe than sorry, I'll define locally.
-
+import { DefaultResponse } from "@/types/api"; 
 export interface OcorrenciaTipo {
   OcoCodigo: number;
   OcoDescricao: string | null;
   OcoTipo: string | null;
 }
-
 export interface OcorrenciaTipoResponse {
   data: OcorrenciaTipo[];
   meta: {
@@ -19,7 +14,6 @@ export interface OcorrenciaTipoResponse {
     totalPages: number;
   };
 }
-
 export const getAllOcorrenciaTipos = async (
   page = 1,
   limit = 10,
@@ -30,12 +24,10 @@ export const getAllOcorrenciaTipos = async (
   );
   return response.data;
 };
-
 export const createOcorrenciaTipo = async (data: Partial<OcorrenciaTipo>) => {
   const response = await api.post<OcorrenciaTipo>("/tipo-ocorrencia", data);
   return response.data;
 };
-
 export const updateOcorrenciaTipo = async (
   id: number,
   data: Partial<OcorrenciaTipo>,
@@ -46,7 +38,6 @@ export const updateOcorrenciaTipo = async (
   );
   return response.data;
 };
-
 export const deleteOcorrenciaTipo = async (id: number) => {
   await api.delete(`/tipo-ocorrencia/${id}`);
-};
+};

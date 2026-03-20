@@ -2,12 +2,10 @@ export type FormValues = {
   email: string;
   password: string;
 };
-
 export interface LoginResponse {
   data: string[];
   msg: string;
 }
-
 export interface Usuario {
   UsuCodigo: string;
   UsuNome: string | null;
@@ -15,7 +13,7 @@ export interface Usuario {
   UsuTipo: string | null;
   cpf: string | null;
   chk_ativo: boolean;
-  id_usuario?: number; // Mantendo caso venha, mas opcional
+  id_usuario?: number; 
   criado_em?: string;
   atualizado_em?: string;
   confirmacao_senha?: string;
@@ -39,7 +37,6 @@ export interface Unidade {
   UniTipo: string | null;
   UniDataRefPesquisa?: string | null;
 }
-
 export interface InstituicaoEnsino {
   id_instituicao: number;
   nome_instituicao: string;
@@ -57,4 +54,4 @@ export interface InstituicaoEnsino {
   email_responsavel?: string;
   chk_ativo: boolean;
   created_at?: string;
-}
+}

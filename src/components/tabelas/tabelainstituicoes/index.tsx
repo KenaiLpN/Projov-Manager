@@ -1,6 +1,4 @@
 import React from "react";
-
-// Defina a interface aqui ou importe de @/types se preferir centralizar
 export interface Instituicao {
   EscCodigo: number;
   EscNome: string | null;
@@ -15,7 +13,6 @@ export interface Instituicao {
   EscComplemento: string | null;
   EscDiretor: string | null;
 }
-
 interface TabelaInstituicoesProps {
   instituicoes: Instituicao[];
   loading: boolean;
@@ -23,7 +20,6 @@ interface TabelaInstituicoesProps {
   onEdit: (instituicao: Instituicao) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
   instituicoes,
   loading,
@@ -38,7 +34,6 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -46,7 +41,6 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
       </div>
     );
   }
-
   if (!instituicoes || instituicoes.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -54,7 +48,6 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
       </div>
     );
   }
-
   return (
     <div className="p-4 overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -119,5 +112,4 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
     </div>
   );
 };
-
-export default TabelaInstituicoes;
+export default TabelaInstituicoes;

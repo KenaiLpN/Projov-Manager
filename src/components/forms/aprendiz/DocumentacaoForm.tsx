@@ -1,7 +1,6 @@
 import React from "react";
 import { FileText } from "lucide-react";
 import { AprendizFormData, ufOptions } from "./types";
-
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -10,7 +9,6 @@ interface Props {
     >,
   ) => void;
 }
-
 export function DocumentacaoForm({ formData, handleChange }: Props) {
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden w-full">
@@ -33,7 +31,6 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             RG
@@ -46,7 +43,6 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             RG Data Emissão
@@ -59,7 +55,6 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Órgão Expedidor / UF
@@ -87,7 +82,6 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
             </select>
           </div>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             PIS / PASEP
@@ -99,7 +93,6 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             CTPS (Número / Série)
@@ -121,7 +114,6 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
             />
           </div>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Reservista
@@ -133,7 +125,6 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Título Eleitor (Z / S)
@@ -165,4 +156,4 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
       </div>
     </section>
   );
-}
+}

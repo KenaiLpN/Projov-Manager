@@ -1,5 +1,4 @@
 "use client";
-
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
 import ConfirmModal from "@/components/modal/ConfirmModal";
@@ -8,13 +7,11 @@ import Pagination from "@/components/pagination";
 import { useCrud } from "@/hooks/useCrud";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-
 interface FeriadoFormData {
   FerDescricao: string;
-  FerData: string; // YYYY-MM-DD para input date
+  FerData: string; 
   FerUnidade: string;
 }
-
 export default function FeriadosPage() {
   const {
     lista,
@@ -36,11 +33,9 @@ export default function FeriadosPage() {
     handleSalvar,
     resetFormAndLoad,
   } = useCrud<Feriado>({ endpoint: "/feriado" });
-
   const [editingUnidadeData, setEditingUnidadeData] = useState<string | null>(
     null,
   );
-
   const {
     register,
     handleSubmit,
@@ -50,54 +45,45 @@ export default function FeriadosPage() {
   } = useForm<FeriadoFormData>({
     defaultValues: { FerDescricao: "", FerData: "", FerUnidade: "" },
   });
-
   const openModalNew = () => {
     reset();
     setEditingUnidadeData(null);
     resetFormAndLoad();
   };
-
   const handleEdit = (item: Feriado) => {
     const dataFormatada = item.FerData
       ? new Date(item.FerData).toISOString().split("T")[0]
       : "";
-
     setValue("FerDescricao", item.FerDescricao);
     setValue("FerData", dataFormatada);
     setValue("FerUnidade", String(item.FerUnidade));
-
     setEditingUnidadeData(`${item.FerUnidade}/${dataFormatada}`);
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingUnidadeData(null);
   };
-
   const onSubmit = async (data: FeriadoFormData) => {
     const success = await handleSalvar(editingUnidadeData, {
       ...data,
-      FerUnidade: Number(data.FerUnidade), // Convert string to number for the backend
+      FerUnidade: Number(data.FerUnidade), 
     });
     if (success) {
       reset();
       setEditingUnidadeData(null);
     }
   };
-
   const handleDelete = (item: Feriado) => {
     const dataFormatada = new Date(item.FerData).toISOString().split("T")[0];
     setItemToDelete(`${item.FerUnidade}/${dataFormatada}`);
     setIsConfirmOpen(true);
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <CadSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -140,7 +126,6 @@ export default function FeriadosPage() {
             Novo Feriado
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaFeriados
             dados={lista}
@@ -149,7 +134,6 @@ export default function FeriadosPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -160,12 +144,10 @@ export default function FeriadosPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingUnidadeData ? "Editar Feriado" : "Novo Feriado"}
           </h2>
-
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col h-full"
@@ -192,7 +174,6 @@ export default function FeriadosPage() {
                   </span>
                 )}
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-semibold text-gray-600">
@@ -211,7 +192,6 @@ export default function FeriadosPage() {
                     </span>
                   )}
                 </div>
-
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-semibold text-gray-600">
                     Unidade
@@ -232,7 +212,6 @@ export default function FeriadosPage() {
                 </div>
               </div>
             </div>
-
             <div className="flex justify-end gap-4 m-4 pt-4 border-t mt-auto">
               <button
                 type="button"
@@ -251,7 +230,6 @@ export default function FeriadosPage() {
             </div>
           </form>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -262,4 +240,4 @@ export default function FeriadosPage() {
       </div>
     </div>
   );
-}
+}

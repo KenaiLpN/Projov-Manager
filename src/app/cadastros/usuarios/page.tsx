@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -10,22 +9,18 @@ import { Usuario } from "@/types";
 import { ROLE_OPTIONS } from "@/utils/roles";
 import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
-
 export default function CadCliPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
-
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState({
     UsuCodigo: "",
     UsuNome: "",
@@ -34,9 +29,7 @@ export default function CadCliPage() {
     UsuSenha: "",
     confirmacao_senha: "",
   });
-
   const [saving, setSaving] = useState<boolean>(false);
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({
@@ -49,7 +42,6 @@ export default function CadCliPage() {
     });
     setIsModalOpen(true);
   };
-
   const handleEditUser = (usuario: Usuario) => {
     setEditingId(usuario.UsuCodigo);
     setFormData({
@@ -62,12 +54,10 @@ export default function CadCliPage() {
     });
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   async function fetchUsuarios(
     paginaParaBuscar: number,
     searchTerm: string = "",
@@ -77,7 +67,6 @@ export default function CadCliPage() {
       const response = await api.get(
         `/users?page=${paginaParaBuscar}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
       );
-
       setUsuarios(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
@@ -87,36 +76,29 @@ export default function CadCliPage() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     fetchUsuarios(page, search);
   }, [page]);
-
   const handleSearch = () => {
-    setPage(1); // Volta para primeira página ao pesquisar
+    setPage(1); 
     fetchUsuarios(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchUsuarios(1, "");
   };
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -126,16 +108,12 @@ export default function CadCliPage() {
       [name]: value,
     }));
   };
-
-  // --- NOVA FUNÇÃO DE DELETE ---
   const handleDeleteUser = (id: string) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/users/${itemToDelete}`);
@@ -151,58 +129,41 @@ export default function CadCliPage() {
       setDeleting(false);
     }
   };
-
-  // --- FUNÇÃO CORRIGIDA ---
   const handleSalvar = async () => {
-    // 1. Validações Iniciais
     if (formData.UsuSenha !== formData.confirmacao_senha) {
       toast.error("As senhas não coincidem. Por favor, verifique.");
       return;
     }
-
     if (!editingId && formData.UsuSenha.length < 8) {
       toast.error(
         "Para novos usuários, a senha deve ter pelo menos 8 caracteres.",
       );
       return;
     }
-
     if (!formData.UsuCodigo) {
       toast.error("Preencha o Código do Usuário.");
       return;
     }
-
     setSaving(true);
-
     try {
-      // 2. Preparação dos dados (Sanitização)
       const { confirmacao_senha, UsuSenha, ...restOfData } = formData;
       const payload: any = {
         ...restOfData,
       };
-
-      // Se a senha estiver preenchida, inclui no payload
       if (UsuSenha && UsuSenha.trim() !== "") {
         payload.UsuSenha = UsuSenha;
       }
-
-      // 3. Envio para API
       if (editingId) {
-        // --- MODO EDIÇÃO (PUT) ---
         await api.put(`/users/${editingId}`, payload);
         toast.success("Usuário atualizado com sucesso!");
       } else {
-        // --- MODO CRIAÇÃO (POST) ---
         await api.post("/users", payload);
         toast.success("Usuário cadastrado com sucesso!");
       }
-
       closeModal();
-      fetchUsuarios(page); // Atualiza a tabela
+      fetchUsuarios(page); 
     } catch (err: any) {
-      // 4. Tratamento de Erro
       console.error("Erro completo:", err);
-
       if (err.response?.data) {
         console.log("Detalhes do erro Zod:", err.response.data);
         toast.error(`Erro de validação: ${JSON.stringify(err.response.data)}`);
@@ -213,13 +174,11 @@ export default function CadCliPage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <CadSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full ">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -269,7 +228,6 @@ export default function CadCliPage() {
             Novo
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaUsuarios
             usuarios={usuarios}
@@ -278,7 +236,6 @@ export default function CadCliPage() {
             onEdit={handleEditUser}
             onDelete={handleDeleteUser}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -289,12 +246,10 @@ export default function CadCliPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Usuário" : "Cadastro de Usuários"}
           </h2>
-
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -305,12 +260,11 @@ export default function CadCliPage() {
                 value={formData.UsuCodigo}
                 onChange={handleChange}
                 type="text"
-                disabled={!!editingId} // Não pode editar PK
+                disabled={!!editingId} 
                 placeholder="Código Único (ex: USR001)"
                 className="p-2 w-full rounded border border-gray-300 disabled:bg-gray-100"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome
@@ -324,7 +278,6 @@ export default function CadCliPage() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Email
@@ -337,7 +290,6 @@ export default function CadCliPage() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Função
@@ -356,7 +308,6 @@ export default function CadCliPage() {
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Senha{" "}
@@ -389,7 +340,6 @@ export default function CadCliPage() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -406,7 +356,6 @@ export default function CadCliPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -417,4 +366,4 @@ export default function CadCliPage() {
       </div>
     </div>
   );
-}
+}

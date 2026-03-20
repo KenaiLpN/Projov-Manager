@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
@@ -12,14 +11,12 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react";
-
 interface DashboardStats {
   total: number;
   vacation: number;
   working: number;
   available: number;
 }
-
 export default function Home() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
@@ -29,7 +26,6 @@ export default function Home() {
     available: 0,
   });
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     async function fetchStats() {
       try {
@@ -43,7 +39,6 @@ export default function Home() {
     }
     fetchStats();
   }, []);
-
   const cards = [
     {
       title: "Aprendizes Cadastrados",
@@ -82,10 +77,9 @@ export default function Home() {
       description: "Aguardando contratação",
     },
   ];
-
   return (
     <div className="min-h-full bg-gray-50/50 p-8">
-      {/* Header Section */}
+      {}
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-[#133c86] tracking-tight">
@@ -97,8 +91,7 @@ export default function Home() {
           </p>
         </div>
       </div>
-
-      {/* Stats Grid */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {cards.map((card, index) => (
           <div
@@ -106,10 +99,9 @@ export default function Home() {
             onClick={() => router.push(card.link)}
             className={`group relative overflow-hidden rounded-2xl p-8 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:-translate-y-1 ${card.color} ${card.shadow} shadow-2xl`}
           >
-            {/* Background Decorative elements */}
+            {}
             <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-700" />
             <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-black/10 rounded-full blur-xl" />
-
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center justify-between mb-6">
                 <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl text-white">
@@ -119,7 +111,6 @@ export default function Home() {
                   <ArrowUpRight size={20} className="text-white" />
                 </div>
               </div>
-
               <div className="flex flex-col">
                 <span className="text-white/80 text-sm font-semibold uppercase tracking-wider mb-1">
                   {card.title}
@@ -137,8 +128,7 @@ export default function Home() {
           </div>
         ))}
       </div>
-
-      {/* Decorative Placeholder for Charts etc */}
+      {}
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm min-h-[400px] flex flex-col items-center justify-center text-center">
           <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
@@ -150,7 +140,6 @@ export default function Home() {
             poderá visualizar gráficos de crescimento aqui.
           </p>
         </div>
-
         <div className="bg-[#133c86] rounded-[2.5rem] p-10 flex flex-col justify-between relative overflow-hidden text-white shadow-xl shadow-blue-900/20">
           <Activity className="absolute -right-10 -bottom-10 w-64 h-64 text-white/5 rotate-12" />
           <div>
@@ -169,4 +158,4 @@ export default function Home() {
       </div>
     </div>
   );
-}
+}

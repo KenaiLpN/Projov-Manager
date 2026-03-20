@@ -8,7 +8,6 @@ import {
   CalendarioInput,
 } from "@/utils/calendarioAprendizagem";
 import { toast } from "react-hot-toast";
-
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -20,7 +19,6 @@ interface Props {
   instituicoes: any[];
   cursos: any[];
 }
-
 export function CalendarioForm({
   formData,
   handleChange,
@@ -31,9 +29,7 @@ export function CalendarioForm({
   const [calendarioGerado, setCalendarioGerado] =
     useState<CalendarioGerado | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-
   const gerarCalendarioHandler = () => {
-    // Validações
     if (!formData.CalDataAdmissao) {
       toast.error("Preencha a Data de Admissão.");
       return;
@@ -45,16 +41,13 @@ export function CalendarioForm({
       toast.error("Preencha a Data Prevista de Término do contrato.");
       return;
     }
-
     const empresaNome =
       instituicoes.find(
         (i: any) => String(i.IpaCodigo) === String(formData.CalEmpresa),
       )?.IpaDescricao || "";
-
     const cursoNome =
       cursos.find((c: any) => String(c.CurCodigo) === String(formData.CalCurso))
         ?.CurDescricao || formData.CalCurso;
-
     const input: CalendarioInput = {
       nomeAprendiz: formData.NomeJovem || "",
       curso: cursoNome || "",
@@ -79,7 +72,6 @@ export function CalendarioForm({
       periodoSuspensaoDe: formData.CalPeriodoSuspensaoDe,
       periodoSuspensaoAte: formData.CalPeriodoSuspensaoAte,
     };
-
     try {
       const resultado = gerarCalendario(input);
       setCalendarioGerado(resultado);
@@ -91,7 +83,6 @@ export function CalendarioForm({
       toast.error("Erro ao gerar o calendário. Verifique os dados.");
     }
   };
-
   const visualizarCalendario = () => {
     if (!calendarioGerado) {
       toast.error("Gere o calendário primeiro clicando em 'Calcular'.");
@@ -99,7 +90,6 @@ export function CalendarioForm({
     }
     setShowPreview(true);
   };
-
   return (
     <>
       <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -109,9 +99,8 @@ export function CalendarioForm({
             Calendário
           </h2>
         </div>
-
         <div className="p-8 space-y-8">
-          {/* Linha 1 */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
@@ -131,7 +120,6 @@ export function CalendarioForm({
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Jornada Diária
@@ -144,7 +132,6 @@ export function CalendarioForm({
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
               />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Dias de Aprendizagem Teórica
@@ -156,7 +143,6 @@ export function CalendarioForm({
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
               />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Dias de Aprendizagem Prática
@@ -168,7 +154,6 @@ export function CalendarioForm({
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
               />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Data de Admissão
@@ -181,7 +166,6 @@ export function CalendarioForm({
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
               />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Data de Término Introdutórios
@@ -195,8 +179,7 @@ export function CalendarioForm({
               />
             </div>
           </div>
-
-          {/* Linha 2 */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
@@ -216,7 +199,6 @@ export function CalendarioForm({
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Dia Encontro Semanal
@@ -237,7 +219,6 @@ export function CalendarioForm({
                 <option value="Domingo">Domingo</option>
               </select>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Data Início Encontro Semanal
@@ -250,7 +231,6 @@ export function CalendarioForm({
                 className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
               />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Dia Encontro Mensal
@@ -271,7 +251,6 @@ export function CalendarioForm({
                 <option value="Domingo">Domingo</option>
               </select>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Semana Encontro Mensal
@@ -290,7 +269,6 @@ export function CalendarioForm({
                 <option value="Última Semana">Última Semana</option>
               </select>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Folga
@@ -309,8 +287,7 @@ export function CalendarioForm({
               </select>
             </div>
           </div>
-
-          {/* Linha 3 */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
@@ -330,7 +307,6 @@ export function CalendarioForm({
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Unidade Feriado Prática
@@ -349,7 +325,6 @@ export function CalendarioForm({
                 ))}
               </select>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-500 uppercase">
                 Empresa
@@ -369,8 +344,7 @@ export function CalendarioForm({
               </select>
             </div>
           </div>
-
-          {/* Linha 4 - Férias */}
+          {}
           <div className="border-t border-gray-100 pt-6">
             <h3 className="text-xs font-bold text-gray-500 uppercase mb-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
@@ -389,7 +363,6 @@ export function CalendarioForm({
                   className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
                 />
               </div>
-
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase">
                   Período Férias Até
@@ -402,7 +375,6 @@ export function CalendarioForm({
                   className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
                 />
               </div>
-
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase">
                   Período Férias 2 De
@@ -415,7 +387,6 @@ export function CalendarioForm({
                   className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
                 />
               </div>
-
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase">
                   Período Férias 2 Até
@@ -430,8 +401,7 @@ export function CalendarioForm({
               </div>
             </div>
           </div>
-
-          {/* Linha 5 - Suspensão */}
+          {}
           <div className="border-t border-gray-100 pt-6">
             <h3 className="text-xs font-bold text-gray-500 uppercase mb-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
@@ -450,7 +420,6 @@ export function CalendarioForm({
                   className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-100 focus:bg-white outline-none transition-all"
                 />
               </div>
-
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase">
                   Período Suspensão Até
@@ -465,8 +434,7 @@ export function CalendarioForm({
               </div>
             </div>
           </div>
-
-          {/* Botões de Ação */}
+          {}
           <div className="border-t border-gray-100 pt-6 flex flex-wrap gap-4">
             <button
               type="button"
@@ -476,7 +444,6 @@ export function CalendarioForm({
               <Calculator size={18} />
               Calcular
             </button>
-
             <button
               type="button"
               onClick={visualizarCalendario}
@@ -486,7 +453,6 @@ export function CalendarioForm({
               <Eye size={18} />
               Visualizar Calendário
             </button>
-
             {calendarioGerado && (
               <div className="flex items-center gap-3 ml-4 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
                 <span>
@@ -513,8 +479,7 @@ export function CalendarioForm({
           </div>
         </div>
       </section>
-
-      {/* Modal de preview */}
+      {}
       {showPreview && calendarioGerado && (
         <CalendarioPreview
           calendario={calendarioGerado}
@@ -523,4 +488,4 @@ export function CalendarioForm({
       )}
     </>
   );
-}
+}

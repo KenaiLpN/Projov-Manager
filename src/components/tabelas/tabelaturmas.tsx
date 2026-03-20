@@ -1,5 +1,4 @@
 import React from "react";
-
 export interface Turma {
   TurCodigo: number;
   TurCurso: string | null;
@@ -10,7 +9,6 @@ export interface Turma {
   TurStatus: string | null;
   TurUnidade: number | null;
 }
-
 interface TabelaTurmasProps {
   dados: Turma[];
   loading: boolean;
@@ -18,7 +16,6 @@ interface TabelaTurmasProps {
   onEdit: (turma: Turma) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaTurmas: React.FC<TabelaTurmasProps> = ({
   dados,
   loading,
@@ -28,7 +25,6 @@ const TabelaTurmas: React.FC<TabelaTurmasProps> = ({
 }) => {
   if (loading) return <div className="p-4 text-center">Carregando...</div>;
   if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
-
   return (
     <div className="overflow-x-auto m-5 rounded-lg shadow">
       <table className="min-w-full bg-white border border-gray-200">
@@ -138,5 +134,4 @@ const TabelaTurmas: React.FC<TabelaTurmasProps> = ({
     </div>
   );
 };
-
-export default TabelaTurmas;
+export default TabelaTurmas;

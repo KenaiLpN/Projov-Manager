@@ -1,14 +1,12 @@
 import React from "react";
 import { OcorrenciaTipo } from "@/services/ocorrenciaTipoService";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-
 interface TabelaOcorrenciaTipoProps {
   dados: OcorrenciaTipo[];
   loading: boolean;
   onEdit: (item: OcorrenciaTipo) => void;
   onDelete: (id: number) => void;
 }
-
 const TabelaOcorrenciaTipo: React.FC<TabelaOcorrenciaTipoProps> = ({
   dados,
   loading,
@@ -22,7 +20,6 @@ const TabelaOcorrenciaTipo: React.FC<TabelaOcorrenciaTipoProps> = ({
       </div>
     );
   }
-
   if (!dados || dados.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -30,7 +27,6 @@ const TabelaOcorrenciaTipo: React.FC<TabelaOcorrenciaTipoProps> = ({
       </div>
     );
   }
-
   return (
     <div className="overflow-x-auto shadow-md sm:rounded-lg">
       <table className="min-w-full divide-y divide-gray-200">
@@ -97,5 +93,4 @@ const TabelaOcorrenciaTipo: React.FC<TabelaOcorrenciaTipoProps> = ({
     </div>
   );
 };
-
-export default TabelaOcorrenciaTipo;
+export default TabelaOcorrenciaTipo;

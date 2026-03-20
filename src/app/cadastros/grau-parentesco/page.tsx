@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -10,15 +9,12 @@ import TabelaGraus, {
   GrauParentesco,
 } from "@/components/tabelas/tabelagrauparentesco";
 import Pagination from "@/components/pagination";
-
 interface ParFormData {
   GpaDescricao: string;
 }
-
 export default function GrausParentescoPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [lista, setLista] = useState<GrauParentesco[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,17 +25,14 @@ export default function GrausParentescoPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-
   const [formData, setFormData] = useState<ParFormData>({
     GpaDescricao: "",
   });
-
   const openModalNew = () => {
     setEditingId(null);
     setFormData({ GpaDescricao: "" });
     setIsModalOpen(true);
   };
-
   const handleEdit = (item: GrauParentesco) => {
     setEditingId(item.GpaCodigo);
     setFormData({
@@ -47,12 +40,10 @@ export default function GrausParentescoPage() {
     });
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-
   async function fetchData(pagina: number, searchTerm: string = search) {
     setLoading(true);
     try {
@@ -68,49 +59,39 @@ export default function GrausParentescoPage() {
       setLoading(false);
     }
   }
-
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
-
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-
   useEffect(() => {
     fetchData(page);
   }, [page]);
-
   const handlePreviousPage = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
-
   const handleNextPage = () => {
     if (page < totalPages) setPage((prev) => prev + 1);
   };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
-
     setDeleting(true);
     try {
       await api.delete(`/grau-parentesco/${itemToDelete}`);
@@ -124,7 +105,6 @@ export default function GrausParentescoPage() {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async () => {
     setSaving(true);
     try {
@@ -133,7 +113,6 @@ export default function GrausParentescoPage() {
         setSaving(false);
         return;
       }
-
       if (editingId) {
         await api.put(`/grau-parentesco/${editingId}`, formData);
         toast.success("Atualizado com sucesso!");
@@ -150,13 +129,11 @@ export default function GrausParentescoPage() {
       setSaving(false);
     }
   };
-
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
         <CadSidebar />
       </aside>
-
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
@@ -206,7 +183,6 @@ export default function GrausParentescoPage() {
             Novo Grau
           </button>
         </div>
-
         <div className="flex-1 overflow-auto">
           <TabelaGraus
             dados={lista}
@@ -215,7 +191,6 @@ export default function GrausParentescoPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-
           <div className="p-4">
             {!loading && !error && (
               <Pagination
@@ -226,12 +201,10 @@ export default function GrausParentescoPage() {
             )}
           </div>
         </div>
-
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Grau" : "Novo Grau"}
           </h2>
-
           <div className="p-4 grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
@@ -248,7 +221,6 @@ export default function GrausParentescoPage() {
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -265,7 +237,6 @@ export default function GrausParentescoPage() {
             </button>
           </div>
         </Modal>
-
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
@@ -276,4 +247,4 @@ export default function GrausParentescoPage() {
       </div>
     </div>
   );
-}
+}

@@ -69,7 +69,6 @@ export interface AprendizFormData {
   MesesGestacao?: number;
   PartoRealizado?: boolean;
   DataParto?: string;
-  // Calendário
   CalCurso?: string;
   CalJornadaDiaria?: string;
   CalDiasAprendizagemTeorica?: string;
@@ -92,7 +91,6 @@ export interface AprendizFormData {
   CalPeriodoSuspensaoDe?: string;
   CalPeriodoSuspensaoAte?: string;
 }
-
 export const ufOptions = [
   "AC",
   "AL",
@@ -121,4 +119,4 @@ export const ufOptions = [
   "SP",
   "SE",
   "TO",
-];
+];

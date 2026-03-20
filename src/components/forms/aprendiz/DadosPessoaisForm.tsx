@@ -1,7 +1,6 @@
 import React from "react";
 import { User } from "lucide-react";
 import { AprendizFormData, ufOptions } from "./types";
-
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -10,7 +9,6 @@ interface Props {
     >,
   ) => void;
 }
-
 export function DadosPessoaisForm({ formData, handleChange }: Props) {
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -32,7 +30,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5 lg:col-span-2">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Nome Completo *
@@ -44,7 +41,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Nome Social
@@ -56,7 +52,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Data Nascimento
@@ -69,7 +64,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Sexo
@@ -86,7 +80,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             <option value="Outro">Outro</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Estado Civil
@@ -104,7 +97,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             <option value="Viúvo">Viúvo(a)</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Nacionalidade
@@ -117,7 +109,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Naturalidade (Cidade)
@@ -129,7 +120,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           />
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             UF Naturalidade
@@ -148,7 +138,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             ))}
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Alistamento Militar
@@ -164,7 +153,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             <option value="Não">Não</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Status do Jovem
@@ -181,7 +169,6 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
             <option value="Concluído">Concluído</option>
           </select>
         </div>
-
         <div className="flex flex-col gap-1.5 lg:col-span-2">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Senha (Para Login do Aprendiz)
@@ -198,4 +185,4 @@ export function DadosPessoaisForm({ formData, handleChange }: Props) {
       </div>
     </section>
   );
-}
+}

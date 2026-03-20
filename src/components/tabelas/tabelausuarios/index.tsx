@@ -1,10 +1,6 @@
-// src/components/TabelaClientes.tsx
-
 import React from "react";
 import { getRoleLabel } from "@/utils/roles";
-
 import { Usuario } from "@/types";
-
 interface TabelaUsuariosProps {
   usuarios: Usuario[];
   loading: boolean;
@@ -12,7 +8,6 @@ interface TabelaUsuariosProps {
   onEdit: (usuario: Usuario) => void;
   onDelete: (id: string) => void;
 }
-
 const TabelaUsuarios: React.FC<TabelaUsuariosProps> = ({
   usuarios,
   loading,
@@ -27,7 +22,6 @@ const TabelaUsuarios: React.FC<TabelaUsuariosProps> = ({
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="text-red-600 p-8 text-center border-t border-red-200">
@@ -35,7 +29,6 @@ const TabelaUsuarios: React.FC<TabelaUsuariosProps> = ({
       </div>
     );
   }
-
   if (usuarios.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
@@ -43,8 +36,6 @@ const TabelaUsuarios: React.FC<TabelaUsuariosProps> = ({
       </div>
     );
   }
-
-
   return (
     <div className="p-4 overflow-x-auto ">
       <table className="min-w-full divide-y divide-gray-200">
@@ -59,14 +50,12 @@ const TabelaUsuarios: React.FC<TabelaUsuariosProps> = ({
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Função
             </th>
-    
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Email
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Status
             </th>
-
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tr-lg">
               Ações
             </th>
@@ -78,7 +67,6 @@ const TabelaUsuarios: React.FC<TabelaUsuariosProps> = ({
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {usuario.UsuCodigo}
               </td>
-
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {usuario.UsuNome}
               </td>
@@ -120,5 +108,4 @@ const TabelaUsuarios: React.FC<TabelaUsuariosProps> = ({
     </div>
   );
 };
-
-export default TabelaUsuarios;
+export default TabelaUsuarios;

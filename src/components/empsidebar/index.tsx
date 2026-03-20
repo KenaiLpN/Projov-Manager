@@ -2,12 +2,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-
 interface NavItem {
   name: string;
   href: string;
 }
-
 const navItems: NavItem[] = [
   { name: "Ramos de Atividade", href: "/empresa/cadramosatividade" },
   { name: "Empresas", href: "/empresa/cadempresas" },
@@ -17,25 +15,17 @@ const navItems: NavItem[] = [
   { name: "Consulta Unidades de Parceiro", href: "/empresa/consultaunidadesparceiro" },
   { name: "Boletos", href: "/empresa/boletos" },
   { name: "Nota Fiscal", href: "/empresa/nfe" },
-    
 ];
-
 export function EmpSidebar() {
   const pathname = usePathname();
-
   const baseLinkClasses =
     "flex items-center transition font-medium duration-300 ease-in-out h-14 w-full justify-center hover:bg-[#253341a4] ";
-
   const activeLinkClasses = "text-[#FFFF] bg-[#253341a4] font-medium focus:ring-2 focus:ring-gray-500/10";
-
   const inactive = "text-[#F6F6F6] transition font-medium duration-300 ease-in-out hover:text-[#FDFDFD] hover:bg-[#1854af]";
-
   const getLinkClasses = (href: string) => {
     const isActive = pathname === href;
-
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
-
   return (
     <div className="flex flex-col bg-[#34495E] w-60 h-full items-center">
       {navItems.map((item) => {
@@ -45,12 +35,10 @@ export function EmpSidebar() {
             href={item.href}
             className={getLinkClasses(item.href)}
           >
-           
-
             <span>{item.name}</span>
           </Link>
         );
       })}
     </div>
   );
-}
+}

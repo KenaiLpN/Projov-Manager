@@ -1,30 +1,24 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
-
 interface UseCrudOptions {
   endpoint: string;
 }
-
 export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
   const [lista, setLista] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
-
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | string | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
-
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
   const [itemToDelete, setItemToDelete] = useState<number | string | null>(
     null,
   );
   const [deleting, setDeleting] = useState<boolean>(false);
-
   const fetchData = useCallback(
     async (pagina: number, searchTerm: string = search) => {
       setLoading(true);
@@ -33,11 +27,9 @@ export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
           page: String(pagina),
           limit: "10",
         });
-
         if (searchTerm) {
-          queryParams.append("search", searchTerm); // O SearchParam já codifica via URI Components automaticamente
+          queryParams.append("search", searchTerm); 
         }
-
         const response = await api.get(`${endpoint}?${queryParams.toString()}`);
         setLista(response.data.data);
         setTotalPages(response.data.meta.totalPages);
@@ -52,15 +44,12 @@ export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
     },
     [endpoint, search],
   );
-
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       fetchData(page, search);
     }, 500);
-
     return () => clearTimeout(delayDebounceFn);
   }, [page, search, fetchData]);
-
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     setDeleting(true);
@@ -77,7 +66,6 @@ export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
       setDeleting(false);
     }
   };
-
   const handleSalvar = async (id: number | string | null, data: FormType) => {
     setSaving(true);
     try {
@@ -101,14 +89,11 @@ export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
       setSaving(false);
     }
   };
-
   const resetFormAndLoad = () => {
     setEditingId(null);
     setIsModalOpen(true);
   };
-
   return {
-    // states
     lista,
     loading,
     error,
@@ -121,17 +106,15 @@ export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
     isConfirmOpen,
     itemToDelete,
     deleting,
-    // setters
     setPage,
     setSearch,
     setIsModalOpen,
     setEditingId,
     setIsConfirmOpen,
     setItemToDelete,
-    // functions
     fetchData,
     confirmDelete,
     handleSalvar,
     resetFormAndLoad,
   };
-}
+}
