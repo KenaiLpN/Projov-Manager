@@ -140,6 +140,14 @@ function CadastroForm() {
     { id: "calendario", label: "Calendário", icon: <CalendarDays size={18} /> },
   ];
   const [activeTab, setActiveTab] = useState("jovem");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && tabs.some((t) => t.id === tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const userStr = localStorage.getItem("projov_user");
     if (userStr) {
@@ -257,7 +265,8 @@ function CadastroForm() {
       [name]:
         name.startsWith("Id") ||
         name === "HorasDiarias" ||
-        name === "MesesContrato"
+        name === "MesesContrato" ||
+        name === "MesesGestacao"
           ? value
             ? Number(value)
             : undefined

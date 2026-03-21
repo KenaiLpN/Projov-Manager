@@ -10,7 +10,7 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-999 flex justify-center items-center p-4 bg-black/40 backdrop-blur-sm backdrop-saturate-150"
+      className="fixed inset-0 z-999 flex justify-center items-center p-4 bg-black/20 backdrop-blur-sm backdrop-saturate-150"
     >
       <div
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
@@ -27,4 +27,4 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
     </div>
   );
 };
-export default Modal;
+export default Modal;

@@ -41,7 +41,9 @@ function AprendizesContent() {
     Instituicao: "",
     DataAniversario: "",
     Curso: "",
-    Status: ""
+    Status: "",
+    Ocorrencias: "",
+    Situacao: ""
   });
   const [empresas, setEmpresas] = useState<any[]>([]);
   const [escolas, setEscolas] = useState<any[]>([]);
@@ -114,7 +116,9 @@ function AprendizesContent() {
       Instituicao: "",
       DataAniversario: "",
       Curso: "",
-      Status: ""
+      Status: "",
+      Ocorrencias: "",
+      Situacao: ""
     });
     setActiveAdvancedFilter(null);
     setIsFilterModalOpen(false);
@@ -271,6 +275,8 @@ function AprendizesContent() {
                     rowBg = "hover:bg-green-100 transition-colors bg-green-50/50";
                   } else if (a.StatusJovem === "Licença Maternidade") {
                     rowBg = "hover:bg-pink-100 transition-colors bg-pink-50/50";
+                  } else if (a.Gestante) {
+                    rowBg = "hover:bg-pink-50 transition-colors bg-pink-400/30";
                   }
                   return (
                     <tr
@@ -305,7 +311,7 @@ function AprendizesContent() {
                       <button
                         className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-sm"
                         onClick={() =>
-                          router.push(`/aprendizes/calendario?id=${a.IdAluno}`)
+                          router.push(`/aprendizes/cadaprendizes?id=${a.IdAluno}&tab=calendario`)
                         }
                       >
                         Calendário
@@ -320,7 +326,7 @@ function AprendizesContent() {
                         }
                         className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-sm"
                       >
-                        Ver / Editar
+                        Editar
                       </button>
                     </td>
                   </tr>
@@ -352,7 +358,7 @@ function AprendizesContent() {
         </div>
         {}
         {isFilterModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm backdrop-saturate-150">
             <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setIsFilterModalOpen(false)}
@@ -437,6 +443,30 @@ function AprendizesContent() {
                     <option value="Licença Maternidade">Licença Maternidade</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Ocorrências</label>
+                  <select
+                    value={advancedFilterForm.Ocorrencias}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, Ocorrencias: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white"
+                  >
+                    <option value="">Todas</option>
+                    <option value="com">Com Ocorrência</option>
+                    <option value="sem">Sem Ocorrência</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Situação de Atividade</label>
+                  <select
+                    value={advancedFilterForm.Situacao}
+                    onChange={(e) => setAdvancedFilterForm({...advancedFilterForm, Situacao: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white"
+                  >
+                    <option value="">Todos</option>
+                    <option value="ativo">Ativos</option>
+                    <option value="desativado">Desativados</option>
+                  </select>
+                </div>
               </div>
               <div className="flex justify-end gap-3 mt-8">
                 <button
@@ -471,4 +501,4 @@ export default function Aprendizes() {
       <AprendizesContent />
     </Suspense>
   );
-}
+}
