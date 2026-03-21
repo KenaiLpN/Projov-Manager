@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AprendizSidebar } from "@/components/aprendizsidebar";
 import { Filter, X } from "lucide-react";
 import api from "@/services/api";
 interface AprendizFormData {

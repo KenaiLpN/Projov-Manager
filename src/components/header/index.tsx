@@ -64,13 +64,7 @@ const navItems: NavItemWithSub[] = [
   {
     name: "Aprendiz",
     href: "/aprendizes",
-    subMenu: [
-      { name: "Cadastro de Aprendizes", href: "/aprendizes" },
-      { name: "Ocorrências", href: "/aprendizes/ocorrencias" },
-      { name: "Aniversariantes", href: "/aprendizes/aniversariantes" },
-      { name: "Lista Ativos", href: "/aprendizes/ativos" },
-      { name: "Pesquisa Candidatos", href: "/aprendizes/candidatos" },
-    ],
+    
   },
   {
     name: "Pedagógico",
@@ -179,4 +173,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+}
