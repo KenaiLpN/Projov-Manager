@@ -195,7 +195,7 @@ export default function CadRamosAtividadePage() {
           </div>
           <button
             onClick={openModalNew}
-            className="px-6 py-3 bg-[#34495E] text-white font-semibold rounded-lg shadow-md hover:bg-[#253341a4] mr-4 cursor-pointer"
+            className="px-6 py-3 bg-[#123A83] text-white font-semibold rounded-lg shadow-md hover:bg-[#0f2e6b] mr-4 cursor-pointer"
           >
             Novo Ramo
           </button>

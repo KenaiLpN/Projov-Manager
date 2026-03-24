@@ -36,21 +36,41 @@ export function middleware(request: NextRequest) {
   const isRootRoute = pathname === "/";
   const isPublicRoute = pathname.startsWith("/reset-password");
   if (isRootRoute && isValidToken) {
-    return NextResponse.redirect(new URL("/home", request.url));
+    const response = NextResponse.redirect(new URL("/home", request.url));
+    response.headers.set("Cache-Control", "no-store, max-age=0");
+    response.headers.set("Vary", "RSC");
+    return response;
   }
+
   if (isRootRoute && !isValidToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.headers.set("Cache-Control", "no-store, max-age=0");
+    response.headers.set("Vary", "RSC");
+    return response;
   }
+
   if (isAuthRoute && isValidToken) {
-    return NextResponse.redirect(new URL("/home", request.url));
+    const response = NextResponse.redirect(new URL("/home", request.url));
+    response.headers.set("Cache-Control", "no-store, max-age=0");
+    response.headers.set("Vary", "RSC");
+    return response;
   }
+
   if (!isValidToken && !isAuthRoute && !isPublicRoute) {
     if (!pathname.startsWith("/_next") && !pathname.startsWith("/favicon")) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const response = NextResponse.redirect(new URL("/login", request.url));
+      response.headers.set("Cache-Control", "no-store, max-age=0");
+      response.headers.set("Vary", "RSC");
+      return response;
     }
   }
-  return NextResponse.next();
+
+  const response = NextResponse.next();
+  // Garante que o cabeçalho Vary: RSC seja respeitado pelos navegadores em requisições normais
+  response.headers.set("Vary", "RSC");
+  return response;
 }
+
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
