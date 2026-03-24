@@ -171,7 +171,7 @@ export default function CursosPage() {
           </div>
           <button
             onClick={openModalNew}
-            className="px-6 py-3 bg-[#34495E] text-white font-semibold rounded-lg shadow-md hover:bg-[#253341a4] mr-4 cursor-pointer"
+            className="px-6 py-3 bg-[#123A83] text-white font-semibold rounded-lg shadow-md hover:bg-[#0f2e6b] mr-4 cursor-pointer"
           >
             Novo Curso
           </button>
@@ -267,7 +267,7 @@ export default function CursosPage() {
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-gray-200 text-[gray-800] rounded-md hover:bg-gray-300 transition-colors cursor-pointer"
             >
               Cancelar
             </button>
@@ -290,4 +290,4 @@ export default function CursosPage() {
       </div>
     </div>
   );
-}
+}

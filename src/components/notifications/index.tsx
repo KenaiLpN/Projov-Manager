@@ -61,7 +61,7 @@ export function NotificationsMenu() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-[#253341a4] transition-colors duration-200 outline-none focus:ring-2 focus:ring-gray-500/10 text-white"
+        className="relative p-2 rounded-full hover:bg-[#123a83] transition-colors duration-200 outline-none focus:ring-2 focus:ring-gray-500/10 text-white"
       >
         <Bell size={20} />
         {notifications.length > 0 && (
@@ -136,4 +136,4 @@ export function NotificationsMenu() {
       )}
     </div>
   );
-}
+}

@@ -98,18 +98,18 @@ export function Header() {
   const baseLinkClasses =
     "flex items-center gap-2 text-[#52E8FB] transition font-medium duration-500 ease-in-out h-20 p-5";
   const activeLinkClasses =
-    "text-[#F6F6F6] bg-[#253341a4] font-medium focus:ring-2 focus:ring-gray-500/10";
+    "text-[#F6F6F6] bg-[#123a83] font-medium focus:ring-2 focus:ring-gray-500/10";
   const inactive =
-    "text-[#F6F6F6] transition font-medium duration-300 ease-in-out hover:text-[#FDFDFD] hover:bg-[#253341a4]";
+    "text-[#F6F6F6] transition font-medium duration-300 ease-in-out hover:text-[#FDFDFD] hover:bg-[#123a83]";
   const getLinkClasses = (href: string) => {
     const isActive = pathname === href;
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
   return (
-    <header className="flex bg-[#34495E] border-b border-[#e4e9f0] justify-between items-center">
+    <header className="flex bg-[#0f306d] border-b border-[#e4e9f0] justify-between items-center">
       <div className="ml-5">
-        <h1 className="ml-15 m-2 flex text-[#F6F6F6] text-2xl font-bold cursor-pointer hover:bg-[#253341a4] rounded-lg justify-center items-center w-50 h-10">
-          <Link href="/">PROSIS</Link>
+        <h1 className="ml-15 m-2 flex text-[#F6F6F6] text-2xl font-bold cursor-pointer hover:bg-[#123a83] rounded-lg justify-center items-center w-50 h-10">
+          <Link className="flex" href="/">PROSIS <p className="text-[#F6F6F6] text-xs m-2">home</p></Link>
         </h1>
         <p className="text-[#F6F6F6] text-xs m-2">
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
@@ -142,7 +142,7 @@ export function Header() {
                 )}
               </Link>
               {item.subMenu && (
-                <div className="absolute top-20 left-0 w-64 bg-[#34495E] shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 backdrop-blur-sm bg-opacity-95 rounded-b-lg overflow-hidden">
+                <div className="absolute top-20 left-0 w-64 bg-[#0f306d] shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 backdrop-blur-sm bg-opacity-95 rounded-b-lg overflow-hidden">
                   <div className="flex flex-col py-2">
                     {item.subMenu.map((sub) => {
                       const isSubActive = pathname === sub.href;
@@ -152,8 +152,8 @@ export function Header() {
                           href={sub.href}
                           className={`px-6 py-3 text-sm transition-colors duration-200 ${
                             isSubActive
-                              ? "bg-[#253341a4] text-[#F6F6E2] font-bold"
-                              : "text-gray-100 hover:bg-[#2c3e50] hover:text-[#F6F6E2]"
+                              ? "bg-[#123a83] text-[#F6F6E2] font-bold"
+                              : "text-gray-100 hover:bg-[#123a83] hover:text-[#F6F6E2]"
                           }`}
                         >
                           {sub.name}

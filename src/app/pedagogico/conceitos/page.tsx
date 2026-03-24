@@ -171,7 +171,7 @@ export default function ConceitosPage() {
           </div>
           <button
             onClick={openModalNew}
-            className="px-6 py-3 bg-[#34495E] text-white font-semibold rounded-lg shadow-md hover:bg-[#253341a4] mr-4 cursor-pointer"
+            className="px-6 py-3 bg-[#0F306D] text-white font-semibold rounded-lg shadow-md hover:bg-[#0f2e6b] mr-4 cursor-pointer"
           >
             Novo Conceito
           </button>
@@ -280,4 +280,4 @@ export default function ConceitosPage() {
       </div>
     </div>
   );
-}
+}

@@ -31,17 +31,17 @@ const menuItems: MenuItem[] = [
 export function PedagogicoSidebar() {
   const pathname = usePathname();
   const baseLinkClasses =
-    "flex items-center transition font-medium duration-300 ease-in-out h-14 w-full justify-center hover:bg-[#253341a4] ";
+    "flex items-center transition font-medium duration-300 ease-in-out h-14 w-full justify-center hover:bg-[#123A83] ";
   const activeLinkClasses =
-    "text-[#FFFF] bg-[#253341a4] font-medium focus:ring-2 focus:ring-gray-500/10";
+    "text-[#FFFF] bg-[#123A83] font-medium focus:ring-2 focus:ring-gray-500/10";
   const inactive =
-    "text-[#F6F6F6] transition font-medium duration-300 ease-in-out hover:text-[#FDFDFD] hover:bg-[#1854af]";
+    "text-[#F6F6F6] transition font-medium duration-300 ease-in-out hover:text-[#FDFDFD] hover:bg-[#123A83]";
   const getLinkClasses = (href: string) => {
     const isActive = pathname === href;
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
   return (
-    <div className="flex flex-col bg-[#34495E] w-60 h-full items-center">
+    <div className="flex flex-col bg-[#0F306D] w-60 h-full items-center">
       {menuItems.map((item) => (
         <Link
           key={item.href}
@@ -53,4 +53,4 @@ export function PedagogicoSidebar() {
       ))}
     </div>
   );
-}
+}

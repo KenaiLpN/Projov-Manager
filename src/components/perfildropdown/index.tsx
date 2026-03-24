@@ -31,7 +31,7 @@ export function UserMenu({ nome, role }: UserMenuProps) {
       {}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#253341a4] transition-colors duration-200 outline-none focus:ring-2 focus:ring-gray-500/10"
+        className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#123a83] transition-colors duration-200 outline-none focus:ring-2 focus:ring-gray-500/10"
       >
         <div className="flex items-end gap-2">
           {}
@@ -82,4 +82,4 @@ export function UserMenu({ nome, role }: UserMenuProps) {
       )}
     </div>
   );
-}
+}

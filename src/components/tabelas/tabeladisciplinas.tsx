@@ -24,7 +24,7 @@ const TabelaDisciplinas: React.FC<TabelaDisciplinasProps> = ({
   return (
     <div className="overflow-x-auto m-5 rounded-lg shadow">
       <table className="min-w-full bg-white border border-gray-200">
-        <thead className="bg-[#34495E] text-white">
+        <thead className="bg-[#123A83] text-white">
           <tr>
             <th className="py-3 px-4 text-left font-semibold uppercase text-sm border-b">
               Código
@@ -124,4 +124,4 @@ const TabelaDisciplinas: React.FC<TabelaDisciplinasProps> = ({
     </div>
   );
 };
-export default TabelaDisciplinas;
+export default TabelaDisciplinas;
