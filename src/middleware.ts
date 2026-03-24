@@ -65,11 +65,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.next();
-  // Garante que o cabeçalho Vary: RSC seja respeitado pelos navegadores em requisições normais
-  response.headers.set("Vary", "RSC");
-  return response;
+  return NextResponse.next();
 }
+
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],

@@ -36,9 +36,9 @@ export default function LoginPage() {
         Cookies.set("token", token, { expires: 8 / 24 });
       }
       if (user.UsuTipo === "APRENDIZ") {
-        router.push(`/aprendizes/cadaprendizes?id=${user.UsuCodigo}`);
+        window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
       } else {
-        router.push("/home");
+        window.location.href = "/home";
       }
     } catch (error: any) {
       const code = error?.response?.data?.code;
@@ -84,9 +84,9 @@ export default function LoginPage() {
         Cookies.set("token", token, { expires: 8 / 24 });
       }
       if (user.UsuTipo === "APRENDIZ") {
-        router.push(`/aprendizes/cadaprendizes?id=${user.UsuCodigo}`);
+        window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
       } else {
-        router.push("/home");
+        window.location.href = "/home";
       }
     } catch (error: any) {
       const msg = error?.response?.data?.message || "Erro ao criar senha.";
