@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
 function parseJwt(token: string) {
   try {
     const base64Url = token.split(".")[1];
@@ -22,53 +23,33 @@ function parseJwt(token: string) {
     return null;
   }
 }
+
 function isTokenValid(token: string | undefined): boolean {
   if (!token) return false;
   const decoded = parseJwt(token);
   if (!decoded || !decoded.exp) return false;
   return decoded.exp * 1000 > Date.now();
 }
+
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
+
   const isValidToken = isTokenValid(token);
   const isAuthRoute = pathname === "/login";
-  const isRootRoute = pathname === "/";
   const isPublicRoute = pathname.startsWith("/reset-password");
-  if (isRootRoute && isValidToken) {
-    const response = NextResponse.redirect(new URL("/home", request.url));
-    response.headers.set("Cache-Control", "no-store, max-age=0");
-    response.headers.set("Vary", "RSC");
-    return response;
-  }
 
-  if (isRootRoute && !isValidToken) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.headers.set("Cache-Control", "no-store, max-age=0");
-    response.headers.set("Vary", "RSC");
-    return response;
-  }
-
-  if (isAuthRoute && isValidToken) {
-    const response = NextResponse.redirect(new URL("/home", request.url));
-    response.headers.set("Cache-Control", "no-store, max-age=0");
-    response.headers.set("Vary", "RSC");
-    return response;
-  }
-
+  // Se o usuário não está autenticado e tenta acessar uma rota privada
   if (!isValidToken && !isAuthRoute && !isPublicRoute) {
+    // Ignora arquivos do Next.js e assets estáticos para evitar loops e bugs de RSC
     if (!pathname.startsWith("/_next") && !pathname.startsWith("/favicon")) {
-      const response = NextResponse.redirect(new URL("/login", request.url));
-      response.headers.set("Cache-Control", "no-store, max-age=0");
-      response.headers.set("Vary", "RSC");
-      return response;
+      return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
   return NextResponse.next();
 }
 
-
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-};
+};
