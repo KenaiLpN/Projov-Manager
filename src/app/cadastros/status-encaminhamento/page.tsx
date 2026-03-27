@@ -8,6 +8,7 @@ import TabelaStatus, {
 import Pagination from "@/components/pagination";
 import { useCrud } from "@/hooks/useCrud";
 import { useForm } from "react-hook-form";
+import SearchBar from "@/components/SearchBar";
 interface SteFormData {
   Ste_Codigo: string;
   Ste_Descricao: string;
@@ -71,38 +72,14 @@ export default function StatusEncaminhamentoPage() {
       </aside>
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
-          <div className="flex items-center gap-2 ml-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar por descrição..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="p-2 pr-10 w-72 rounded bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#133c86]"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  title="Limpar pesquisa"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
+          <div className="ml-4">
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              onSearch={() => {}}
+              onClear={() => setSearch("")}
+              placeholder="Buscar por descrição..."
+            />
           </div>
           <button
             onClick={openModalNew}

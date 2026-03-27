@@ -1,5 +1,4 @@
 "use client";
-import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
 import api from "@/services/api";
@@ -8,122 +7,66 @@ import TabelaCadastroRegiao, {
   CadastroRegiao,
 } from "@/components/tabelas/tabelacadastroregiao";
 import Pagination from "@/components/pagination";
-import { toast } from "react-hot-toast";
+import { useCrud } from "@/hooks/useCrud";
+import SearchBar from "@/components/SearchBar";
+import { useState } from "react";
+
 interface RegFormData {
   DescRegiao: string;
 }
+
 export default function RegioesPage() {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [lista, setLista] = useState<CadastroRegiao[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [saving, setSaving] = useState<boolean>(false);
-  const [search, setSearch] = useState<string>("");
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [formData, setFormData] = useState<RegFormData>({
-    DescRegiao: "",
-  });
+  const {
+    lista,
+    loading,
+    error,
+    page,
+    totalPages,
+    search,
+    isModalOpen,
+    editingId,
+    saving,
+    isConfirmOpen,
+    deleting,
+    setPage,
+    setSearch,
+    setIsModalOpen,
+    setEditingId,
+    setIsConfirmOpen,
+    setItemToDelete,
+    confirmDelete,
+    handleSalvar,
+    resetFormAndLoad,
+  } = useCrud<CadastroRegiao>({ endpoint: "/regiao" });
+
+  const [formData, setFormData] = useState<RegFormData>({ DescRegiao: "" });
+
   const openModalNew = () => {
     setEditingId(null);
     setFormData({ DescRegiao: "" });
-    setIsModalOpen(true);
+    resetFormAndLoad();
   };
+
   const handleEdit = (item: CadastroRegiao) => {
     setEditingId(item.CodRegiao);
-    setFormData({
-      DescRegiao: item.DescRegiao,
-    });
+    setFormData({ DescRegiao: item.DescRegiao });
     setIsModalOpen(true);
   };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
   };
-  async function fetchData(pagina: number, searchTerm: string = search) {
-    setLoading(true);
-    try {
-      const response = await api.get(
-        `/regiao?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
-      );
-      setLista(response.data.data);
-      setTotalPages(response.data.meta.totalPages);
-    } catch (err) {
-      console.error(err);
-      setError("Falha ao carregar dados.");
-    } finally {
-      setLoading(false);
-    }
-  }
-  const handleSearch = () => {
-    setPage(1);
-    fetchData(1, search);
-  };
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
-  const handleClearSearch = () => {
-    setSearch("");
-    setPage(1);
-    fetchData(1, "");
-  };
-  useEffect(() => {
-    fetchData(page);
-  }, [page]);
-  const handlePreviousPage = () => {
-    if (page > 1) setPage((prev) => prev - 1);
-  };
-  const handleNextPage = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
-  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  const handleDelete = (id: number) => {
-    setItemToDelete(id);
-    setIsConfirmOpen(true);
+
+  const onSave = async () => {
+    await handleSalvar(editingId, formData);
   };
-  const confirmDelete = async () => {
-    if (!itemToDelete) return;
-    setDeleting(true);
-    try {
-      await api.delete(`/regiao/${itemToDelete}`);
-      toast.success("Excluído com sucesso!");
-      setIsConfirmOpen(false);
-      setItemToDelete(null);
-      fetchData(page);
-    } catch (err: any) {
-      toast.error("Erro ao excluir.");
-    } finally {
-      setDeleting(false);
-    }
-  };
-  const handleSalvar = async () => {
-    setSaving(true);
-    try {
-      if (editingId) {
-        await api.put(`/regiao/${editingId}`, formData);
-        toast.success("Atualizado com sucesso!");
-      } else {
-        await api.post("/regiao", formData);
-        toast.success("Cadastrado com sucesso!");
-      }
-      closeModal();
-      fetchData(page);
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao salvar.");
-    } finally {
-      setSaving(false);
-    }
-  };
+
   return (
     <div className="flex flex-row h-full w-full">
       <aside>
@@ -131,45 +74,14 @@ export default function RegioesPage() {
       </aside>
       <div className="flex flex-col w-full h-full">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
-          <div className="flex items-center gap-2 ml-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar por descrição..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="p-2 pr-10 w-72 rounded bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#133c86]"
-              />
-              {search && (
-                <button
-                  onClick={handleClearSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  title="Limpar pesquisa"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-[#133c86] text-white font-semibold rounded hover:bg-[#0f2e6b] transition-colors cursor-pointer"
-            >
-              Pesquisar
-            </button>
+          <div className="ml-4">
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              onSearch={() => {}}
+              onClear={() => setSearch("")}
+              placeholder="Buscar por descrição..."
+            />
           </div>
           <button
             onClick={openModalNew}
@@ -184,7 +96,10 @@ export default function RegioesPage() {
             loading={loading}
             error={error}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={(id) => {
+              setItemToDelete(id);
+              setIsConfirmOpen(true);
+            }}
           />
           <div className="p-4">
             {!loading && !error && (
@@ -224,7 +139,7 @@ export default function RegioesPage() {
               Cancelar
             </button>
             <button
-              onClick={handleSalvar}
+              onClick={onSave}
               disabled={saving}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors cursor-pointer"
             >
@@ -242,4 +157,4 @@ export default function RegioesPage() {
       </div>
     </div>
   );
-}
+}

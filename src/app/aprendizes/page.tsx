@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Filter, X } from "lucide-react";
 import api from "@/services/api";
+import SearchBar from "@/components/SearchBar";
 interface AprendizFormData {
   NomeJovem: string;
   NomeSocial?: string;
@@ -24,6 +25,56 @@ interface AprendizFormData {
   UF_Endereco?: string;
   StatusJovem?: string;
 }
+const INITIAL_FILTER_STATE = {
+  Nome: "",
+  Empresa: "",
+  Instituicao: "",
+  DataAniversario: "",
+  Curso: "",
+  Status: "",
+  Ocorrencias: "",
+  Situacao: "",
+  EstudaAtualmente: "",
+  Sexo: "",
+  Turno: "",
+  AlistamentoMilitar: "",
+  Escolaridade: "",
+  Municipio: "",
+  Bairro: "",
+  TurmaCapacitacao: "",
+  IdadeDe: "",
+  IdadeAte: "",
+  Deficiente: "",
+  SistemasOperacionais: "",
+  Excel: "",
+  Outlook: "",
+  Word: "",
+  PowerPoint: "",
+  Comunicacao: "",
+  Linguagem: "",
+  Diccao: "",
+  Escrita: "",
+  Matematica: "",
+  RaciocinioLogico: "",
+  Idiomas: "",
+  Sescon: "",
+  Estilo: "",
+  Interesse: "",
+  Organizacao: "",
+  Atencao: "",
+  Colaborador: "",
+  Extroversao: "",
+  Comprometimento: "",
+  Proatividade: "",
+  Criatividade: "",
+  Relacionamento: "",
+  TrabalhoEquipe: "",
+  Lideranca: "",
+  Aproveitamento: "",
+  Piercing: "",
+  Tatuagem: "",
+};
+
 function AprendizesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,58 +85,7 @@ function AprendizesContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [advancedFilterForm, setAdvancedFilterForm] = useState({
-    Nome: "",
-    Empresa: "",
-    Instituicao: "",
-    DataAniversario: "",
-    Curso: "",
-    Status: "",
-    Ocorrencias: "",
-    Situacao: "",
-    // Demográficos e Gerais
-    EstudaAtualmente: "",
-    Sexo: "",
-    Turno: "",
-    AlistamentoMilitar: "",
-    Escolaridade: "",
-    Municipio: "",
-    Bairro: "",
-    TurmaCapacitacao: "",
-    IdadeDe: "",
-    IdadeAte: "",
-    Deficiente: "",
-    // Avaliação de Informática
-    SistemasOperacionais: "",
-    Excel: "",
-    Outlook: "",
-    Word: "",
-    PowerPoint: "",
-    Comunicacao: "",
-    Linguagem: "",
-    Diccao: "",
-    Escrita: "",
-    Matematica: "",
-    RaciocinioLogico: "",
-    Idiomas: "",
-    Sescon: "",
-    // Competências Comportamentais
-    Estilo: "",
-    Interesse: "",
-    Organizacao: "",
-    Atencao: "",
-    Colaborador: "",
-    Extroversao: "",
-    Comprometimento: "",
-    Proatividade: "",
-    Criatividade: "",
-    Relacionamento: "",
-    TrabalhoEquipe: "",
-    Lideranca: "",
-    Aproveitamento: "",
-    Piercing: "",
-    Tatuagem: ""
-  });
+  const [advancedFilterForm, setAdvancedFilterForm] = useState(INITIAL_FILTER_STATE);
   const [empresas, setEmpresas] = useState<any[]>([]);
   const [escolas, setEscolas] = useState<any[]>([]);
   const [cursos, setCursos] = useState<any[]>([]);
@@ -124,11 +124,11 @@ function AprendizesContent() {
   ) => {
     setLoading(true);
     try {
-      let url = `/aprendiz?page=${p}&limit=10`;
-      if (s) url += `&search=${s}`;
-      if (f) url += `&filter=${f}`;
-      if (adv) url += `&advancedFilter=${encodeURIComponent(JSON.stringify(adv))}`;
-      const response = await api.get(url);
+      const params = new URLSearchParams({ page: String(p), limit: "10" });
+      if (s) params.set("search", s);
+      if (f) params.set("filter", f);
+      if (adv) params.set("advancedFilter", JSON.stringify(adv));
+      const response = await api.get(`/aprendiz?${params.toString()}`);
       setAprendizes(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
@@ -141,11 +141,6 @@ function AprendizesContent() {
     setPage(1);
     fetchAprendizes(1, search, filter, activeAdvancedFilter);
   };
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
@@ -157,55 +152,7 @@ function AprendizesContent() {
     setPage(1);
   };
   const handleClearAdvancedFilter = () => {
-    setAdvancedFilterForm({
-      Nome: "",
-      Empresa: "",
-      Instituicao: "",
-      DataAniversario: "",
-      Curso: "",
-      Status: "",
-      Ocorrencias: "",
-      Situacao: "",
-      EstudaAtualmente: "",
-      Sexo: "",
-      Turno: "",
-      AlistamentoMilitar: "",
-      Escolaridade: "",
-      Municipio: "",
-      Bairro: "",
-      TurmaCapacitacao: "",
-      IdadeDe: "",
-      IdadeAte: "",
-      Deficiente: "",
-      SistemasOperacionais: "",
-      Excel: "",
-      Outlook: "",
-      Word: "",
-      PowerPoint: "",
-      Comunicacao: "",
-      Linguagem: "",
-      Diccao: "",
-      Escrita: "",
-      Matematica: "",
-      RaciocinioLogico: "",
-      Idiomas: "",
-      Sescon: "",
-      Estilo: "",
-      Interesse: "",
-      Organizacao: "",
-      Atencao: "",
-      Colaborador: "",
-      Extroversao: "",
-      Comprometimento: "",
-      Proatividade: "",
-      Criatividade: "",
-      Relacionamento: "",
-      TrabalhoEquipe: "",
-      Lideranca: "",
-      Aproveitamento: "",
-      Piercing: "",
-      Tatuagem: ""
-    });
+    setAdvancedFilterForm(INITIAL_FILTER_STATE);
     setActiveAdvancedFilter(null);
     setIsFilterModalOpen(false);
     setPage(1);
@@ -232,44 +179,14 @@ function AprendizesContent() {
         {}
         <div className="flex bg-[#bacce6] p-2 h-20 mb-6 rounded justify-between items-center">
           <div className="flex items-center gap-2 ml-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar por nome, CPF ou email..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="p-2 pr-10 w-96 rounded bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#133c86]"
-              />
-              {search && (
-                <button
-                  onClick={handleClearSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  title="Limpar pesquisa"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-[#133c86] text-white font-semibold rounded hover:bg-[#0f2e6b] transition-colors cursor-pointer"
-            >
-              Pesquisar
-            </button>
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              onSearch={handleSearch}
+              onClear={handleClearSearch}
+              placeholder="Buscar por nome, CPF ou email..."
+              inputWidth="w-96"
+            />
             <button
               onClick={() => {
                 setIsFilterModalOpen(true);

@@ -3,8 +3,9 @@ import api from "@/services/api";
 import { toast } from "react-hot-toast";
 interface UseCrudOptions {
   endpoint: string;
+  limit?: number;
 }
-export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
+export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOptions) {
   const [lista, setLista] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export function useCrud<T, FormType = any>({ endpoint }: UseCrudOptions) {
       try {
         const queryParams = new URLSearchParams({
           page: String(pagina),
-          limit: "10",
+          limit: String(limit),
         });
         if (searchTerm) {
           queryParams.append("search", searchTerm); 

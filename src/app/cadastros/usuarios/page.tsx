@@ -9,6 +9,7 @@ import { Usuario } from "@/types";
 import { ROLE_OPTIONS } from "@/utils/roles";
 import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
+import SearchBar from "@/components/SearchBar";
 export default function CadCliPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -80,24 +81,13 @@ export default function CadCliPage() {
     fetchUsuarios(page, search);
   }, [page]);
   const handleSearch = () => {
-    setPage(1); 
+    setPage(1);
     fetchUsuarios(1, search);
-  };
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
   };
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchUsuarios(1, "");
-  };
-  const handlePreviousPage = () => {
-    if (page > 1) setPage((prev) => prev - 1);
-  };
-  const handleNextPage = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
   };
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -181,45 +171,14 @@ export default function CadCliPage() {
       </aside>
       <div className="flex flex-col w-full h-full ">
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
-          <div className="flex items-center gap-2 ml-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar por nome, email, código..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="p-2 pr-10 w-72 rounded bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#133c86]"
-              />
-              {search && (
-                <button
-                  onClick={handleClearSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  title="Limpar pesquisa"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-[#133c86] text-white font-semibold rounded hover:bg-[#0f2e6b] transition-colors cursor-pointer"
-            >
-              Pesquisar
-            </button>
+          <div className="ml-4">
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              onSearch={handleSearch}
+              onClear={handleClearSearch}
+              placeholder="Buscar por nome, email, código..."
+            />
           </div>
           <button
             onClick={openModalNew}
