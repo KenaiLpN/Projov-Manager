@@ -63,7 +63,37 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
     window.print();
   };
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-auto">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-auto print:bg-white print:p-0 print:static print:overflow-visible print:h-auto">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: portrait; margin: 1cm; }
+          body { 
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          /* Oculta tudo que não é o calendário */
+          body > *:not(#__next), .modal-overlay, nav, header, footer { 
+            display: none !important; 
+          }
+          /* Garante que este componente é o único visível */
+          .fixed.inset-0 { 
+            position: static !important; 
+            background: transparent !important;
+            overflow: visible !important;
+            padding: 0 !important;
+          }
+          #calendario-print {
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            width: 100% !important;
+            max-width: none !important;
+          }
+          .print\\:hidden { display: none !important; }
+        }
+      `}} />
       <div className="min-h-screen py-8 px-4">
         {}
         <div className="print:hidden sticky top-0 z-10 max-w-7xl mx-auto mb-6 flex justify-between items-center bg-white/90 backdrop-blur-md rounded-2xl shadow-xl px-6 py-4 border border-gray-200">

@@ -46,8 +46,8 @@ export function CalendarioForm({
         (i: any) => String(i.IpaCodigo) === String(formData.CalEmpresa),
       )?.IpaDescricao || "";
     const cursoNome =
-      cursos.find((c: any) => String(c.CurCodigo) === String(formData.CalCurso))
-        ?.CurDescricao || formData.CalCurso;
+      cursos.find((c: any) => String(c.AreaCodigo) === String(formData.CalCurso))
+        ?.AreaDescricao || formData.CalCurso;
     const input: CalendarioInput = {
       nomeAprendiz: formData.NomeJovem || "",
       curso: cursoNome || "",
@@ -57,8 +57,6 @@ export function CalendarioForm({
       diasPratica: formData.CalDiasAprendizagemPratica || "",
       dataAdmissao: formData.CalDataAdmissao || "",
       dataTerminoIntrodutorios: formData.CalDataTerminoIntrodutorios || "",
-      dataTerminoContrato:
-        formData.DataPrevistaTermino || formData.CalDataAdmissao || "",
       diaEncontroSemanal: formData.CalDiaEncontroSemanal || "",
       dataInicioEncontroSemanal: formData.CalDataInicioEncontroSemanal || "",
       diaEncontroMensal: formData.CalDiaEncontroMensal || "",
@@ -114,8 +112,8 @@ export function CalendarioForm({
               >
                 <option value="">Selecione...</option>
                 {cursos.map((c: any) => (
-                  <option key={c.CurCodigo} value={c.CurCodigo}>
-                    {c.CurDescricao}
+                  <option key={c.AreaCodigo} value={c.AreaCodigo}>
+                    {c.AreaDescricao}
                   </option>
                 ))}
               </select>

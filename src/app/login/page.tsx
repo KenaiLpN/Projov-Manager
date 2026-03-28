@@ -276,6 +276,7 @@ export default function LoginPage() {
         <div>
           <UserDropDown selectedRole={UsuTipo} onRoleChange={(val) => {
             setUsuTipo(val);
+            setUsuCodigo("");
             setSenha("");
           }} />
         </div>
@@ -284,14 +285,17 @@ export default function LoginPage() {
             type="text"
             placeholder={UsuTipo === "APRENDIZ" ? "Seu CPF ou Matrícula" : "Código do Usuário"}
             value={UsuCodigo}
+            disabled={UsuTipo === "D"}
             onChange={(e) => {
               setUsuCodigo(e.target.value);
               setLoginError(false);
             }}
-            className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
-              loginError
-                ? "border-red-500 focus:border-red-500"
-                : "border-[#34495E] focus:border-blue-500"
+            className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
+              UsuTipo === "D" 
+                ? "opacity-50 cursor-not-allowed bg-gray-200 border-gray-400"
+                : loginError
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#34495E] focus:border-blue-500"
             }`}
           />
         </div>
@@ -300,14 +304,17 @@ export default function LoginPage() {
             type="password"
             placeholder="Senha"
             value={senha}
+            disabled={UsuTipo === "D"}
             onChange={(e) => {
               setSenha(e.target.value);
               setLoginError(false);
             }}
-            className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
-              loginError
-                ? "border-red-500 focus:border-red-500"
-                : "border-[#34495E] focus:border-blue-500"
+            className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
+              UsuTipo === "D"
+                ? "opacity-50 cursor-not-allowed bg-gray-200 border-gray-400"
+                : loginError
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#34495E] focus:border-blue-500"
             }`}
           />
         </div>
@@ -318,18 +325,19 @@ export default function LoginPage() {
         )}
         <button
           type="submit"
-          disabled={loading} 
-          className={`w-full text-white p-3 rounded cursor-pointer transition-[background-position] duration-500 ease-in-out
+          disabled={loading || UsuTipo === "D"} 
+          className={`w-full text-white p-3 rounded cursor-pointer transition-[background-position,opacity,background-color] duration-500 ease-in-out
     ${
-      loading
-        ? "bg-blue-400 cursor-not-allowed" // Estilo quando carregando
-        : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top" // Estilo normal com animação
+      loading || UsuTipo === "D"
+        ? "bg-gray-400 opacity-50 cursor-not-allowed" 
+        : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top"
     }`}
         >
-          {loading ? "Entrando..." : "Entrar"} {}
+          {loading ? "Entrando..." : "Entrar"}
         </button>
         <button
           type="button"
+          disabled={UsuTipo === "D"}
           onClick={() => {
             setForgotPasswordMode(true);
             setLoginError(false);
@@ -337,7 +345,11 @@ export default function LoginPage() {
             setUsuCodigo("");
             setSenha("");
           }}
-          className="flex justify-center text-[#FFFF] hover:text-blue-500"
+          className={`flex justify-center transition-all ${
+            UsuTipo === "D" 
+              ? "text-gray-500 cursor-not-allowed opacity-50" 
+              : "text-[#FFFF] hover:text-blue-500"
+          }`}
           id="lostpassword"
         >
           Esqueci minha senha

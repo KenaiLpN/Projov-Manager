@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AprendizSidebar } from "@/components/aprendizsidebar";
+
 import { DadosPessoaisForm } from "@/components/forms/aprendiz/DadosPessoaisForm";
 import { VinculoContratoForm } from "@/components/forms/aprendiz/VinculoContratoForm";
 import { EscolaridadeTurmasForm } from "@/components/forms/aprendiz/EscolaridadeTurmasForm";
@@ -169,7 +169,7 @@ function CadastroForm() {
           api.get("/instituicoes-parceiras?limit=1000"),
           api.get("/instituicao?limit=1000"),
           api.get("/users?limit=1000"),
-          api.get("/cursos?limit=1000"),
+          api.get("/areas?limit=1000"),
         ]);
       setUnidades(resUnidades.data.data || []);
       setInstituicoes(resParceiros.data.data || []);
@@ -260,18 +260,40 @@ function CadastroForm() {
       setFormData((prev) => ({ ...prev, [name]: checked }));
       return;
     }
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        name.startsWith("Id") ||
-        name === "HorasDiarias" ||
-        name === "MesesContrato" ||
-        name === "MesesGestacao"
-          ? value
-            ? Number(value)
-            : undefined
-          : value || "", 
-    }));
+    const newValue =
+      name.startsWith("Id") ||
+      name === "HorasDiarias" ||
+      name === "MesesContrato" ||
+      name === "MesesGestacao"
+        ? value
+          ? Number(value)
+          : undefined
+        : value || "";
+    setFormData((prev) => {
+      const newState = { ...prev, [name]: newValue };
+      if (name === "CalCurso" || name === "CalJornadaDiaria") {
+        const selectedArea = cursos.find(
+          (c: any) => String(c.AreaCodigo) === String(newState.CalCurso),
+        );
+        if (selectedArea) {
+          const jornada = Number(newState.CalJornadaDiaria);
+          if (jornada > 0) {
+            if (newState.CalJornadaDiaria === "4") {
+              newState.CalDiasAprendizagemTeorica = 
+                String(Math.floor((selectedArea.AreaCargaTeorica4h || 0) / jornada));
+              newState.CalDiasAprendizagemPratica = 
+                String(Math.floor((selectedArea.AreaCargaPratica4h || 0) / jornada));
+            } else if (newState.CalJornadaDiaria === "6") {
+              newState.CalDiasAprendizagemTeorica = 
+                String(Math.floor((selectedArea.AreaCargaTeorica6h || 0) / jornada));
+              newState.CalDiasAprendizagemPratica = 
+                String(Math.floor((selectedArea.AreaCargaPratica6h || 0) / jornada));
+            }
+          }
+        }
+      }
+      return newState;
+    });
   };
   const handleSave = async () => {
     if (!formData.NomeJovem) {
@@ -331,7 +353,7 @@ function CadastroForm() {
   };
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc]">
-      {isAdmin && <AprendizSidebar />}
+      {isAdmin}
       <main className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white border-b border-gray-200 px-8 py-6 sticky top-0 z-10 shadow-sm">
           <div className="flex justify-between items-center">
@@ -513,4 +535,4 @@ export default function CadAprendizes() {
       <CadastroForm />
     </Suspense>
   );
-}
+}

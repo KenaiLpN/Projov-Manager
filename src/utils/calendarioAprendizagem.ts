@@ -9,18 +9,21 @@ export type TipoDia =
   | "finaldesemana" 
   | "inactive" 
   | "vazio"; 
+
 export interface DiaCalendario {
   dia: number; 
   tipo: TipoDia;
   label: string; 
   date: Date;
 }
+
 export interface MesCalendario {
   ano: number;
   mes: number; 
   nome: string; 
   semanas: (DiaCalendario | null)[][]; 
 }
+
 export interface ResumoCalendario {
   encontrosTeoria: number;
   horasTeoria: number;
@@ -32,6 +35,7 @@ export interface ResumoCalendario {
   totalHoras: number;
   inicioFormacao: string;
 }
+
 export interface CalendarioGerado {
   meses: MesCalendario[];
   resumo: ResumoCalendario;
@@ -44,6 +48,7 @@ export interface CalendarioGerado {
   introdutorios: string;
   duracaoContrato: string;
 }
+
 export interface CalendarioInput {
   nomeAprendiz: string;
   curso: string;
@@ -53,7 +58,6 @@ export interface CalendarioInput {
   diasPratica: string; 
   dataAdmissao: string; 
   dataTerminoIntrodutorios: string; 
-  dataTerminoContrato: string; 
   diaEncontroSemanal: string; 
   dataInicioEncontroSemanal: string; 
   diaEncontroMensal: string; 
@@ -67,6 +71,7 @@ export interface CalendarioInput {
   periodoSuspensaoDe?: string;
   periodoSuspensaoAte?: string;
 }
+
 const NOMES_MESES = [
   "JANEIRO",
   "FEVEREIRO",
@@ -81,6 +86,7 @@ const NOMES_MESES = [
   "NOVEMBRO",
   "DEZEMBRO",
 ];
+
 const DIAS_SEMANA_MAP: Record<string, number> = {
   Domingo: 0,
   "Segunda-Feira": 1,
@@ -90,6 +96,7 @@ const DIAS_SEMANA_MAP: Record<string, number> = {
   "Sexta-Feira": 5,
   Sábado: 6,
 };
+
 const SEMANA_MAP: Record<string, number> = {
   "Primeira Semana": 1,
   "Segunda Semana": 2,
@@ -97,6 +104,7 @@ const SEMANA_MAP: Record<string, number> = {
   "Quarta Semana": 4,
   "Última Semana": -1,
 };
+
 export function getFeriadosNacionais(ano: number): Date[] {
   const feriados: Date[] = [
     new Date(ano, 0, 1), 
@@ -124,6 +132,7 @@ export function getFeriadosNacionais(ano: number): Date[] {
   feriados.push(corpusChristi);
   return feriados;
 }
+
 function calcularPascoa(ano: number): Date {
   const a = ano % 19;
   const b = Math.floor(ano / 100);
@@ -141,6 +150,7 @@ function calcularPascoa(ano: number): Date {
   const dia = ((h + l - 7 * m + 114) % 31) + 1;
   return new Date(ano, mes, dia);
 }
+
 function sameDay(d1: Date, d2: Date): boolean {
   return (
     d1.getFullYear() === d2.getFullYear() &&
@@ -148,6 +158,7 @@ function sameDay(d1: Date, d2: Date): boolean {
     d1.getDate() === d2.getDate()
   );
 }
+
 function inRange(date: Date, start: Date, end: Date): boolean {
   const d = date.getTime();
   const s = new Date(
@@ -162,15 +173,18 @@ function inRange(date: Date, start: Date, end: Date): boolean {
   ).getTime();
   return d >= s && d <= e;
 }
+
 function parseDate(str: string): Date | null {
   if (!str) return null;
   const [y, m, d] = str.split("-").map(Number);
   if (!y || !m || !d) return null;
   return new Date(y, m - 1, d);
 }
+
 function isFeriado(date: Date, feriados: Date[]): boolean {
   return feriados.some((f) => sameDay(date, f));
 }
+
 function isFimDeSemana(date: Date, folga: string): boolean {
   const dow = date.getDay();
   switch (folga) {
@@ -185,6 +199,7 @@ function isFimDeSemana(date: Date, folga: string): boolean {
       return dow === 0 || dow === 6;
   }
 }
+
 function getNthWeekdayOfMonth(
   ano: number,
   mes: number,
@@ -210,10 +225,10 @@ function getNthWeekdayOfMonth(
   }
   return null;
 }
+
 export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
   const dataAdmissao = parseDate(input.dataAdmissao)!;
   const dataTerminoIntro = parseDate(input.dataTerminoIntrodutorios);
-  const dataTerminoContrato = parseDate(input.dataTerminoContrato)!;
   const dataInicioSemanal = parseDate(input.dataInicioEncontroSemanal);
   const feriasDe = parseDate(input.periodoFeriasDe || "");
   const feriasAte = parseDate(input.periodoFeriasAte || "");
@@ -224,34 +239,36 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
   const diaEncontroSemanalNum = DIAS_SEMANA_MAP[input.diaEncontroSemanal] ?? -1;
   const diaEncontroMensalNum = DIAS_SEMANA_MAP[input.diaEncontroMensal] ?? -1;
   const semanaEncontroMensalNum = SEMANA_MAP[input.semanaEncontroMensal] ?? -1;
+  
   const todosOsFeriados: Date[] = [...input.feriados];
-  for (
-    let ano = dataAdmissao.getFullYear();
-    ano <= dataTerminoContrato.getFullYear();
-    ano++
-  ) {
+  const anoBase = dataAdmissao.getFullYear();
+  for (let ano = anoBase; ano <= anoBase + 5; ano++) {
     todosOsFeriados.push(...getFeriadosNacionais(ano));
   }
+
   const horasDiarias = parseFloat(input.jornadaDiaria) || 4;
+  const dTeoriaTarget = parseInt(input.diasTeoria) || 0;
+  const dPraticaTarget = parseInt(input.diasPratica) || 0;
+
   const meses: MesCalendario[] = [];
   let encontrosTeoria = 0;
   let encontrosPratica = 0;
-  let mesAtual = new Date(
-    dataAdmissao.getFullYear(),
-    dataAdmissao.getMonth(),
-    1,
-  );
-  const mesFinal = new Date(
-    dataTerminoContrato.getFullYear(),
-    dataTerminoContrato.getMonth(),
-    1,
-  );
-  while (mesAtual <= mesFinal) {
-    const ano = mesAtual.getFullYear();
-    const mes = mesAtual.getMonth();
+  let dataAtualParaLoop = new Date(dataAdmissao.getFullYear(), dataAdmissao.getMonth(), 1);
+  let dataTerminoReal = new Date(dataAdmissao);
+
+  const dataMax = new Date(dataAdmissao);
+  dataMax.setFullYear(dataMax.getFullYear() + 10);
+
+  while (
+    (encontrosTeoria < dTeoriaTarget || encontrosPratica < dPraticaTarget) &&
+    dataAtualParaLoop < dataMax
+  ) {
+    const ano = dataAtualParaLoop.getFullYear();
+    const mes = dataAtualParaLoop.getMonth();
     const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-    const primeiroDiaSemana = new Date(ano, mes, 1).getDay(); 
+    const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
     let diaEncontroMensalDoMes: Date | null = null;
+
     if (diaEncontroMensalNum >= 0 && semanaEncontroMensalNum !== 0) {
       diaEncontroMensalDoMes = getNthWeekdayOfMonth(
         ano,
@@ -260,22 +277,27 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
         semanaEncontroMensalNum,
       );
     }
+
     const semanas: (DiaCalendario | null)[][] = [];
     let semanaAtual: (DiaCalendario | null)[] = [];
+
     for (let i = 0; i < primeiroDiaSemana; i++) {
       semanaAtual.push(null);
     }
+
     for (let d = 1; d <= diasNoMes; d++) {
       const date = new Date(ano, mes, d);
-      let tipo: TipoDia;
+      let tipo: TipoDia = "vazio";
       let label = "";
-      const dentroDoContrato =
-        date >= dataAdmissao && date <= dataTerminoContrato;
-      if (!dentroDoContrato) {
+
+      const jaConcluiuTudo = encontrosTeoria >= dTeoriaTarget && encontrosPratica >= dPraticaTarget;
+      const ehDiaValido = date >= dataAdmissao && !jaConcluiuTudo;
+
+      if (!ehDiaValido) {
         if (isFimDeSemana(date, input.folga)) {
           tipo = "finaldesemana";
         } else {
-          tipo = "vazio";
+          tipo = jaConcluiuTudo ? "inactive" : "vazio";
         }
       } else if (isFimDeSemana(date, input.folga)) {
         tipo = "finaldesemana";
@@ -295,40 +317,41 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
       } else if (isFeriado(date, todosOsFeriados)) {
         tipo = "feriado";
         label = "F";
-      } else if (
-        dataTerminoIntro &&
-        date >= dataAdmissao &&
-        date <= dataTerminoIntro
-      ) {
-        tipo = "introducao";
-        label = "I";
-        encontrosTeoria++;
-      } else if (dataTerminoIntro && date > dataTerminoIntro) {
+      } else {
+        const isIntro = dataTerminoIntro && date >= dataAdmissao && date <= dataTerminoIntro;
         const inicioSemanalOk = !dataInicioSemanal || date >= dataInicioSemanal;
-        if (
-          diaEncontroMensalDoMes &&
-          sameDay(date, diaEncontroMensalDoMes) &&
-          inicioSemanalOk
-        ) {
+        const isMensal = diaEncontroMensalDoMes && sameDay(date, diaEncontroMensalDoMes) && inicioSemanalOk;
+        const isSemanal = diaEncontroSemanalNum >= 0 && date.getDay() === diaEncontroSemanalNum && inicioSemanalOk;
+
+        if (isIntro && encontrosTeoria < dTeoriaTarget) {
+          tipo = "introducao";
+          label = "I";
+          encontrosTeoria++;
+        } else if (isMensal && encontrosTeoria < dTeoriaTarget) {
           tipo = "mensal";
           label = "M";
           encontrosTeoria++;
-        } else if (
-          diaEncontroSemanalNum >= 0 &&
-          date.getDay() === diaEncontroSemanalNum &&
-          inicioSemanalOk
-        ) {
+        } else if (isSemanal && encontrosTeoria < dTeoriaTarget) {
           tipo = "semanal";
           label = "T";
           encontrosTeoria++;
-        } else {
+        } else if (encontrosPratica < dPraticaTarget) {
           tipo = "pratica";
           label = "P";
           encontrosPratica++;
+        } else if (encontrosTeoria < dTeoriaTarget) {
+          tipo = "introducao";
+          label = "I";
+          encontrosTeoria++;
+        } else {
+          tipo = "inactive";
         }
-      } else {
-        tipo = "inactive";
+
+        if (tipo !== "inactive") {
+          dataTerminoReal = new Date(date);
+        }
       }
+
       const diaCalendario: DiaCalendario = { dia: d, tipo, label, date };
       semanaAtual.push(diaCalendario);
       if (semanaAtual.length === 7) {
@@ -351,8 +374,9 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
       nome: `${NOMES_MESES[mes]} ${ano}`,
       semanas,
     });
-    mesAtual = new Date(ano, mes + 1, 1);
+    dataAtualParaLoop = new Date(ano, mes + 1, 1);
   }
+
   const horasTeoria = encontrosTeoria * horasDiarias;
   const horasPratica = encontrosPratica * horasDiarias;
   const totalHoras = horasTeoria + horasPratica;
@@ -361,8 +385,10 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
     totalHoras > 0 ? (horasTeoria / totalHoras) * 100 : 0;
   const porcentagemPratica =
     totalHoras > 0 ? (horasPratica / totalHoras) * 100 : 0;
+  
   const formatDate = (d: Date) =>
     `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
+    
   return {
     meses,
     resumo: {
@@ -385,6 +411,6 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
     introdutorios: dataTerminoIntro
       ? `${formatDate(dataAdmissao)} a ${formatDate(dataTerminoIntro)}`
       : "",
-    duracaoContrato: `${formatDate(dataAdmissao)} a ${formatDate(dataTerminoContrato)}`,
+    duracaoContrato: `${formatDate(dataAdmissao)} a ${formatDate(dataTerminoReal)}`,
   };
-}
+}
