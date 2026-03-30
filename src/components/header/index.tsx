@@ -59,7 +59,14 @@ const navItems: NavItemWithSub[] = [
       },
     ],
   },
-  { name: "Acessos", href: "/acessos" },
+  {
+    name: "Acessos",
+    href: "/acessos/funcoes",
+    subMenu: [
+      { name: "Cadastro de Funções", href: "/acessos/funcoes" },
+      { name: "Designar Funções", href: "/acessos/designar" },
+    ],
+  },
   { name: "Vagas", href: "/vagas" },
   {
     name: "Aprendiz",

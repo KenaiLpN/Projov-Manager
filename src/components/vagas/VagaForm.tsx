@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
+import { Dropdown } from "primereact/dropdown";
 
 interface Empresa {
   ParCodigo: number;
@@ -21,6 +22,17 @@ interface Empresa {
 interface AreaAtuacao {
   AreaCodigo: number;
   AreaDescricao: string;
+}
+
+interface Unidade {
+  ParUniCodigo: number;
+  ParUniCodigoParceiro: number;
+  ParUniDescricao: string;
+  ParUniEndereco?: string;
+  ParUniNumeroEndereco?: string;
+  ParUniBairro?: string;
+  ParUniCidade?: string;
+  ParUniEstado?: string;
 }
 
 export interface VagaFormData {
@@ -79,9 +91,11 @@ interface VagaFormProps {
 export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
   const [formData, setFormData] = useState<VagaFormData>(initialFormData);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [areas, setAreas] = useState<AreaAtuacao[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedEmpresaCNPJ, setSelectedEmpresaCNPJ] = useState("");
+  const [selectedUnidade, setSelectedUnidade] = useState<string>("");
 
   useEffect(() => {
     fetchAuxData();
@@ -89,13 +103,18 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
 
   const fetchAuxData = async () => {
     try {
-      const [empRes, areaRes] = await Promise.all([
-        api.get("/parceiros"),
-        api.get("/areas")
+      const [empRes, areaRes, uniRes] = await Promise.all([
+        api.get("/parceiros?limit=1000"),
+        api.get("/areas?limit=1000"),
+        api.get("/unidades-parceiro?limit=1000")
       ]);
       
-      setEmpresas(Array.isArray(empRes.data) ? empRes.data : empRes.data.data || []);
+      const empList = (Array.isArray(empRes.data) ? empRes.data : empRes.data.data || [])
+        .sort((a: any, b: any) => a.ParDescricao.localeCompare(b.ParDescricao));
+        
+      setEmpresas(empList);
       setAreas(Array.isArray(areaRes.data) ? areaRes.data : areaRes.data.data || []);
+      setUnidades(Array.isArray(uniRes.data) ? uniRes.data : uniRes.data.data || []);
     } catch (error) {
       console.error("Erro ao carregar dados auxiliares:", error);
       toast.error("Erro ao carregar empresas e áreas.");
@@ -111,6 +130,20 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
     if (name === "ReqEmpresa") {
       const empresa = empresas.find(emp => emp.ParCodigo.toString() === value);
       setSelectedEmpresaCNPJ(empresa?.ParCNPJ || "");
+      setSelectedUnidade(""); // Reset unidade when empresa changes
+    }
+  };
+
+  const handleUnidadeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSelectedUnidade(value);
+    
+    if (value) {
+      const unidade = unidades.find(u => u.ParUniCodigo.toString() === value);
+      if (unidade) {
+        const enderecoCompleto = `${unidade.ParUniEndereco || ""}, ${unidade.ParUniNumeroEndereco || ""}${unidade.ParUniBairro ? ` - ${unidade.ParUniBairro}` : ""} - ${unidade.ParUniCidade || ""}/${unidade.ParUniEstado || ""}`;
+        setFormData(prev => ({ ...prev, ReqEndEntrevista: enderecoCompleto.replace(/^, /, "") }));
+      }
     }
   };
 
@@ -119,15 +152,35 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
     setLoading(true);
     try {
       const submitData = {
-        ...formData,
-        ReqEmpresa: parseInt(formData.ReqEmpresa),
-        ReqQuantidade: parseInt(formData.ReqQuantidade),
-        ReqAreaAtuacao: parseInt(formData.ReqAreaAtuacao),
-        ReqIdadeMinima: parseInt(formData.ReqIdadeMinima),
+        ReqEmpresa: parseInt(formData.ReqEmpresa) || 0,
+        ReqDataSolita__o: formData.ReqDataSolita__o,
+        ReqQuantidade: parseInt(formData.ReqQuantidade) || 1,
+        ReqSexo: formData.ReqSexo || "A",
+        ReqHorarioEntrevista: formData.ReqHorarioEntrevista || null,
+        ReqSubstituicao: formData.ReqSubstituicao || "N",
+        ReqSubstituir: formData.ReqSubstituir || null,
+        ReqAreaAtuacao: parseInt(formData.ReqAreaAtuacao) || 0,
+        ReqHorarioTrabalho: formData.ReqHorarioTrabalho || null,
+        ReqSituacao: formData.ReqSituacao || "A",
+        ReqDataEntrevista: formData.ReqDataEntrevista || null,
+        ReqMaiorMenor: formData.ReqMaiorMenor || "I",
+        ReqIdadeMinima: parseInt(formData.ReqIdadeMinima) || 14,
+        ReqEndEntrevista: formData.ReqEndEntrevista || null,
+        ReqCaracteristicasPessoais: formData.ReqCaracteristicasPessoais || null,
+        ReqHabilidades: formData.ReqHabilidades || null,
+        ReqAtividades: formData.ReqAtividades || null,
+        ReqContaoEntrevista: formData.ReqContaoEntrevista || null,
+        ReqObservacoes: formData.ReqObservacoes || null,
+        ReqObservacoesInst: formData.ReqObservacoesInst || null,
         ReqSalario: formData.ReqSalario ? parseFloat(formData.ReqSalario) : null,
-        ReqDataSolita__o: new Date(formData.ReqDataSolita__o),
-        ReqDataEntrevista: formData.ReqDataEntrevista ? new Date(formData.ReqDataEntrevista) : null,
       };
+
+      // Limpar campos extras do submitData se houver algum
+      Object.keys(submitData).forEach(key => {
+        if (submitData[key as keyof typeof submitData] === "") {
+          (submitData as any)[key] = null;
+        }
+      });
 
       await api.post("/vagas", submitData);
       toast.success("Vaga cadastrada com sucesso!");
@@ -165,20 +218,32 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
 
           <div className="flex flex-col gap-1.5 lg:col-span-1">
             <label className="text-xs font-bold text-gray-500 uppercase">Empresa *</label>
-            <select
+            <Dropdown
+              id="ReqEmpresa"
               name="ReqEmpresa"
-              value={formData.ReqEmpresa || ""}
-              onChange={handleChange}
-              required
-              className="p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-            >
-              <option value="">Selecione...</option>
-              {empresas.map(emp => (
-                <option key={emp.ParCodigo} value={emp.ParCodigo}>
-                  {emp.ParDescricao}
-                </option>
-              ))}
-            </select>
+              value={formData.ReqEmpresa ? Number(formData.ReqEmpresa) : null}
+              options={empresas.map(emp => ({ 
+                label: emp.ParDescricao, 
+                value: emp.ParCodigo 
+              }))}
+              onChange={(e) => {
+                const value = e.value;
+                setFormData(prev => ({ ...prev, ReqEmpresa: String(value) }));
+                const empresa = empresas.find(emp => emp.ParCodigo === value);
+                setSelectedEmpresaCNPJ(empresa?.ParCNPJ || "");
+                setSelectedUnidade("");
+              }}
+              filter
+              filterBy="label"
+              placeholder="Selecione uma empresa"
+              className="bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all font-medium text-gray-700 h-[50px] flex items-center"
+              pt={{
+                input: { className: 'h-full flex items-center p-3 text-sm' },
+                trigger: { className: 'p-3' },
+                panel: { className: 'custom-dropdown-panel' },
+                filterInput: { className: 'p-2 border-b border-gray-100 outline-none' }
+              }}
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -271,20 +336,28 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase">Área de Atuação *</label>
-            <select
+            <Dropdown
+              id="ReqAreaAtuacao"
               name="ReqAreaAtuacao"
-              value={formData.ReqAreaAtuacao || ""}
-              onChange={handleChange}
-              required
-              className="p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-            >
-              <option value="">Selecione...</option>
-              {areas.map(area => (
-                <option key={area.AreaCodigo} value={area.AreaCodigo}>
-                  {area.AreaDescricao}
-                </option>
-              ))}
-            </select>
+              value={formData.ReqAreaAtuacao ? Number(formData.ReqAreaAtuacao) : null}
+              options={areas.map(area => ({ 
+                label: area.AreaDescricao, 
+                value: area.AreaCodigo 
+              }))}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, ReqAreaAtuacao: String(e.value) }));
+              }}
+              filter
+              filterBy="label"
+              placeholder="Selecione uma área"
+              className="bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all font-medium text-gray-700 h-[50px] flex items-center"
+              pt={{
+                input: { className: 'h-full flex items-center p-3 text-sm' },
+                trigger: { className: 'p-3' },
+                panel: { className: 'custom-dropdown-panel' },
+                filterInput: { className: 'p-2 border-b border-gray-100 outline-none' }
+              }}
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -372,15 +445,35 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
           </h2>
         </div>
         <div className="p-6">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-gray-500 uppercase">Local Entrevista</label>
-            <input
-              name="ReqEndEntrevista"
-              value={formData.ReqEndEntrevista || ""}
-              onChange={handleChange}
-              placeholder="Externo ou endereço específico"
-              className="p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all w-full"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase">Unidade</label>
+              <select
+                value={selectedUnidade}
+                onChange={handleUnidadeChange}
+                disabled={!formData.ReqEmpresa}
+                className="p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Selecione uma unidade...</option>
+                {unidades
+                  .filter(u => u.ParUniCodigoParceiro.toString() === formData.ReqEmpresa)
+                  .map(uni => (
+                    <option key={uni.ParUniCodigo} value={uni.ParUniCodigo}>
+                      {uni.ParUniDescricao}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase">Local Entrevista</label>
+              <input
+                name="ReqEndEntrevista"
+                value={formData.ReqEndEntrevista || ""}
+                onChange={handleChange}
+                placeholder="Externo ou endereço específico"
+                className="p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all w-full"
+              />
+            </div>
           </div>
         </div>
       </section>

@@ -35,8 +35,8 @@ export default function VagasPage() {
     try {
       const [vagaRes, empRes, areaRes] = await Promise.all([
         api.get("/vagas"),
-        api.get("/parceiros"),
-        api.get("/areas")
+        api.get("/parceiros?limit=1000"),
+        api.get("/areas?limit=1000")
       ]);
       
       const vacancies = Array.isArray(vagaRes.data) ? vagaRes.data : vagaRes.data.data || [];
@@ -169,6 +169,7 @@ export default function VagasPage() {
       <Modal 
         isOpen={isFormOpen} 
         onClose={() => setIsFormOpen(false)}
+        maxWidth="max-w-7xl"
       >
         <div className="max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
           <div className="mb-6 flex items-center justify-between sticky top-0 bg-white z-10 pb-4 border-b border-gray-100">
