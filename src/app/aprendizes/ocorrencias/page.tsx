@@ -8,7 +8,7 @@ import SearchBox from "@/components/searchbox";
 import Pagination from "@/components/pagination";
 import TabelaOcorrenciaTipo from "@/components/tabelas/TabelaOcorrenciaTipo";
 import OcorrenciaTipoForm from "@/components/forms/OcorrenciaTipoForm";
-import { AprendizSidebar } from "@/components/aprendizsidebar";
+import { CadSidebar } from "@/components/cadsidebar";
 import {
   getAllOcorrenciaTipos,
   createOcorrenciaTipo,
@@ -102,7 +102,7 @@ export default function OcorrenciasPage() {
   };
   return (
     <div className="flex h-screen w-screen overflow-hidden">
-      <AprendizSidebar />
+      <CadSidebar />
       <main className="flex-1 flex flex-col p-6 overflow-auto bg-gray-100">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold text-[#133c86]">
