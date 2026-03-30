@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { UserMenu } from "../perfildropdown";
 import { NotificationsMenu } from "../notifications";
 import { getRoleLabel } from "@/utils/roles";
@@ -179,18 +179,20 @@ const navItems: NavItemWithSub[] = [
   { name: "Estatísticas", href: "/estatisticas" },
 ];
 
-function SubMenuItem({ item, depth = 0 }: { item: NavItemWithSub; depth?: number }) {
+function SubMenuItem({ 
+  item, 
+  depth = 0,
+  isExpanded,
+  onToggle
+}: { 
+  item: NavItemWithSub; 
+  depth?: number;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
   const pathname = usePathname();
-  const [isExpanded, setIsExpanded] = useState(false);
   const isSubActive = pathname === item.href;
   const hasSub = item.subMenu && item.subMenu.length > 0;
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (hasSub && item.href === "#") {
-      e.preventDefault();
-      setIsExpanded(!isExpanded);
-    }
-  };
 
   return (
     <div className="flex flex-col">
@@ -202,8 +204,7 @@ function SubMenuItem({ item, depth = 0 }: { item: NavItemWithSub; depth?: number
             ? "text-[#52E8FB] font-black hover:bg-[#123a83]"
             : "text-gray-100 hover:bg-[#123a83] hover:text-[#F6F6E2]"
         }`}
-        onClick={handleClick}
-        onMouseEnter={() => hasSub && setIsExpanded(true)}
+        onClick={() => onToggle()}
       >
         <Link 
           href={item.href} 
@@ -227,13 +228,42 @@ function SubMenuItem({ item, depth = 0 }: { item: NavItemWithSub; depth?: number
         )}
       </div>
 
-      {hasSub && isExpanded && (
-        <div className="flex flex-col bg-[#0b2452]/50">
-          {item.subMenu!.map((sub) => (
-            <SubMenuItem key={sub.name} item={sub} depth={depth + 1} />
-          ))}
-        </div>
-      )}
+      <div 
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded && hasSub ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        {hasSub && (
+          <SubMenuGroup items={item.subMenu!} depth={depth + 1} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SubMenuGroup({ items, depth = 0 }: { items: NavItemWithSub[]; depth?: number }) {
+  const pathname = usePathname();
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const activeIndex = items.findIndex(item => {
+      if (item.href === "#") {
+        return item.subMenu?.some(sub => pathname.startsWith(sub.href));
+      }
+      return pathname.startsWith(item.href);
+    });
+    setExpandedIndex(activeIndex !== -1 ? activeIndex : null);
+  }, [pathname, items]);
+
+  return (
+    <div className={`flex flex-col ${depth > 0 ? 'bg-[#0b2452]/50' : 'py-2'}`}>
+      {items.map((sub, index) => (
+        <SubMenuItem 
+          key={sub.name + index} 
+          item={sub} 
+          depth={depth} 
+          isExpanded={expandedIndex === index}
+          onToggle={() => setExpandedIndex(expandedIndex === index ? null : index)}
+        />
+      ))}
     </div>
   );
 }
@@ -243,7 +273,9 @@ export function Header() {
     nome: "",
     role: "",
   });
+  const [openedMenu, setOpenedMenu] = useState<string | null>(null);
   const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const dadosSalvos = localStorage.getItem("projov_user");
@@ -255,6 +287,22 @@ export function Header() {
       });
     }
   }, []);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenedMenu(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close menus on path change
+  useEffect(() => {
+    setOpenedMenu(null);
+  }, [pathname]);
 
   const baseLinkClasses =
     "flex items-center gap-2 text-[#52E8FB] transition font-medium duration-500 ease-in-out h-20 p-5";
@@ -278,39 +326,51 @@ export function Header() {
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
         </p>
       </div>
-      <div className="flex h-20">
+      <div className="flex h-20" ref={menuRef}>
         {navItems.map((item) => {
-          const isActive = pathname.startsWith(
-            item.href === "/" ? "/NONE" : item.href,
+          const hasSub = item.subMenu && item.subMenu.length > 0;
+          const isMenuOpen = openedMenu === item.name;
+
+          const content = (
+            <div className={`${getLinkClasses(item.href)} cursor-pointer flex items-center`}>
+              <span>{item.name}</span>
+              {hasSub && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-4 w-4 ml-1 opacity-50 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              )}
+            </div>
           );
+
           return (
-            <div key={item.name} className="relative group flex items-center">
-              <Link href={item.href} className={getLinkClasses(item.href)}>
-                <span>{item.name}</span>
-                {item.subMenu && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 ml-1 opacity-50 group-hover:rotate-180 transition-transform duration-300"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                )}
-              </Link>
-              {item.subMenu && (
-                <div className="absolute top-20 left-0 w-80 bg-[#0f306d] shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 backdrop-blur-sm bg-opacity-95 rounded-b-lg overflow-y-auto max-h-[85vh]">
-                  <div className="flex flex-col py-2">
-                    {item.subMenu.map((sub) => (
-                      <SubMenuItem key={sub.name} item={sub} />
-                    ))}
-                  </div>
+            <div key={item.name} className="relative flex items-center h-full">
+              {hasSub ? (
+                <button 
+                  onClick={() => setOpenedMenu(isMenuOpen ? null : item.name)}
+                  className="h-full focus:outline-none"
+                >
+                  {content}
+                </button>
+              ) : (
+                <Link href={item.href} className="h-full">
+                  {content}
+                </Link>
+              )}
+              
+              {hasSub && isMenuOpen && (
+                <div className="absolute top-20 left-0 w-80 bg-[#0f306d] shadow-2xl z-50 backdrop-blur-sm bg-opacity-95 rounded-b-lg overflow-y-auto max-h-[85vh]">
+                  <SubMenuGroup items={item.subMenu!} />
                 </div>
               )}
             </div>

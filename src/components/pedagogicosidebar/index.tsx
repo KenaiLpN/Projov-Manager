@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface MenuItem {
   name: string;
@@ -25,7 +25,6 @@ const menuItems: MenuItem[] = [
   {
     name: "Lista Jovens Carga Horária",
     href: "/pedagogico/lista-jovens",
-    isBlue: true,
   },
   { name: "Lista de Monitores/Funcionário", href: "/pedagogico/monitores" },
   { name: "Módulos de Aprendizagem", href: "/pedagogico/modulos" },
@@ -89,10 +88,19 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-function SidebarItem({ item, depth = 0 }: { item: MenuItem, depth?: number }) {
+function SidebarItem({ 
+  item, 
+  depth = 0,
+  isExpanded,
+  onToggle
+}: { 
+  item: MenuItem, 
+  depth?: number,
+  isExpanded: boolean,
+  onHover: () => void,
+  onToggle: () => void
+}) {
   const pathname = usePathname();
-  const [isExpanded, setIsExpanded] = useState(pathname.startsWith(item.href) && item.href !== "#");
-  
   const isActive = pathname === item.href;
   const hasSub = item.subMenu && item.subMenu.length > 0;
 
@@ -104,8 +112,8 @@ function SidebarItem({ item, depth = 0 }: { item: MenuItem, depth?: number }) {
   return (
     <div className="w-full">
       <div 
-        className={`${baseClasses} ${isActive ? activeClasses : item.isBlue ? blueClasses : inactiveClasses} cursor-pointer`}
-        onClick={() => hasSub && setIsExpanded(!isExpanded)}
+        className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} cursor-pointer`}
+        onClick={() => onToggle()}
       >
         <Link href={item.href} className="flex-1 flex items-center h-full" onClick={(e) => item.href === "#" && e.preventDefault()}>
           <span style={{ paddingLeft: `${depth * 0.75}rem` }}>{item.name}</span>
@@ -122,14 +130,47 @@ function SidebarItem({ item, depth = 0 }: { item: MenuItem, depth?: number }) {
           </svg>
         )}
       </div>
-      {hasSub && isExpanded && (
-        <div className="bg-[#0b2452]/30 w-full border-l-2 border-white/5">
-          {item.subMenu!.map((sub) => (
-            <SidebarItem key={sub.href + sub.name} item={sub} depth={depth + 1} />
-          ))}
-        </div>
-      )}
+      <div 
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded && hasSub ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        {hasSub && (
+          <div className="bg-[#0b2452]/30 w-full border-l-2 border-white/5">
+            <SidebarGroup items={item.subMenu!} depth={depth + 1} />
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+function SidebarGroup({ items, depth = 0 }: { items: MenuItem[], depth?: number }) {
+  const pathname = usePathname();
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  // Auto-expand based on current pathname
+  useEffect(() => {
+    const activeIndex = items.findIndex(item => {
+      if (item.href === "#") {
+        return item.subMenu?.some(sub => pathname.startsWith(sub.href));
+      }
+      return pathname.startsWith(item.href);
+    });
+    setExpandedIndex(activeIndex !== -1 ? activeIndex : null);
+  }, [pathname, items]);
+
+  return (
+    <>
+      {items.map((item, index) => (
+        <SidebarItem 
+          key={item.href + item.name + index} 
+          item={item} 
+          depth={depth}
+          isExpanded={expandedIndex === index}
+          onHover={() => setExpandedIndex(index)}
+          onToggle={() => setExpandedIndex(expandedIndex === index ? null : index)}
+        />
+      ))}
+    </>
   );
 }
 
@@ -137,9 +178,7 @@ export function PedagogicoSidebar() {
   return (
     <div className="flex flex-col bg-[#0F306D] w-64 h-full overflow-y-auto overflow-x-hidden border-r border-[#123A83]/50">
       <div className="py-2">
-        {menuItems.map((item) => (
-          <SidebarItem key={item.href + item.name} item={item} />
-        ))}
+        <SidebarGroup items={menuItems} />
       </div>
     </div>
   );
