@@ -9,11 +9,13 @@ interface Props {
     >,
   ) => void;
   escolas: any[];
+  turmas: any[];
 }
 export function EscolaridadeTurmasForm({
   formData,
   handleChange,
   escolas,
+  turmas,
 }: Props) {
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -98,24 +100,57 @@ export function EscolaridadeTurmasForm({
           <label className="text-xs font-bold text-gray-500 uppercase">
             Turma Simultaneidade
           </label>
-          <input
+          <select
             name="TurmaSimultaneidade"
             value={formData.TurmaSimultaneidade || ""}
             onChange={handleChange}
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
-          />
+          >
+            <option value="">Selecione...</option>
+            {turmas.map((t: any) => (
+              <option key={t.TurCodigo} value={t.TurNome}>
+                {t.TurNome}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Turma CCI
           </label>
-          <input
+          <select
             name="TurmaCCI"
             value={formData.TurmaCCI || ""}
             onChange={handleChange}
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
-          />
+          >
+            <option value="">Selecione...</option>
+            {turmas.map((t: any) => (
+              <option key={t.TurCodigo} value={t.TurNome}>
+                {t.TurNome}
+              </option>
+            ))}
+          </select>
         </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-gray-500 uppercase">
+            Capacitação
+          </label>
+          <select
+            name="IdTurmaCapacitacao"
+            value={formData.IdTurmaCapacitacao || ""}
+            onChange={handleChange}
+            className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+          >
+            <option value="">Selecione...</option>
+            {turmas.map((t: any) => (
+              <option key={t.TurCodigo} value={t.TurCodigo}>
+                {t.TurNome}
+              </option>
+            ))}
+          </select>
+        </div>
+
       </div>
     </section>
   );

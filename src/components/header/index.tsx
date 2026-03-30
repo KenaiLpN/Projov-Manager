@@ -5,13 +5,17 @@ import React, { useEffect, useState } from "react";
 import { UserMenu } from "../perfildropdown";
 import { NotificationsMenu } from "../notifications";
 import { getRoleLabel } from "@/utils/roles";
+
 interface NavItem {
   name: string;
   href: string;
+  isBlue?: boolean;
 }
+
 interface NavItemWithSub extends NavItem {
-  subMenu?: NavItem[];
+  subMenu?: NavItemWithSub[];
 }
+
 const navItems: NavItemWithSub[] = [
   {
     name: "Cadastros",
@@ -71,27 +75,176 @@ const navItems: NavItemWithSub[] = [
   {
     name: "Aprendiz",
     href: "/aprendizes",
-    
   },
   {
     name: "Pedagógico",
     href: "/pedagogico",
     subMenu: [
-      { name: "Cadastro de Cursos", href: "/pedagogico/cursos" },
-      { name: "Disciplinas", href: "/pedagogico/disciplinas" },
-      { name: "Turmas", href: "/pedagogico/turmas" },
-      { name: "Conceitos", href: "/pedagogico/conceitos" },
-      { name: "Áreas de atuação", href: "/pedagogico/areas" },
+      {
+        name: "Cadastros",
+        href: "#",
+        subMenu: [
+          { name: "Cadastro de Cursos", href: "/pedagogico/cursos" },
+          { name: "Cadastro de Disciplinas", href: "/pedagogico/disciplinas" },
+          { name: "Cadastro de Turmas", href: "/pedagogico/turmas" },
+          { name: "Cadastro de Conceitos", href: "/pedagogico/conceitos" },
+          { name: "Áreas de Atuação", href: "/pedagogico/areas" },
+        ],
+      },
+      {
+        name: "Lista Jovens Carga Horár...",
+        href: "/pedagogico/lista-jovens",
+        isBlue: true,
+      },
+      { name: "Lista de Monitores/Funcionário", href: "/pedagogico/monitores" },
+      { name: "Módulos de Aprendizagem", href: "/pedagogico/modulos" },
+      { name: "Planos Curriculares", href: "/pedagogico/planos" },
+      {
+        name: "Lista de Presença",
+        href: "#",
+        subMenu: [
+          { name: "Lista de Presença", href: "/pedagogico/presenca" },
+          {
+            name: "Lista Presença Capacitação",
+            href: "/pedagogico/presenca-capacitacao",
+          },
+          {
+            name: "Lista Presença Introdutório",
+            href: "/pedagogico/presenca-introdutorio",
+          },
+        ],
+      },
+      {
+        name: "Cronogramas",
+        href: "#",
+        subMenu: [
+          { name: "Cronogramas", href: "/pedagogico/cronogramas" },
+          {
+            name: "Geração de Cronograma Turma...",
+            href: "/pedagogico/gerar-cronograma",
+          },
+          {
+            name: "Gerar Cronograma Turma/Sem...",
+            href: "/pedagogico/gerar-cronograma-semanal",
+          },
+          { name: "Datas encontros", href: "/pedagogico/datas-encontros" },
+        ],
+      },
+      {
+        name: "Aprendizes/Alunos por Turma",
+        href: "#",
+        subMenu: [
+          { name: "Aprendizes por Turma", href: "/pedagogico/aprendizes-turma" },
+          { name: "Alunos por Turma", href: "/pedagogico/alunos-turma" },
+        ],
+      },
+      {
+        name: "Lançamento de Falta",
+        href: "#",
+        subMenu: [
+          { name: "Lançar Faltas", href: "/pedagogico/faltas" },
+          {
+            name: "Lançar Faltas Capacitação",
+            href: "/pedagogico/faltas-capacitacao",
+          },
+          {
+            name: "Lançar Faltas Informática",
+            href: "/pedagogico/faltas-informatica",
+          },
+        ],
+      },
+      {
+        name: "Controle de Presença",
+        href: "#",
+        subMenu: [
+          { name: "Comunicado Faltas", href: "/pedagogico/comunicado-faltas" },
+          { name: "Por Data/Turma", href: "/pedagogico/presenca-data-turma" },
+          { name: "Por Data/Turma Capacitação", href: "/pedagogico/presenca-data-turma-capacitacao" },
+          { name: "Por Periodo/Turma", href: "/pedagogico/presenca-periodo-turma" },
+          { name: "Por Periodo/Turma Capacitacao", href: "/pedagogico/presenca-periodo-turma-capacitacao" },
+          { name: "Por Periodo/Parceiro", href: "/pedagogico/presenca-periodo-parceiro" },
+          { name: "Total Periodo/Turma", href: "/pedagogico/total-periodo-turma" },
+          { name: "Total Periodo/Turma Capacitação", href: "/pedagogico/total-periodo-turma-capacitacao" },
+          { name: "Total Periodo/Parceiros", href: "/pedagogico/total-periodo-parceiros" },
+          { name: "Total Periodo/Faltas", href: "/pedagogico/total-periodo-faltas" },
+          { name: "Contagem Faltas Período", href: "/pedagogico/contagem-faltas" },
+          { name: "Conteúdos Lecionados no Perí...", href: "/pedagogico/conteudos-lecionados" },
+          { name: "Aulas dadas no período", href: "/pedagogico/aulas-dadas" },
+          { name: "Controle de Faltas (8 faltas)", href: "/pedagogico/controle-faltas-oito" },
+          { name: "Estatísticas Presença por Jovem", href: "/pedagogico/estatisticas-presenca-jovem" },
+        ],
+      },
     ],
   },
   { name: "Estatísticas", href: "/estatisticas" },
 ];
+
+function SubMenuItem({ item, depth = 0 }: { item: NavItemWithSub; depth?: number }) {
+  const pathname = usePathname();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isSubActive = pathname === item.href;
+  const hasSub = item.subMenu && item.subMenu.length > 0;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (hasSub && item.href === "#") {
+      e.preventDefault();
+      setIsExpanded(!isExpanded);
+    }
+  };
+
+  return (
+    <div className="flex flex-col">
+      <div 
+        className={`flex items-center justify-between px-6 py-3 text-sm transition-colors duration-200 cursor-pointer ${
+          isSubActive
+            ? "bg-[#123a83] text-[#F6F6E2] font-bold"
+            : item.isBlue
+            ? "text-[#52E8FB] font-black hover:bg-[#123a83]"
+            : "text-gray-100 hover:bg-[#123a83] hover:text-[#F6F6E2]"
+        }`}
+        onClick={handleClick}
+        onMouseEnter={() => hasSub && setIsExpanded(true)}
+      >
+        <Link 
+          href={item.href} 
+          className="flex-1"
+          onClick={(e) => item.href === "#" && e.preventDefault()}
+        >
+          <span style={{ paddingLeft: depth > 0 ? `${depth * 1.5}rem` : 0 }}>
+            {item.name}
+          </span>
+        </Link>
+        {hasSub && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-4 w-4 ml-2 opacity-50 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        )}
+      </div>
+
+      {hasSub && isExpanded && (
+        <div className="flex flex-col bg-[#0b2452]/50">
+          {item.subMenu!.map((sub) => (
+            <SubMenuItem key={sub.name} item={sub} depth={depth + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Header() {
   const [user, setUser] = useState({
     nome: "",
     role: "",
   });
   const pathname = usePathname();
+
   useEffect(() => {
     const dadosSalvos = localStorage.getItem("projov_user");
     if (dadosSalvos) {
@@ -102,16 +255,19 @@ export function Header() {
       });
     }
   }, []);
+
   const baseLinkClasses =
     "flex items-center gap-2 text-[#52E8FB] transition font-medium duration-500 ease-in-out h-20 p-5";
   const activeLinkClasses =
     "text-[#F6F6F6] bg-[#123a83] font-medium focus:ring-2 focus:ring-gray-500/10";
   const inactive =
     "text-[#F6F6F6] transition font-medium duration-300 ease-in-out hover:text-[#FDFDFD] hover:bg-[#123a83]";
+
   const getLinkClasses = (href: string) => {
     const isActive = pathname === href;
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
+
   return (
     <header className="flex bg-[#0f306d] border-b border-[#e4e9f0] justify-between items-center">
       <div className="ml-5">
@@ -149,24 +305,11 @@ export function Header() {
                 )}
               </Link>
               {item.subMenu && (
-                <div className="absolute top-20 left-0 w-64 bg-[#0f306d] shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 backdrop-blur-sm bg-opacity-95 rounded-b-lg overflow-hidden">
+                <div className="absolute top-20 left-0 w-80 bg-[#0f306d] shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 backdrop-blur-sm bg-opacity-95 rounded-b-lg overflow-y-auto max-h-[85vh]">
                   <div className="flex flex-col py-2">
-                    {item.subMenu.map((sub) => {
-                      const isSubActive = pathname === sub.href;
-                      return (
-                        <Link
-                          key={sub.name}
-                          href={sub.href}
-                          className={`px-6 py-3 text-sm transition-colors duration-200 ${
-                            isSubActive
-                              ? "bg-[#123a83] text-[#F6F6E2] font-bold"
-                              : "text-gray-100 hover:bg-[#123a83] hover:text-[#F6F6E2]"
-                          }`}
-                        >
-                          {sub.name}
-                        </Link>
-                      );
-                    })}
+                    {item.subMenu.map((sub) => (
+                      <SubMenuItem key={sub.name} item={sub} />
+                    ))}
                   </div>
                 </div>
               )}
@@ -174,7 +317,7 @@ export function Header() {
           );
         })}
       </div>
-      <div className="flex items-center gap-6 pr-5">
+      <div className="items-center gap-6 pr-5 hidden lg:flex">
         <NotificationsMenu />
         <UserMenu nome={user.nome} role={getRoleLabel(user.role)} />
       </div>

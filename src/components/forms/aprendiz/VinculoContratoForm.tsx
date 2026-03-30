@@ -11,14 +11,21 @@ interface Props {
   unidades: any[];
   instituicoes: any[];
   orientadores: any[];
+  planos: any[];
+  turmas: any[];
 }
+
 export function VinculoContratoForm({
   formData,
   handleChange,
   unidades,
   instituicoes,
   orientadores,
+  planos,
+  turmas,
 }: Props) {
+
+
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
@@ -112,15 +119,41 @@ export function VinculoContratoForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
+            Plano Curricular
+          </label>
+          <select
+            name="IdPlanoCurricular"
+            value={(formData as any).IdPlanoCurricular || ""}
+            onChange={handleChange}
+            className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+          >
+            <option value="">Selecione...</option>
+            {planos.map((p: any) => (
+              <option key={p.PlanCodigo} value={p.PlanCodigo}>
+                {p.PlanDescricao}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-gray-500 uppercase">
             Área de Atuação
           </label>
-          <input
+          <select
             name="AreaAtuacao"
             value={formData.AreaAtuacao || ""}
             onChange={handleChange}
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
-          />
+          >
+            <option value="">Selecione...</option>
+            <option value="Administrativo">Administrativo</option>
+            <option value="Operacional">Operacional</option>
+            <option value="Comercial">Comercial</option>
+            <option value="Telemarketing">Telemarketing</option>
+            <option value="Vendas">Vendas</option>
+          </select>
         </div>
+
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500 uppercase">
             Horas Diárias

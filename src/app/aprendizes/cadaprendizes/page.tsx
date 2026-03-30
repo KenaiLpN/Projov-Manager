@@ -23,15 +23,20 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
+
 function CadastroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editingId = searchParams.get("id");
+
   const [unidades, setUnidades] = useState<any[]>([]);
   const [instituicoes, setInstituicoes] = useState<any[]>([]);
   const [escolas, setEscolas] = useState<any[]>([]);
   const [orientadores, setOrientadores] = useState<any[]>([]);
   const [cursos, setCursos] = useState<any[]>([]);
+  const [turmas, setTurmas] = useState<any[]>([]);
+  const [planos, setPlanos] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(true);
   const [formData, setFormData] = useState<AprendizFormData>({
@@ -95,7 +100,7 @@ function CadastroForm() {
     MedicamentosQual: "",
     MedicamentosFinalidade: "",
     TemAlergia: false,
-    AlergiaQual: "",
+    TemAlergiaQual: "",
     TemProblemaSaude: false,
     ProblemaSaudeQual: "",
     Deficiencia: "",
@@ -126,19 +131,17 @@ function CadastroForm() {
     CalPeriodoSuspensaoDe: "",
     CalPeriodoSuspensaoAte: "",
   });
+
   const tabs = [
     { id: "jovem", label: "Jovem", icon: <User size={18} /> },
     { id: "trabalho", label: "Trabalho", icon: <Briefcase size={18} /> },
-    {
-      id: "escolaridade",
-      label: "Escolaridade",
-      icon: <GraduationCap size={18} />,
-    },
+    { id: "escolaridade", label: "Escolaridade", icon: <GraduationCap size={18} /> },
     { id: "documentacao", label: "Documentação", icon: <FileText size={18} /> },
     { id: "endereco", label: "Endereço", icon: <MapPin size={18} /> },
     { id: "saude", label: "Saúde", icon: <HeartPulse size={18} /> },
     { id: "calendario", label: "Calendário", icon: <CalendarDays size={18} /> },
   ];
+
   const [activeTab, setActiveTab] = useState("jovem");
 
   useEffect(() => {
@@ -161,35 +164,39 @@ function CadastroForm() {
       fetchAprendiz(editingId);
     }
   }, [editingId]);
+
   const loadSelectData = async () => {
     try {
-      const [resUnidades, resParceiros, resEscolas, resUsuarios, resCursos] =
+      const [resUnidades, resParceiros, resEscolas, resUsuarios, resCursos, resTurmas, resPlanos] =
         await Promise.all([
           api.get("/unidade?limit=1000"),
           api.get("/instituicoes-parceiras?limit=1000"),
           api.get("/instituicao?limit=1000"),
           api.get("/users?limit=1000"),
           api.get("/areas?limit=1000"),
+          api.get("/turmas?limit=1000"),
+          api.get("/planos?limit=1000"),
         ]);
       setUnidades(resUnidades.data.data || []);
       setInstituicoes(resParceiros.data.data || []);
       setEscolas(resEscolas.data.data || []);
       setOrientadores(resUsuarios.data.data || []);
       setCursos(resCursos.data.data || []);
+      setTurmas(resTurmas.data.data || []);
+      setPlanos(resPlanos.data.data || []);
     } catch (err) {
       console.error("Erro ao carregar dados auxiliares", err);
     }
   };
-  const formatDateForInput = (dateStr: string | null | undefined) => {
-    if (!dateStr) return "";
-    return new Date(dateStr).toISOString().split("T")[0];
-  };
+
   const fetchAprendiz = async (id: string) => {
     setLoading(true);
     try {
       const response = await api.get(`/aprendiz/${id}`);
       const data = response.data;
       const formattedData = { ...data };
+
+      // Limpeza genérica de nulos e booleanos
       Object.keys(formattedData).forEach((key) => {
         const val = formattedData[key];
         const isBooleanField =
@@ -198,13 +205,10 @@ function CadastroForm() {
           key === "TemProblemaSaude" ||
           key === "Gestante" ||
           key === "PartoRealizado";
+
         if (val === null || val === undefined) {
           if (isBooleanField) {
             formattedData[key] = false;
-          } else if (
-            key.startsWith("Id") ||
-            typeof (formData as any)[key] === "number"
-          ) {
           } else {
             formattedData[key] = "";
           }
@@ -212,35 +216,25 @@ function CadastroForm() {
           formattedData[key] = Boolean(val);
         }
       });
+
+      // Formatação de datas
       const dateFields = [
-        "DataNascimento",
-        "DataInicioEmpresa",
-        "DataInicioAprendizagem",
-        "DataPrevistaTermino",
-        "DataDesligamento",
-        "DataInicioFerias",
-        "DataTerminoFerias",
-        "RG_DataEmissao",
-        "CalDataAdmissao",
-        "CalDataTerminoIntrodutorios",
-        "CalDataInicioEncontroSemanal",
-        "CalPeriodoFeriasDe",
-        "CalPeriodoFeriasAte",
-        "CalPeriodoFerias2De",
-        "CalPeriodoFerias2Ate",
-        "CalPeriodoSuspensaoDe",
-        "CalPeriodoSuspensaoAte",
-        "DataParto",
+        "DataNascimento", "DataInicioEmpresa", "DataInicioAprendizagem", 
+        "DataPrevistaTermino", "DataDesligamento", "DataInicioFerias", 
+        "DataTerminoFerias", "RG_DataEmissao", "CalDataAdmissao", 
+        "CalDataTerminoIntrodutorios", "CalDataInicioEncontroSemanal", 
+        "CalPeriodoFeriasDe", "CalPeriodoFeriasAte", "CalPeriodoFerias2De", 
+        "CalPeriodoFerias2Ate", "CalPeriodoSuspensaoDe", "CalPeriodoSuspensaoAte", 
+        "DataParto"
       ];
       dateFields.forEach((field) => {
         if (formattedData[field]) {
-          formattedData[field] = new Date(formattedData[field])
-            .toISOString()
-            .split("T")[0];
+          formattedData[field] = new Date(formattedData[field]).toISOString().split("T")[0];
         } else {
           formattedData[field] = "";
         }
       });
+
       setFormData(formattedData);
     } catch (err) {
       console.error("Erro ao buscar aprendiz", err);
@@ -249,10 +243,9 @@ function CadastroForm() {
       setLoading(false);
     }
   };
+
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
     if (type === "checkbox") {
@@ -260,41 +253,33 @@ function CadastroForm() {
       setFormData((prev) => ({ ...prev, [name]: checked }));
       return;
     }
-    const newValue =
-      name.startsWith("Id") ||
-      name === "HorasDiarias" ||
-      name === "MesesContrato" ||
-      name === "MesesGestacao"
-        ? value
-          ? Number(value)
-          : undefined
-        : value || "";
+
+    const numericFields = ["IdUnidade", "IdInstituicaoParceira", "IdEscola", "IdMonitorResponsavel", "IdTurmaCapacitacao", "HorasDiarias", "MesesContrato", "MesesGestacao"];
+    const newValue = numericFields.includes(name)
+      ? value ? Number(value) : undefined
+      : value || "";
+
     setFormData((prev) => {
       const newState = { ...prev, [name]: newValue };
+      
+      // Lógica de cálculo de carga horária
       if (name === "CalCurso" || name === "CalJornadaDiaria") {
-        const selectedArea = cursos.find(
-          (c: any) => String(c.AreaCodigo) === String(newState.CalCurso),
-        );
+        const selectedArea = cursos.find(c => String(c.AreaCodigo) === String(newState.CalCurso));
         if (selectedArea) {
           const jornada = Number(newState.CalJornadaDiaria);
-          if (jornada > 0) {
-            if (newState.CalJornadaDiaria === "4") {
-              newState.CalDiasAprendizagemTeorica = 
-                String(Math.floor((selectedArea.AreaCargaTeorica4h || 0) / jornada));
-              newState.CalDiasAprendizagemPratica = 
-                String(Math.floor((selectedArea.AreaCargaPratica4h || 0) / jornada));
-            } else if (newState.CalJornadaDiaria === "6") {
-              newState.CalDiasAprendizagemTeorica = 
-                String(Math.floor((selectedArea.AreaCargaTeorica6h || 0) / jornada));
-              newState.CalDiasAprendizagemPratica = 
-                String(Math.floor((selectedArea.AreaCargaPratica6h || 0) / jornada));
-            }
+          if (jornada === 4) {
+            newState.CalDiasAprendizagemTeorica = String(Math.floor((selectedArea.AreaCargaTeorica4h || 0) / jornada));
+            newState.CalDiasAprendizagemPratica = String(Math.floor((selectedArea.AreaCargaPratica4h || 0) / jornada));
+          } else if (jornada === 6) {
+            newState.CalDiasAprendizagemTeorica = String(Math.floor((selectedArea.AreaCargaTeorica6h || 0) / jornada));
+            newState.CalDiasAprendizagemPratica = String(Math.floor((selectedArea.AreaCargaPratica6h || 0) / jornada));
           }
         }
       }
       return newState;
     });
   };
+
   const handleSave = async () => {
     if (!formData.NomeJovem) {
       toast.error("O nome completo é obrigatório.");
@@ -308,6 +293,7 @@ function CadastroForm() {
           dataToSend[key] = (formData as any)[key];
         }
       });
+
       if (editingId) {
         await api.put(`/aprendiz/${editingId}`, dataToSend);
         toast.success("Aprendiz atualizado com sucesso!");
@@ -315,27 +301,20 @@ function CadastroForm() {
         await api.post("/aprendiz", dataToSend);
         toast.success("Aprendiz cadastrado com sucesso!");
       }
-      if (isAdmin) {
-        router.push("/aprendizes");
-      }
+      if (isAdmin) router.push("/aprendizes");
     } catch (err: any) {
       console.error(err);
-      const errorMsg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Erro ao salvar aprendiz.";
-      toast.error(errorMsg);
+      toast.error(err.response?.data?.message || err.response?.data?.error || "Erro ao salvar aprendiz.");
     } finally {
       setLoading(false);
     }
   };
+
   const buscaCEP = async (CEP: string) => {
     const cepLimpo = CEP.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
       try {
-        const response = await fetch(
-          `https://viacep.com.br/ws/${cepLimpo}/json/`,
-        );
+        const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
         const data = await response.json();
         if (!data.erro) {
           setFormData((prev) => ({
@@ -351,9 +330,9 @@ function CadastroForm() {
       }
     }
   };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc]">
-      {isAdmin}
       <main className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white border-b border-gray-200 px-8 py-6 sticky top-0 z-10 shadow-sm">
           <div className="flex justify-between items-center">
@@ -368,13 +347,10 @@ function CadastroForm() {
               )}
               <div>
                 <h1 className="text-2xl font-bold text-[#133c86]">
-                  {editingId
-                    ? "Formulário de Edição"
-                    : "Formulário de Cadastro"}
+                  {editingId ? "Formulário de Edição" : "Formulário de Cadastro"}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  {formData.NomeJovem ||
-                    (editingId ? "Carregando..." : "Novo Jovem Aprendiz")}
+                  {formData.NomeJovem || (editingId ? "Carregando..." : "Novo Jovem Aprendiz")}
                 </p>
               </div>
             </div>
@@ -392,9 +368,7 @@ function CadastroForm() {
                 disabled={loading}
                 className="px-6 py-2.5 bg-[#133c86] text-white rounded-lg font-bold hover:bg-[#0f2e6b] transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
               >
-                {loading ? (
-                  "Processando..."
-                ) : (
+                {loading ? "Processando..." : (
                   <>
                     <Save size={18} />
                     {editingId ? "Atualizar" : "Salvar Cadastro"}
@@ -404,8 +378,8 @@ function CadastroForm() {
             </div>
           </div>
         </header>
+
         <div className="p-8 max-w-7xl mx-auto w-full">
-          {}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8 p-1 flex gap-1 overflow-x-auto no-scrollbar">
             {tabs.map((tab) => (
               <button
@@ -422,12 +396,10 @@ function CadastroForm() {
               </button>
             ))}
           </div>
+
           <div className="w-full pb-20">
             {activeTab === "jovem" && (
-              <DadosPessoaisForm
-                formData={formData}
-                handleChange={handleChange}
-              />
+              <DadosPessoaisForm formData={formData} handleChange={handleChange} />
             )}
             {activeTab === "trabalho" && (
               <VinculoContratoForm
@@ -436,6 +408,8 @@ function CadastroForm() {
                 unidades={unidades}
                 instituicoes={instituicoes}
                 orientadores={orientadores}
+                planos={planos}
+                turmas={turmas}
               />
             )}
             {activeTab === "escolaridade" && (
@@ -443,48 +417,33 @@ function CadastroForm() {
                 formData={formData}
                 handleChange={handleChange}
                 escolas={escolas}
+                turmas={turmas}
               />
             )}
             {activeTab === "documentacao" && (
-              <DocumentacaoForm
-                formData={formData}
-                handleChange={handleChange}
-              />
+              <DocumentacaoForm formData={formData} handleChange={handleChange} />
             )}
             {activeTab === "endereco" && (
-              <EnderecoContatoForm
-                formData={formData}
-                handleChange={handleChange}
-                buscaCEP={buscaCEP}
-              />
+              <EnderecoContatoForm formData={formData} handleChange={handleChange} buscaCEP={buscaCEP} />
             )}
             {activeTab === "saude" && (
-              <SaudeDeficienciaForm
-                formData={formData}
-                handleChange={handleChange}
-              />
+              <SaudeDeficienciaForm formData={formData} handleChange={handleChange} />
             )}
             {activeTab === "calendario" && (
-              <CalendarioForm
-                formData={formData}
-                handleChange={handleChange}
-                unidades={unidades}
-                instituicoes={instituicoes}
-                cursos={cursos}
-              />
+              <CalendarioForm formData={formData} handleChange={handleChange} />
             )}
-            {}
-            <div className="mt-10 flex justify-between items-center border-t border-gray-100 pt-8">
+          </div>
+
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-20">
+            <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
               <button
-                disabled={activeTab === "jovem"}
+                disabled={tabs.findIndex((t) => t.id === activeTab) === 0}
                 onClick={() => {
-                  const currentIndex = tabs.findIndex(
-                    (t) => t.id === activeTab,
-                  );
-                  if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1].id);
+                  const idx = tabs.findIndex((t) => t.id === activeTab);
+                  if (idx > 0) setActiveTab(tabs[idx - 1].id);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="flex items-center gap-2 px-6 py-2 rounded-lg border border-gray-300 text-gray-600 font-medium hover:bg-gray-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2 rounded-lg border border-gray-300 text-gray-600 font-medium hover:bg-gray-50 transition-all disabled:opacity-30"
               >
                 <ArrowLeft size={18} />
                 Anterior
@@ -492,11 +451,8 @@ function CadastroForm() {
               {activeTab !== "calendario" ? (
                 <button
                   onClick={() => {
-                    const currentIndex = tabs.findIndex(
-                      (t) => t.id === activeTab,
-                    );
-                    if (currentIndex < tabs.length - 1)
-                      setActiveTab(tabs[currentIndex + 1].id);
+                    const idx = tabs.findIndex((t) => t.id === activeTab);
+                    if (idx < tabs.length - 1) setActiveTab(tabs[idx + 1].id);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className="flex items-center gap-2 px-6 py-2 rounded-lg bg-[#133c86] text-white font-medium hover:bg-[#0f2e6b] transition-all"
@@ -523,15 +479,14 @@ function CadastroForm() {
     </div>
   );
 }
+
 export default function CadAprendizes() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen items-center justify-center bg-[#f8fafc]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#133c86]"></div>
-        </div>
-      }
-    >
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-[#f8fafc]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#133c86]"></div>
+      </div>
+    }>
       <CadastroForm />
     </Suspense>
   );
