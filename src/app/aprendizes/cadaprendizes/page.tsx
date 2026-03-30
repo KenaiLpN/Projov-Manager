@@ -430,7 +430,13 @@ function CadastroForm() {
               <SaudeDeficienciaForm formData={formData} handleChange={handleChange} />
             )}
             {activeTab === "calendario" && (
-              <CalendarioForm formData={formData} handleChange={handleChange} />
+              <CalendarioForm
+                formData={formData}
+                handleChange={handleChange}
+                unidades={unidades}
+                instituicoes={instituicoes}
+                cursos={cursos}
+              />
             )}
           </div>
 
