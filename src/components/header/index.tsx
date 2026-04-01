@@ -154,11 +154,7 @@ const navItems: NavItemWithSub[] = [
       },
       {
         name: "Controle de Presença",
-        href: "#",
-        subMenu: [
-          { name: "Comunicado Faltas", href: "/pedagogico/comunicado-faltas" },
-          { name: "Controle de Presença", href: "/pedagogico/presenca-data-turma" },
-        ],
+        href: "/pedagogico/presenca-data-turma",
       },
     ],
   },
