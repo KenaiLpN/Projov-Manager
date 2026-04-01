@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// ---------------------------------------------------------------------------
+// JWT helpers (Edge Runtime — sem Node.js crypto)
+// ---------------------------------------------------------------------------
 function parseJwt(token: string) {
   try {
     const base64Url = token.split(".")[1];
@@ -18,8 +21,7 @@ function parseJwt(token: string) {
         .join(""),
     );
     return JSON.parse(jsonPayload);
-  } catch (e) {
-    console.error("Erro ao decodificar JWT:", e);
+  } catch {
     return null;
   }
 }
@@ -31,23 +33,86 @@ function isTokenValid(token: string | undefined): boolean {
   return decoded.exp * 1000 > Date.now();
 }
 
+// ---------------------------------------------------------------------------
+// CSP builder — nonce é gerado a cada requisição (Edge Runtime suporta WebCrypto)
+// ---------------------------------------------------------------------------
+function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV !== "production";
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_URL?.trim() || "https://bot-api-ff.vercel.app";
+
+  // Em dev, todas as chamadas passam pelo proxy /api/proxy → 'self' é suficiente.
+  // Em prod, o Axios pode chamar o backend diretamente.
+  const connectSrc = isDev ? "'self'" : `'self' ${apiUrl}`;
+
+  const directives = [
+    // Nega tudo por padrão; cada tipo de recurso é liberado explicitamente
+    "default-src 'none'",
+    // Scripts: apenas mesma origem + nonce. 'strict-dynamic' permite que
+    // scripts confiáveis (com nonce) carreguem outros scripts dinamicamente
+    // (necessário para o code-splitting do Next.js)
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    // Estilos: 'unsafe-inline' é necessário para PrimeReact e Tailwind CSS
+    // que injetam estilos inline em runtime
+    "style-src 'self' 'unsafe-inline'",
+    // Imagens: data: para ícones base64 do PrimeReact
+    "img-src 'self' data:",
+    // Fontes: servidas pela mesma origem (next/font baixa no build)
+    "font-src 'self'",
+    // Conexões fetch/XHR/WebSocket
+    `connect-src ${connectSrc}`,
+    // Bloqueia carregamento em iframes (proteção contra clickjacking)
+    "frame-ancestors 'none'",
+    // Impede que <base> seja usada para redirecionar recursos
+    "base-uri 'self'",
+    // Restringe para onde formulários podem enviar dados
+    "form-action 'self'",
+    // Bloqueia Flash, Java e outros plugins
+    "object-src 'none'",
+    // Força upgrade de requisições HTTP para HTTPS
+    "upgrade-insecure-requests",
+  ];
+
+  return directives.join("; ");
+}
+
+// ---------------------------------------------------------------------------
+// Middleware
+// ---------------------------------------------------------------------------
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
 
+  // Gera um nonce único para esta requisição (disponível no Edge Runtime)
+  const nonce = btoa(crypto.randomUUID());
+  const csp = buildCsp(nonce);
+
+  // --- Lógica de autenticação ---
+  const token = request.cookies.get("token")?.value;
   const isValidToken = isTokenValid(token);
   const isAuthRoute = pathname === "/login";
   const isPublicRoute = pathname.startsWith("/reset-password");
+  const isNextInternal =
+    pathname.startsWith("/_next") || pathname.startsWith("/favicon");
 
-  // Se o usuário não está autenticado e tenta acessar uma rota privada
-  if (!isValidToken && !isAuthRoute && !isPublicRoute) {
-    // Ignora arquivos do Next.js e assets estáticos para evitar loops e bugs de RSC
-    if (!pathname.startsWith("/_next") && !pathname.startsWith("/favicon")) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  let response: NextResponse;
+
+  if (!isValidToken && !isAuthRoute && !isPublicRoute && !isNextInternal) {
+    response = NextResponse.redirect(new URL("/login", request.url));
+  } else {
+    // Passa o nonce para Server Components via cabeçalho de requisição
+    // (lido no layout.tsx através de next/headers)
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-nonce", nonce);
+
+    response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
   }
 
-  return NextResponse.next();
+  // Aplica o CSP em todas as respostas (inclusive redirects)
+  response.headers.set("Content-Security-Policy", csp);
+
+  return response;
 }
 
 export const config = {

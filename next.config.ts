@@ -13,6 +13,35 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   transpilePackages: ["primereact", "primeicons"],
+  async headers() {
+    return [
+      {
+        // Aplica a todos os recursos (páginas, assets, API routes)
+        source: "/(.*)",
+        headers: [
+          // Força HTTPS por 2 anos, inclui subdomínios e candidata ao preload list
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          // Evita MIME sniffing (ataques de tipo drive-by)
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Fallback para navegadores que não entendem CSP frame-ancestors
+          { key: "X-Frame-Options", value: "DENY" },
+          // Limita informações enviadas no cabeçalho Referer
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          // Desabilita APIs de hardware desnecessárias
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
