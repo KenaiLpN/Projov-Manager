@@ -246,7 +246,7 @@ export default function Home() {
                 <div className="bg-gray-50 p-4 rounded-full mb-3 text-gray-200">
                   <Briefcase size={32} />
                 </div>
-                <p className="text-gray-400 text-sm font-medium">Nenhuma vaga encontrada</p>
+                <p className="text-gray-400 text-sm font-medium">Nenhuma vaga encontrada!</p>
                 <button 
                   onClick={() => router.push("/vagas")}
                   className="mt-3 text-[#133c86] text-xs font-bold hover:underline"
