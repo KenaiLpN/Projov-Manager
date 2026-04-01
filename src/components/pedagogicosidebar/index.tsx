@@ -67,24 +67,7 @@ const menuItems: MenuItem[] = [
   },
   {
     name: "Controle de Presença",
-    href: "#",
-    subMenu: [
-      { name: "Comunicado Faltas", href: "/pedagogico/comunicado-faltas" },
-      { name: "Por Data/Turma", href: "/pedagogico/presenca-data-turma" },
-      { name: "Por Data/Turma Capacitação", href: "/pedagogico/presenca-data-turma-capacitacao" },
-      { name: "Por Periodo/Turma", href: "/pedagogico/presenca-periodo-turma" },
-      { name: "Por Periodo/Turma Capacitacao", href: "/pedagogico/presenca-periodo-turma-capacitacao" },
-      { name: "Por Periodo/Parceiro", href: "/pedagogico/presenca-periodo-parceiro" },
-      { name: "Total Periodo/Turma", href: "/pedagogico/total-periodo-turma" },
-      { name: "Total Periodo/Turma Capacitação", href: "/pedagogico/total-periodo-turma-capacitacao" },
-      { name: "Total Periodo/Parceiros", href: "/pedagogico/total-periodo-parceiros" },
-      { name: "Total Periodo/Faltas", href: "/pedagogico/total-periodo-faltas" },
-      { name: "Contagem Faltas Período", href: "/pedagogico/contagem-faltas" },
-      { name: "Conteúdos Lecionados no Perí...", href: "/pedagogico/conteudos-lecionados" },
-      { name: "Aulas dadas no período", href: "/pedagogico/aulas-dadas" },
-      { name: "Controle de Faltas (8 faltas)", href: "/pedagogico/controle-faltas-oito" },
-      { name: "Estatísticas Presença por Jovem", href: "/pedagogico/estatisticas-presenca-jovem" },
-    ],
+    href: "/pedagogico/presenca-data-turma",
   },
 ];
 
@@ -107,8 +90,6 @@ function SidebarItem({
   const baseClasses = "flex items-center transition font-medium duration-300 ease-in-out h-auto min-h-[3rem] w-full px-4 hover:bg-[#123A83] text-sm py-2";
   const activeClasses = "text-[#FFFF] bg-[#123A83]";
   const inactiveClasses = "text-[#F6F6F6]";
-  const blueClasses = "text-[#52E8FB] font-bold";
-
   return (
     <div className="w-full">
       <div 

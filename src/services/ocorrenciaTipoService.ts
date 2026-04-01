@@ -1,5 +1,4 @@
 import api from "./api";
-import { DefaultResponse } from "@/types/api"; 
 export interface OcorrenciaTipo {
   OcoCodigo: number;
   OcoDescricao: string | null;

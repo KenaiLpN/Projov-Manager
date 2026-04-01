@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import Modal from "@/components/modal";
 import ConfirmModal from "@/components/modal/ConfirmModal";
-import SearchBox from "@/components/searchbox";
+import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/pagination";
 import TabelaOcorrenciaTipo from "@/components/tabelas/TabelaOcorrenciaTipo";
 import OcorrenciaTipoForm from "@/components/forms/OcorrenciaTipoForm";
@@ -28,7 +28,7 @@ export default function OcorrenciasPage() {
   const [selectedItem, setSelectedItem] = useState<OcorrenciaTipo | null>(null);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const result = await getAllOcorrenciaTipos(
@@ -44,13 +44,16 @@ export default function OcorrenciasPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, search]);
   useEffect(() => {
     loadData();
-  }, [currentPage, search]); 
-  const handleSearch = (term: string) => {
-    setSearch(term);
-    setCurrentPage(1); 
+  }, [loadData]); 
+  const handleSearch = () => {
+    setCurrentPage(1);
+  };
+  const handleClearSearch = () => {
+    setSearch("");
+    setCurrentPage(1);
   };
   const handleCreate = () => {
     setSelectedItem(null);
@@ -117,10 +120,12 @@ export default function OcorrenciasPage() {
           </button>
         </div>
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <SearchBox
+          <SearchBar
+            value={search}
+            onChange={setSearch}
             onSearch={handleSearch}
+            onClear={handleClearSearch}
             placeholder="Buscar por descrição..."
-            initialValue={search}
           />
         </div>
         <TabelaOcorrenciaTipo

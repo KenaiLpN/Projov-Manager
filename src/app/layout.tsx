@@ -4,8 +4,8 @@ import "./globals.css";
 import PrivateLayout from "@/components/PrivateLayout";
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
-  title: "ProSis ",
-  description: "Sistema de Gestão",
+  title: "ProSis — Gestão Jovem Aprendiz",
+  description: "Sistema de Gestão do Programa Jovem Aprendiz",
 };
 import { Toaster } from "react-hot-toast";
 import { PrimeReactProvider } from "primereact/api";

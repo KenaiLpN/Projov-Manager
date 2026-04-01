@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [forgotError, setForgotError] = useState("");
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return; // bloqueia duplo submit
     setLoading(true);
     setLoginError(false);
     if (!UsuTipo) {
@@ -55,6 +56,7 @@ export default function LoginPage() {
   }
   async function handleCreatePassword(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return; // bloqueia duplo submit
     setCreateError("");
     setLoading(true);
     if (newPassword.length < 6) {
@@ -96,6 +98,7 @@ export default function LoginPage() {
   }
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return; // bloqueia duplo submit
     setForgotError("");
     setLoading(true);
     if (!forgotEmail) {
@@ -285,13 +288,14 @@ export default function LoginPage() {
             type="text"
             placeholder={UsuTipo === "APRENDIZ" ? "Seu CPF ou Matrícula" : "Código do Usuário"}
             value={UsuCodigo}
-            disabled={UsuTipo === "D"}
+            disabled={UsuTipo === "D" || loading}
+            onKeyDown={(e) => { if (loading) e.preventDefault(); }}
             onChange={(e) => {
               setUsuCodigo(e.target.value);
               setLoginError(false);
             }}
             className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
-              UsuTipo === "D" 
+              UsuTipo === "D" || loading
                 ? "opacity-50 cursor-not-allowed bg-gray-200 border-gray-400"
                 : loginError
                   ? "border-red-500 focus:border-red-500"
@@ -304,13 +308,14 @@ export default function LoginPage() {
             type="password"
             placeholder="Senha"
             value={senha}
-            disabled={UsuTipo === "D"}
+            disabled={UsuTipo === "D" || loading}
+            onKeyDown={(e) => { if (loading) e.preventDefault(); }}
             onChange={(e) => {
               setSenha(e.target.value);
               setLoginError(false);
             }}
             className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
-              UsuTipo === "D"
+              UsuTipo === "D" || loading
                 ? "opacity-50 cursor-not-allowed bg-gray-200 border-gray-400"
                 : loginError
                   ? "border-red-500 focus:border-red-500"
@@ -325,15 +330,41 @@ export default function LoginPage() {
         )}
         <button
           type="submit"
-          disabled={loading || UsuTipo === "D"} 
-          className={`w-full text-white p-3 rounded cursor-pointer transition-[background-position,opacity,background-color] duration-500 ease-in-out
+          disabled={loading || UsuTipo === "D"}
+          className={`w-full text-white p-3 rounded transition-all duration-300 flex items-center justify-center gap-2 font-semibold
     ${
-      loading || UsuTipo === "D"
-        ? "bg-gray-400 opacity-50 cursor-not-allowed" 
-        : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top"
+      loading
+        ? "bg-[#345ce2] cursor-not-allowed"
+        : UsuTipo === "D"
+          ? "bg-gray-400 opacity-50 cursor-not-allowed"
+          : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top cursor-pointer"
     }`}
         >
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12" cy="12" r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Entrando...
+            </>
+          ) : (
+            "Entrar"
+          )}
         </button>
         <button
           type="button"

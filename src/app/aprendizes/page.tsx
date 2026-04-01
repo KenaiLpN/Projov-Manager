@@ -1,30 +1,47 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filter, X } from "lucide-react";
+import { Filter } from "lucide-react";
 import api from "@/services/api";
 import SearchBar from "@/components/SearchBar";
-interface AprendizFormData {
-  NomeJovem: string;
-  NomeSocial?: string;
-  CPF?: string;
-  RG?: string;
-  IdUnidade?: number;
-  IdInstituicaoParceira?: number;
-  IdEscola?: number;
-  IdMonitorResponsavel?: number;
-  DataNascimento?: string;
-  Sexo?: string;
-  Email?: string;
-  Celular?: string;
-  CEP?: string;
-  Logradouro?: string;
-  Numero?: string;
-  Bairro?: string;
-  Municipio?: string;
-  UF_Endereco?: string;
-  StatusJovem?: string;
+import Modal from "@/components/modal";
+
+// --- Tipos de domínio ---
+interface Unidade {
+  UniCodigo: number;
+  UniNome: string | null;
 }
+interface Aprendiz {
+  IdAluno: number;
+  NomeJovem: string;
+  NomeSocial?: string | null;
+  CPF?: string | null;
+  StatusJovem?: string | null;
+  Gestante?: boolean | null;
+  unidade?: Unidade | null;
+}
+interface InstituicaoParceira {
+  IpaCodigo: number;
+  IpaDescricao: string;
+}
+interface Escola {
+  id: number;
+  nome: string;
+}
+interface Curso {
+  IdCurso: number;
+  CurNome: string;
+}
+interface Turma {
+  IdTurma: number;
+  TurNome: string;
+}
+interface GrauEscolaridade {
+  id: number;
+  GrauDescricao: string;
+}
+type AdvancedFilter = typeof INITIAL_FILTER_STATE;
+
 const INITIAL_FILTER_STATE = {
   Nome: "",
   Empresa: "",
@@ -79,20 +96,20 @@ function AprendizesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter") || "";
-  const [aprendizes, setAprendizes] = useState<any[]>([]);
+  const [aprendizes, setAprendizes] = useState<Aprendiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [advancedFilterForm, setAdvancedFilterForm] = useState(INITIAL_FILTER_STATE);
-  const [empresas, setEmpresas] = useState<any[]>([]);
-  const [escolas, setEscolas] = useState<any[]>([]);
-  const [cursos, setCursos] = useState<any[]>([]);
-  const [turmas, setTurmas] = useState<any[]>([]);
-  const [grausEscolaridade, setGrausEscolaridade] = useState<any[]>([]);
+  const [advancedFilterForm, setAdvancedFilterForm] = useState<AdvancedFilter>(INITIAL_FILTER_STATE);
+  const [empresas, setEmpresas] = useState<InstituicaoParceira[]>([]);
+  const [escolas, setEscolas] = useState<Escola[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [grausEscolaridade, setGrausEscolaridade] = useState<GrauEscolaridade[]>([]);
   const [auxDataLoaded, setAuxDataLoaded] = useState(false);
-  const [activeAdvancedFilter, setActiveAdvancedFilter] = useState<any>(null);
+  const [activeAdvancedFilter, setActiveAdvancedFilter] = useState<AdvancedFilter | null>(null);
   const loadAuxData = async () => {
     if (auxDataLoaded) return;
     try {
@@ -113,14 +130,11 @@ function AprendizesContent() {
       console.error("Erro ao carregar dados do filtro", err);
     }
   };
-  useEffect(() => {
-    fetchAprendizes(page, search, filter, activeAdvancedFilter);
-  }, [page, filter, activeAdvancedFilter]);
-  const fetchAprendizes = async (
+  const fetchAprendizes = useCallback(async (
     p: number,
-    s: string = search,
-    f: string = filter,
-    adv: any = activeAdvancedFilter
+    s: string,
+    f: string,
+    adv: AdvancedFilter | null
   ) => {
     setLoading(true);
     try {
@@ -136,7 +150,16 @@ function AprendizesContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch reativo: reage a mudanças de page, filter, activeAdvancedFilter e search (com debounce)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchAprendizes(page, search, filter, activeAdvancedFilter);
+    }, search ? 400 : 0); // debounce apenas quando está digitando
+    return () => clearTimeout(timer);
+  }, [page, search, filter, activeAdvancedFilter, fetchAprendizes]);
+
   const handleSearch = () => {
     setPage(1);
     fetchAprendizes(1, search, filter, activeAdvancedFilter);
@@ -260,13 +283,13 @@ function AprendizesContent() {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="p-10 text-center text-gray-400">
+                  <td colSpan={6} className="p-10 text-center text-gray-400">
                     Carregando dados...
                   </td>
                 </tr>
               ) : aprendizes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-10 text-center text-gray-400">
+                  <td colSpan={6} className="p-10 text-center text-gray-400">
                     Nenhum aprendiz encontrado.
                   </td>
                 </tr>
@@ -345,32 +368,30 @@ function AprendizesContent() {
           </span>
           <div className="flex gap-2">
             <button
+              type="button"
+              aria-label="Página anterior"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1 bg-white border rounded hover:bg-gray-50"
+              disabled={page <= 1}
+              className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
             <button
+              type="button"
+              aria-label="Próxima página"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="px-3 py-1 bg-white border rounded hover:bg-gray-50"
+              disabled={page >= totalPages}
+              className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próxima
             </button>
           </div>
         </div>
         {}
-        {isFilterModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm backdrop-saturate-150">
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl p-6 relative max-h-[90vh] overflow-y-auto">
-              <button
-                onClick={() => setIsFilterModalOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
-                <X size={24} />
-              </button>
-              <h2 className="text-2xl font-bold text-[#133c86] mb-6 border-b pb-2">
-                Filtro Avançado de Aprendizes
-              </h2>
+        <Modal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)}>
+          <h2 className="text-2xl font-bold text-[#133c86] mb-6 border-b pb-2">
+            Filtro Avançado de Aprendizes
+          </h2>
 
               <div className="space-y-8">
                 {/* Seção 1: Geral e Demográficos */}
@@ -668,21 +689,21 @@ function AprendizesContent() {
 
               <div className="flex justify-end gap-3 mt-8 pt-4 border-t">
                 <button
+                  type="button"
                   onClick={handleClearAdvancedFilter}
                   className="px-6 py-2 border border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 cursor-pointer"
                 >
                   Limpar Filtros
                 </button>
                 <button
+                  type="button"
                   onClick={handleApplyAdvancedFilter}
                   className="px-8 py-2 bg-[#133c86] text-white rounded-lg font-bold hover:bg-[#0f2e6b] shadow-lg cursor-pointer"
                 >
                   Pesquisar
                 </button>
               </div>
-            </div>
-          </div>
-        )}
+            </Modal>
       </main>
     </div>
   );

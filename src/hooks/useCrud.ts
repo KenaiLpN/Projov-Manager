@@ -21,7 +21,7 @@ export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOpti
   );
   const [deleting, setDeleting] = useState<boolean>(false);
   const fetchData = useCallback(
-    async (pagina: number, searchTerm: string = search) => {
+    async (pagina: number, searchTerm: string = "") => {
       setLoading(true);
       try {
         const queryParams = new URLSearchParams({
@@ -43,7 +43,7 @@ export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOpti
         setLoading(false);
       }
     },
-    [endpoint, search],
+    [endpoint, limit],
   );
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
