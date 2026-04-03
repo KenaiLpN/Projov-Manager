@@ -2,14 +2,12 @@
 import { useState } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
-import UserDropDown from "@/components/userdropdown";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 export default function LoginPage() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [UsuCodigo, setUsuCodigo] = useState("");
   const [senha, setSenha] = useState("");
-  const [UsuTipo, setUsuTipo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const [needsPassword, setNeedsPassword] = useState(false);
@@ -21,16 +19,11 @@ export default function LoginPage() {
   const [forgotError, setForgotError] = useState("");
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (loading) return; // bloqueia duplo submit
+    if (loading) return;
     setLoading(true);
     setLoginError(false);
-    if (!UsuTipo) {
-      toast.error("Selecione o tipo de perfil.");
-      setLoading(false);
-      return;
-    }
     try {
-      const response = await api.post("/login", { UsuCodigo, senha, UsuTipo });
+      const response = await api.post("/login", { UsuCodigo, senha });
       const { user, token } = response.data;
       localStorage.setItem("projov_user", JSON.stringify(user));
       if (token) {
@@ -56,7 +49,7 @@ export default function LoginPage() {
   }
   async function handleCreatePassword(e: React.FormEvent) {
     e.preventDefault();
-    if (loading) return; // bloqueia duplo submit
+    if (loading) return;
     setCreateError("");
     setLoading(true);
     if (newPassword.length < 6) {
@@ -79,7 +72,7 @@ export default function LoginPage() {
       setSenha(newPassword);
       setNewPassword("");
       setConfirmPassword("");
-      const response = await api.post("/login", { UsuCodigo, senha: newPassword, UsuTipo });
+      const response = await api.post("/login", { UsuCodigo, senha: newPassword });
       const { user, token } = response.data;
       localStorage.setItem("projov_user", JSON.stringify(user));
       if (token) {
@@ -98,7 +91,7 @@ export default function LoginPage() {
   }
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
-    if (loading) return; // bloqueia duplo submit
+    if (loading) return;
     setForgotError("");
     setLoading(true);
     if (!forgotEmail) {
@@ -272,30 +265,23 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-center text-[#FFFF]">
             Bem vindo ao PROSIS
           </h1>
-          <p className="flex justify-center text-[#FFFF]">+
+          <p className="flex justify-center text-[#FFFF]">
             Gestão do Programa Jovem Aprendiz
           </p>
         </div>
         <div>
-          <UserDropDown selectedRole={UsuTipo} onRoleChange={(val) => {
-            setUsuTipo(val);
-            setUsuCodigo("");
-            setSenha("");
-          }} />
-        </div>
-        <div>
           <input
             type="text"
-            placeholder={UsuTipo === "APRENDIZ" ? "Seu CPF ou Matrícula" : "Código do Usuário"}
+            placeholder="Código do Usuário, CPF ou Matrícula"
             value={UsuCodigo}
-            disabled={UsuTipo === "D" || loading}
+            disabled={loading}
             onKeyDown={(e) => { if (loading) e.preventDefault(); }}
             onChange={(e) => {
               setUsuCodigo(e.target.value);
               setLoginError(false);
             }}
             className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
-              UsuTipo === "D" || loading
+              loading
                 ? "opacity-50 cursor-not-allowed bg-gray-200 border-gray-400"
                 : loginError
                   ? "border-red-500 focus:border-red-500"
@@ -308,14 +294,14 @@ export default function LoginPage() {
             type="password"
             placeholder="Senha"
             value={senha}
-            disabled={UsuTipo === "D" || loading}
+            disabled={loading}
             onKeyDown={(e) => { if (loading) e.preventDefault(); }}
             onChange={(e) => {
               setSenha(e.target.value);
               setLoginError(false);
             }}
             className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
-              UsuTipo === "D" || loading
+              loading
                 ? "opacity-50 cursor-not-allowed bg-gray-200 border-gray-400"
                 : loginError
                   ? "border-red-500 focus:border-red-500"
@@ -330,14 +316,12 @@ export default function LoginPage() {
         )}
         <button
           type="submit"
-          disabled={loading || UsuTipo === "D"}
+          disabled={loading}
           className={`w-full text-white p-3 rounded transition-all duration-300 flex items-center justify-center gap-2 font-semibold
     ${
       loading
         ? "bg-[#345ce2] cursor-not-allowed"
-        : UsuTipo === "D"
-          ? "bg-gray-400 opacity-50 cursor-not-allowed"
-          : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top cursor-pointer"
+        : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top cursor-pointer"
     }`}
         >
           {loading ? (
@@ -368,19 +352,13 @@ export default function LoginPage() {
         </button>
         <button
           type="button"
-          disabled={UsuTipo === "D"}
           onClick={() => {
             setForgotPasswordMode(true);
             setLoginError(false);
-            setUsuTipo(null);
             setUsuCodigo("");
             setSenha("");
           }}
-          className={`flex justify-center transition-all ${
-            UsuTipo === "D" 
-              ? "text-gray-500 cursor-not-allowed opacity-50" 
-              : "text-[#FFFF] hover:text-blue-500"
-          }`}
+          className="flex justify-center transition-all text-[#FFFF] hover:text-blue-500"
           id="lostpassword"
         >
           Esqueci minha senha
@@ -388,4 +366,4 @@ export default function LoginPage() {
       </form>
     </div>
   );
-}
+}

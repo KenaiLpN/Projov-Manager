@@ -50,8 +50,9 @@ function buildCsp(nonce: string): string {
     "default-src 'none'",
     // Scripts: apenas mesma origem + nonce. 'strict-dynamic' permite que
     // scripts confiáveis (com nonce) carreguem outros scripts dinamicamente
-    // (necessário para o code-splitting do Next.js)
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    // (necessário para o code-splitting do Next.js). Em dev, 'unsafe-eval'
+    // é necessário para o react-refresh (hot reload).
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     // Estilos: 'unsafe-inline' é necessário para PrimeReact e Tailwind CSS
     // que injetam estilos inline em runtime
     "style-src 'self' 'unsafe-inline'",

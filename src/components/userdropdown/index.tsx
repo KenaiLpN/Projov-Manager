@@ -9,7 +9,7 @@ export default function UserDropDown({
   onRoleChange,
 }: UserDropDownProps) {
   return (
-    <button className="flex items-center justify-center w-full bg-[#F3F4F6] rounded-xl py-1 px-2 border-2 border-[#34495E] focus:border-blue-500 outline-none">
+    <div className="flex items-center justify-center w-full bg-[#F3F4F6] rounded-xl py-1 px-2 border-2 border-[#34495E] focus-within:border-blue-500 outline-none">
       <Dropdown
         value={selectedRole}
         onChange={(e) => onRoleChange(e.value)}
@@ -20,6 +20,6 @@ export default function UserDropDown({
         placeholder="Selecione o perfil"
         panelClassName="bg-white border border-gray-300 shadow-lg rounded-b-md p-2"
       />
-    </button>
+    </div>
   );
 }
