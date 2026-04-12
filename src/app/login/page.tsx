@@ -1,10 +1,7 @@
 "use client";
 import { useState } from "react";
-import api from "@/services/api";
-import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 export default function LoginPage() {
-  const router = useRouter();
   const [UsuCodigo, setUsuCodigo] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,8 +19,24 @@ export default function LoginPage() {
     setLoading(true);
     setLoginError(false);
     try {
-      const response = await api.post("/login", { UsuCodigo, senha });
-      const { user } = response.data;
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ UsuCodigo, senha }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data?.code === "NEEDS_PASSWORD") {
+          setNeedsPassword(true);
+          setLoading(false);
+          return;
+        }
+        console.error("[Login] Motivo:", data?.message);
+        setLoginError(true);
+        setLoading(false);
+        return;
+      }
+      const { user } = data;
       localStorage.setItem("projov_user", JSON.stringify(user));
       if (user.UsuTipo === "APRENDIZ") {
         window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
@@ -31,14 +44,7 @@ export default function LoginPage() {
         window.location.href = "/home";
       }
     } catch (error: any) {
-      const code = error?.response?.data?.code;
-      if (code === "NEEDS_PASSWORD") {
-        setNeedsPassword(true);
-        setLoading(false);
-        return;
-      }
-      const msg = error?.response?.data?.message ?? "Erro desconhecido";
-      console.error("[Login 401] Motivo:", msg, error);
+      console.error("[Login] Erro inesperado:", error);
       setLoginError(true);
       setLoading(false);
     }
@@ -59,17 +65,33 @@ export default function LoginPage() {
       return;
     }
     try {
-      await api.post("/primeiro-acesso", {
-        UsuCodigo,
-        senha: newPassword,
+      const createRes = await fetch("/api/proxy/primeiro-acesso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ UsuCodigo, senha: newPassword }),
       });
+      const createData = await createRes.json();
+      if (!createRes.ok) {
+        setCreateError(createData?.message || "Erro ao criar senha.");
+        setLoading(false);
+        return;
+      }
       toast.success("Senha criada com sucesso! Você já pode entrar.");
       setNeedsPassword(false);
-      setSenha(newPassword);
       setNewPassword("");
       setConfirmPassword("");
-      const response = await api.post("/login", { UsuCodigo, senha: newPassword });
-      const { user } = response.data;
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ UsuCodigo, senha: newPassword }),
+      });
+      const loginData = await loginRes.json();
+      if (!loginRes.ok) {
+        setCreateError(loginData?.message || "Erro ao entrar.");
+        setLoading(false);
+        return;
+      }
+      const { user } = loginData;
       localStorage.setItem("projov_user", JSON.stringify(user));
       if (user.UsuTipo === "APRENDIZ") {
         window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
@@ -77,8 +99,8 @@ export default function LoginPage() {
         window.location.href = "/home";
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.message || "Erro ao criar senha.";
-      setCreateError(msg);
+      console.error("[PrimeiroAcesso] Erro inesperado:", error);
+      setCreateError("Erro inesperado. Tente novamente.");
       setLoading(false);
     }
   }
@@ -93,13 +115,17 @@ export default function LoginPage() {
       return;
     }
     try {
-      const response = await api.post("/forgot-password", { email: forgotEmail });
-      toast.success(response.data.message || "Um e-mail para troca da senha será enviado para você.");
+      const res = await fetch("/api/proxy/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await res.json();
+      toast.success(data.message || "Um e-mail para troca da senha será enviado para você.");
       setForgotPasswordMode(false);
       setForgotEmail("");
     } catch (error: any) {
-      const msg = error?.response?.data?.message || "Erro ao solicitar recuperação de senha.";
-      setForgotError(msg);
+      setForgotError("Erro ao solicitar recuperação de senha.");
     } finally {
       setLoading(false);
     }
