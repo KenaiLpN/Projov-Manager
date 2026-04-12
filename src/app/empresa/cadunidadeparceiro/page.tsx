@@ -370,6 +370,45 @@ export default function CadUnidadeParceiroPage() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
+                Número
+              </label>
+              <input
+                name="ParUniNumeroEndereco"
+                value={formData.ParUniNumeroEndereco}
+                onChange={handleChange}
+                type="text"
+                maxLength={6}
+                className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Complemento
+              </label>
+              <input
+                name="ParUniComplemento"
+                value={formData.ParUniComplemento}
+                onChange={handleChange}
+                type="text"
+                maxLength={20}
+                className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Bairro
+              </label>
+              <input
+                name="ParUniBairro"
+                value={formData.ParUniBairro}
+                onChange={handleChange}
+                type="text"
+                maxLength={80}
+                className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
                 Cidade
               </label>
               <input

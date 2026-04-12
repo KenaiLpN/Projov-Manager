@@ -11,8 +11,6 @@ const navItems: NavItem[] = [
   { name: "Empresas", href: "/empresa/cadempresas" },
   { name: "Unidades de Parceiro", href: "/empresa/cadunidadeparceiro" },
   { name: "Orientadores", href: "/empresa/cadoriantadores" },
-  { name: "Consulta Parceiros", href: "/empresa/consultaparceiros" },
-  { name: "Consulta Uni. de Parceiro", href: "/empresa/consultaunidadesparceiro" }
 ];
 export function EmpSidebar() {
   const pathname = usePathname();

@@ -24,6 +24,7 @@ interface UnidadeFormData {
   UniEstado: string;
   UniEnderecoWeb: string;
   UniTipo: string;
+  UniDataRefPesquisa: Date;
 }
 export default function Unidades() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -53,6 +54,7 @@ export default function Unidades() {
     UniEstado: "",
     UniEnderecoWeb: "",
     UniTipo: "",
+    UniDataRefPesquisa: new Date(),
   });
   const buscaCEP = async (cep: string) => {
     const cepLimpo = cep.replace(/\D/g, "");
@@ -125,6 +127,7 @@ export default function Unidades() {
       UniEstado: "",
       UniEnderecoWeb: "",
       UniTipo: "",
+      UniDataRefPesquisa: new Date(),
     });
     setIsModalOpen(true);
   };
@@ -146,6 +149,7 @@ export default function Unidades() {
       UniEstado: item.UniEstado || "",
       UniEnderecoWeb: item.UniEnderecoWeb || "",
       UniTipo: item.UniTipo || "",
+      UniDataRefPesquisa: item.UniDataRefPesquisa || new Date(),
     });
     setIsModalOpen(true);
   };
@@ -530,4 +534,4 @@ export default function Unidades() {
       </div>
     </div>
   );
-}
+}

@@ -2,7 +2,6 @@
 import { useState } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 export default function LoginPage() {
   const router = useRouter();
@@ -24,11 +23,8 @@ export default function LoginPage() {
     setLoginError(false);
     try {
       const response = await api.post("/login", { UsuCodigo, senha });
-      const { user, token } = response.data;
+      const { user } = response.data;
       localStorage.setItem("projov_user", JSON.stringify(user));
-      if (token) {
-        Cookies.set("token", token, { expires: 8 / 24 });
-      }
       if (user.UsuTipo === "APRENDIZ") {
         window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
       } else {
@@ -73,11 +69,8 @@ export default function LoginPage() {
       setNewPassword("");
       setConfirmPassword("");
       const response = await api.post("/login", { UsuCodigo, senha: newPassword });
-      const { user, token } = response.data;
+      const { user } = response.data;
       localStorage.setItem("projov_user", JSON.stringify(user));
-      if (token) {
-        Cookies.set("token", token, { expires: 8 / 24 });
-      }
       if (user.UsuTipo === "APRENDIZ") {
         window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
       } else {

@@ -455,6 +455,19 @@ export default function CadEmpresasPage() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
+                Cidade
+              </label>
+              <input
+                name="ParCidade"
+                value={formData.ParCidade}
+                onChange={handleChange}
+                type="text"
+                maxLength={30}
+                className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
                 Bairro
               </label>
               <input
