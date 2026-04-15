@@ -1,19 +1,11 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { OcorrenciaTipo } from "@/services/ocorrenciaTipoService";
-const schema = z.object({
-  OcoDescricao: z
-    .string()
-    .min(3, "Descrição deve ter no mínimo 3 caracteres")
-    .max(50, "Descrição deve ter no máximo 50 caracteres"),
-  OcoTipo: z
-    .string()
-    .min(1, "Tipo é obrigatório")
-    .max(1, "Tipo deve ter no máximo 1 caractere"),
-});
-type FormData = z.infer<typeof schema>;
+import {
+  ocorrenciaTipoFormSchema,
+  OcorrenciaTipoFormData as FormData,
+} from "@/lib/schemas/forms";
 interface OcorrenciaTipoFormProps {
   initialData?: OcorrenciaTipo | null;
   onSubmit: (data: FormData) => void;
@@ -32,7 +24,7 @@ const OcorrenciaTipoForm: React.FC<OcorrenciaTipoFormProps> = ({
     reset,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(ocorrenciaTipoFormSchema),
     defaultValues: {
       OcoDescricao: "",
       OcoTipo: "",

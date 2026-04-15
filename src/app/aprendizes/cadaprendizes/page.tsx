@@ -100,7 +100,7 @@ function CadastroForm() {
     MedicamentosQual: "",
     MedicamentosFinalidade: "",
     TemAlergia: false,
-    TemAlergiaQual: "",
+    AlergiaQual: "",
     TemProblemaSaude: false,
     ProblemaSaudeQual: "",
     Deficiencia: "",
