@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
 interface UseCrudOptions {
@@ -45,12 +45,18 @@ export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOpti
     },
     [endpoint, limit],
   );
+  // Ref para sempre apontar para a versão mais recente de fetchData,
+  // evitando que a função entre nas dependências do useEffect de debounce
+  // e cause re-execuções desnecessárias.
+  const fetchDataRef = useRef(fetchData);
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchData(page, search);
-    }, 500);
-    return () => clearTimeout(delayDebounceFn);
-  }, [page, search, fetchData]);
+    fetchDataRef.current = fetchData;
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchDataRef.current(page, search), 500);
+    return () => clearTimeout(timer);
+  }, [page, search]);
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     setDeleting(true);

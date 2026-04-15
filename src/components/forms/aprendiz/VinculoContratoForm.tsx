@@ -15,7 +15,7 @@ interface Props {
   turmas: any[];
 }
 
-export function VinculoContratoForm({
+export const VinculoContratoForm = React.memo(function VinculoContratoForm({
   formData,
   handleChange,
   unidades,
@@ -268,4 +268,4 @@ export function VinculoContratoForm({
       </div>
     </section>
   );
-}
+});

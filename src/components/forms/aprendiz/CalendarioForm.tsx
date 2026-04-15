@@ -19,7 +19,7 @@ interface Props {
   instituicoes: any[];
   cursos: any[];
 }
-export function CalendarioForm({
+export const CalendarioForm = React.memo(function CalendarioForm({
   formData,
   handleChange,
   unidades,
@@ -486,4 +486,4 @@ export function CalendarioForm({
       )}
     </>
   );
-}
+});

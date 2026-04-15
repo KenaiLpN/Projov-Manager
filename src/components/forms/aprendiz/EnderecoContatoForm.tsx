@@ -10,7 +10,7 @@ interface Props {
   ) => void;
   buscaCEP: (cep: string) => void;
 }
-export function EnderecoContatoForm({
+export const EnderecoContatoForm = React.memo(function EnderecoContatoForm({
   formData,
   handleChange,
   buscaCEP,
@@ -181,4 +181,4 @@ export function EnderecoContatoForm({
       </div>
     </section>
   );
-}
+});

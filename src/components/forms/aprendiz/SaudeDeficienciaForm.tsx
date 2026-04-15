@@ -9,7 +9,7 @@ interface Props {
     >,
   ) => void;
 }
-export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
+export const SaudeDeficienciaForm = React.memo(function SaudeDeficienciaForm({ formData, handleChange }: Props) {
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-10">
       <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
@@ -214,4 +214,4 @@ export function SaudeDeficienciaForm({ formData, handleChange }: Props) {
       </div>
     </section>
   );
-}
+});

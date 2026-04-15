@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import {
@@ -79,15 +79,25 @@ export default function Home() {
     fetchVagasData();
   }, []);
 
-  const getEmpresaNome = (id: number) => {
-    const empresa = empresas.find(e => e.ParCodigo === id);
-    return empresa ? empresa.ParDescricao : "Não encontrada";
-  };
+  const empresaMap = useMemo(
+    () => new Map(empresas.map((e) => [e.ParCodigo, e.ParDescricao])),
+    [empresas]
+  );
 
-  const getAreaNome = (id: number) => {
-    const area = areas.find(a => a.AreaCodigo === id);
-    return area ? area.AreaDescricao : "Não encontrada";
-  };
+  const areaMap = useMemo(
+    () => new Map(areas.map((a) => [a.AreaCodigo, a.AreaDescricao])),
+    [areas]
+  );
+
+  const getEmpresaNome = useCallback(
+    (id: number) => empresaMap.get(id) ?? "Não encontrada",
+    [empresaMap]
+  );
+
+  const getAreaNome = useCallback(
+    (id: number) => areaMap.get(id) ?? "Não encontrada",
+    [areaMap]
+  );
 
   const formatData = (dataStr: string) => {
     if (!dataStr) return "-";

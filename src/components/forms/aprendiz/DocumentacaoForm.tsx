@@ -9,7 +9,7 @@ interface Props {
     >,
   ) => void;
 }
-export function DocumentacaoForm({ formData, handleChange }: Props) {
+export const DocumentacaoForm = React.memo(function DocumentacaoForm({ formData, handleChange }: Props) {
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden w-full">
       <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
@@ -156,4 +156,4 @@ export function DocumentacaoForm({ formData, handleChange }: Props) {
       </div>
     </section>
   );
-}
+});

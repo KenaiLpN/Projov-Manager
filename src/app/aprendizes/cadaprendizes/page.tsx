@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { DadosPessoaisForm } from "@/components/forms/aprendiz/DadosPessoaisForm";
@@ -34,6 +34,7 @@ function CadastroForm() {
   const [escolas, setEscolas] = useState<any[]>([]);
   const [orientadores, setOrientadores] = useState<any[]>([]);
   const [cursos, setCursos] = useState<any[]>([]);
+  const cursosRef = useRef<any[]>([]);
   const [turmas, setTurmas] = useState<any[]>([]);
   const [planos, setPlanos] = useState<any[]>([]);
 
@@ -165,8 +166,24 @@ function CadastroForm() {
     }
   }, [editingId]);
 
-  const loadSelectData = async () => {
+  const CACHE_KEY = "cad_select_data";
+
+  const loadSelectData = useCallback(async () => {
     try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setUnidades(parsed.unidades);
+        setInstituicoes(parsed.instituicoes);
+        setEscolas(parsed.escolas);
+        setOrientadores(parsed.orientadores);
+        cursosRef.current = parsed.cursos;
+        setCursos(parsed.cursos);
+        setTurmas(parsed.turmas);
+        setPlanos(parsed.planos);
+        return;
+      }
+
       const [resUnidades, resParceiros, resEscolas, resUsuarios, resCursos, resTurmas, resPlanos] =
         await Promise.all([
           api.get("/unidade?limit=1000"),
@@ -177,17 +194,30 @@ function CadastroForm() {
           api.get("/turmas?limit=1000"),
           api.get("/planos?limit=1000"),
         ]);
-      setUnidades(resUnidades.data.data || []);
-      setInstituicoes(resParceiros.data.data || []);
-      setEscolas(resEscolas.data.data || []);
-      setOrientadores(resUsuarios.data.data || []);
-      setCursos(resCursos.data.data || []);
-      setTurmas(resTurmas.data.data || []);
-      setPlanos(resPlanos.data.data || []);
+
+      const data = {
+        unidades: resUnidades.data.data || [],
+        instituicoes: resParceiros.data.data || [],
+        escolas: resEscolas.data.data || [],
+        orientadores: resUsuarios.data.data || [],
+        cursos: resCursos.data.data || [],
+        turmas: resTurmas.data.data || [],
+        planos: resPlanos.data.data || [],
+      };
+
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      setUnidades(data.unidades);
+      setInstituicoes(data.instituicoes);
+      setEscolas(data.escolas);
+      setOrientadores(data.orientadores);
+      cursosRef.current = data.cursos;
+      setCursos(data.cursos);
+      setTurmas(data.turmas);
+      setPlanos(data.planos);
     } catch (err) {
       console.error("Erro ao carregar dados auxiliares", err);
     }
-  };
+  }, []);
 
   const fetchAprendiz = async (id: string) => {
     setLoading(true);
@@ -244,7 +274,7 @@ function CadastroForm() {
     }
   };
 
-  const handleChange = (
+  const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
@@ -261,10 +291,12 @@ function CadastroForm() {
 
     setFormData((prev) => {
       const newState = { ...prev, [name]: newValue };
-      
+
       // Lógica de cálculo de carga horária
       if (name === "CalCurso" || name === "CalJornadaDiaria") {
-        const selectedArea = cursos.find(c => String(c.AreaCodigo) === String(newState.CalCurso));
+        const selectedArea = cursosRef.current.find(
+          (c: any) => String(c.AreaCodigo) === String(newState.CalCurso)
+        );
         if (selectedArea) {
           const jornada = Number(newState.CalJornadaDiaria);
           if (jornada === 4) {
@@ -278,7 +310,7 @@ function CadastroForm() {
       }
       return newState;
     });
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!formData.NomeJovem) {

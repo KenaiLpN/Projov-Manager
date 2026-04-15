@@ -11,7 +11,7 @@ interface Props {
   escolas: any[];
   turmas: any[];
 }
-export function EscolaridadeTurmasForm({
+export const EscolaridadeTurmasForm = React.memo(function EscolaridadeTurmasForm({
   formData,
   handleChange,
   escolas,
@@ -154,4 +154,4 @@ export function EscolaridadeTurmasForm({
       </div>
     </section>
   );
-}
+});

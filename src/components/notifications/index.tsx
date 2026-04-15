@@ -15,6 +15,7 @@ export function NotificationsMenu() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const lastFetchRef = useRef<number>(0);
   const fetchRecentRegistrations = async () => {
     setLoading(true);
     try {
@@ -44,9 +45,11 @@ export function NotificationsMenu() {
     }
   };
   useEffect(() => {
-    if (isOpen) {
-      fetchRecentRegistrations();
-    }
+    if (!isOpen) return;
+    const now = Date.now();
+    if (now - lastFetchRef.current < 30_000) return; // cooldown de 30s
+    lastFetchRef.current = now;
+    fetchRecentRegistrations();
   }, [isOpen]);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
