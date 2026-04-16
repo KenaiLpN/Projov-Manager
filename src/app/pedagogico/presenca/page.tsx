@@ -23,6 +23,12 @@ interface PresencaData {
   students: Student[];
 }
 
+const DISCIPLINAS = [
+  { id: 1, nome: "ENCONTRO SEMANAL - Aula 01" },
+  { id: 2, nome: "ENCONTRO SEMANAL - Aula 02" },
+  { id: 3, nome: "ENCONTRO SEMANAL - Aula 03" },
+];
+
 const PAGE_SIZE = 22;
 
 function capitalize(str: string) {
@@ -34,6 +40,7 @@ export default function ListaPresencaPage() {
   const [datas, setDatas] = useState<string[]>([]);
   const [selectedTurma, setSelectedTurma] = useState("");
   const [selectedData, setSelectedData] = useState("");
+  const [selectedDisciplina, setSelectedDisciplina] = useState("");
   const [presencaData, setPresencaData] = useState<PresencaData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -43,21 +50,33 @@ export default function ListaPresencaPage() {
       .catch(() => toast.error("Erro ao carregar turmas."));
   }, []);
 
+  // On turma change: load dates, reset rest
   useEffect(() => {
-    if (!selectedTurma) { setDatas([]); setSelectedData(""); return; }
+    setSelectedData("");
+    setSelectedDisciplina("");
+    setPresencaData(null);
+    if (!selectedTurma) { setDatas([]); return; }
     api.get(`/attendance/turmas/${selectedTurma}/dates`)
-      .then(r => { setDatas(r.data); setSelectedData(""); })
+      .then(r => setDatas(r.data))
       .catch(() => toast.error("Erro ao carregar datas."));
   }, [selectedTurma]);
 
+  // On date change: reset discipline and result
+  useEffect(() => {
+    setSelectedDisciplina("");
+    setPresencaData(null);
+  }, [selectedData]);
+
   const handleGerar = async () => {
-    if (!selectedTurma || !selectedData) {
-      toast.error("Selecione turma e data.");
+    if (!selectedTurma || !selectedData || !selectedDisciplina) {
+      toast.error("Selecione turma, data e disciplina.");
       return;
     }
     setLoading(true);
     try {
-      const r = await api.get(`/attendance/turmas/${selectedTurma}/presenca-list?date=${selectedData}`);
+      const r = await api.get(
+        `/attendance/turmas/${selectedTurma}/presenca-list?date=${selectedData}&disciplineId=${selectedDisciplina}`
+      );
       setPresencaData(r.data);
     } catch {
       toast.error("Erro ao gerar relatório.");
@@ -74,6 +93,8 @@ export default function ListaPresencaPage() {
   const diaSemana = selectedData
     ? capitalize(format(new Date(selectedData.substring(0, 10) + "T12:00:00"), "EEEE", { locale: ptBR }))
     : "";
+
+  const disciplinaNome = DISCIPLINAS.find(d => String(d.id) === selectedDisciplina)?.nome ?? "";
 
   const pages = presencaData
     ? Array.from(
@@ -104,6 +125,9 @@ export default function ListaPresencaPage() {
               <div className="font-bold text-sm mt-2">
                 Lista de Presença Aula do Dia&nbsp;&nbsp;&nbsp;{dataFormatada}
               </div>
+              {disciplinaNome && (
+                <div className="text-xs mt-1">{disciplinaNome}</div>
+              )}
             </div>
 
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
@@ -179,7 +203,8 @@ export default function ListaPresencaPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* 1. Turma */}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Turma</label>
                 <select
@@ -194,12 +219,14 @@ export default function ListaPresencaPage() {
                 </select>
               </div>
 
+              {/* 2. Data */}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Data</label>
                 <select
                   value={selectedData}
                   onChange={e => setSelectedData(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none transition-all"
+                  disabled={!selectedTurma}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none transition-all disabled:opacity-50"
                 >
                   <option value="">Selecione a data...</option>
                   {datas.map(d => (
@@ -210,10 +237,27 @@ export default function ListaPresencaPage() {
                 </select>
               </div>
 
+              {/* 3. Disciplina */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Disciplina</label>
+                <select
+                  value={selectedDisciplina}
+                  onChange={e => setSelectedDisciplina(e.target.value)}
+                  disabled={!selectedData}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none transition-all disabled:opacity-50"
+                >
+                  <option value="">Selecione a disciplina...</option>
+                  {DISCIPLINAS.map(d => (
+                    <option key={d.id} value={d.id}>{d.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 4. Botão */}
               <div className="flex items-end">
                 <button
                   onClick={handleGerar}
-                  disabled={loading || !selectedTurma || !selectedData}
+                  disabled={loading || !selectedTurma || !selectedData || !selectedDisciplina}
                   className="w-full bg-[#133c86] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#0f2e6b] transition-all disabled:bg-slate-300 disabled:shadow-none shadow-md active:scale-95"
                 >
                   {loading ? "Gerando..." : "Gerar Relatório"}
@@ -231,13 +275,14 @@ export default function ListaPresencaPage() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-slate-700">Nenhum relatório gerado</h3>
-                <p className="text-slate-500 max-w-sm mt-1">Selecione a turma e a data, depois clique em Gerar Relatório.</p>
+                <p className="text-slate-500 max-w-sm mt-1">Selecione a turma, data e disciplina, depois clique em Gerar Relatório.</p>
               </div>
             ) : (
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                   <div className="text-sm font-semibold text-slate-700">
                     Pré-visualização — {presencaData.turma.nome} / {dataFormatada}
+                    {disciplinaNome && <span className="text-slate-500 font-normal"> · {disciplinaNome}</span>}
                   </div>
                   <div className="text-xs text-slate-500">
                     {presencaData.students.length} aluno(s) · {pages.length} página(s)
@@ -249,6 +294,7 @@ export default function ListaPresencaPage() {
                     <div className="font-bold text-base">PROJOV SEDE</div>
                     <div className="text-xs text-slate-500">Rua Pará N°159, Bairro: Aldeia de Barueri, BARUERI - SP · CEP: 06440-130</div>
                     <div className="font-bold text-sm mt-1">Lista de Presença Aula do Dia &nbsp; {dataFormatada}</div>
+                    {disciplinaNome && <div className="text-xs text-slate-500 mt-0.5">{disciplinaNome}</div>}
                   </div>
 
                   <table className="w-full border-collapse text-xs">
