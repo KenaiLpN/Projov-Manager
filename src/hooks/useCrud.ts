@@ -32,8 +32,8 @@ export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOpti
           queryParams.append("search", searchTerm); 
         }
         const response = await api.get(`${endpoint}?${queryParams.toString()}`);
-        setLista(response.data.data);
-        setTotalPages(response.data.meta.totalPages);
+        setLista(response.data.data ?? []);
+        setTotalPages(response.data.meta?.totalPages ?? 1);
         setError(null);
       } catch (err) {
         console.error(`Erro ao buscar ${endpoint}:`, err);
