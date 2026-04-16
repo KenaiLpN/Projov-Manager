@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
 import ConfirmModal from "@/components/modal/ConfirmModal";
@@ -7,113 +7,228 @@ import api from "@/services/api";
 import TabelaTurmas, { Turma } from "@/components/tabelas/tabelaturmas";
 import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
+
+interface Curso {
+  CurCodigo: string;
+  CurDescricao: string;
+}
+
+interface Educador {
+  EducCodigo: number;
+  EducNome: string | null;
+}
+
+interface Plano {
+  PlanCodigo: number;
+  PlanDescricao: string | null;
+  PlanCurso: string;
+}
+
+interface Unidade {
+  UniCodigo: number;
+  UniNome: string | null;
+}
+
+type FormData = {
+  TurCurso: string;
+  TurNome: string;
+  TurDiaSemana: string;
+  TurDiaSemana02: string;
+  TurSemanaEncontro: string;
+  TurInicio: string;
+  Termino: string;
+  TurObservacoes: string;
+  TurStatus: string;
+  TurPlanoCurricular: number | "";
+  TurUnidade: number | "";
+  TurNumeroMeses: number | "";
+  TurEducadorResponsavel: number | "";
+  TurEducadorInformatica: number | "";
+};
+
+const FORM_EMPTY: FormData = {
+  TurCurso: "",
+  TurNome: "",
+  TurDiaSemana: "",
+  TurDiaSemana02: "",
+  TurSemanaEncontro: "",
+  TurInicio: "",
+  Termino: "",
+  TurObservacoes: "",
+  TurStatus: "A",
+  TurPlanoCurricular: "",
+  TurUnidade: "",
+  TurNumeroMeses: "",
+  TurEducadorResponsavel: "",
+  TurEducadorInformatica: "",
+};
+
+const INT_FIELDS = [
+  "TurPlanoCurricular",
+  "TurUnidade",
+  "TurNumeroMeses",
+  "TurEducadorResponsavel",
+  "TurEducadorInformatica",
+];
+
+/** Extrai "HH:mm" de uma string ISO datetime (ex: "1970-01-01T08:00:00.000Z" → "08:00") */
+function extractTime(val: string | null): string {
+  if (!val) return "";
+  const t = val.includes("T") ? val.split("T")[1] : val;
+  return t.slice(0, 5);
+}
+
+/** Converte "HH:mm" para string ISO compatível com z.coerce.date() */
+function timeToISO(val: string): string | null {
+  if (!val) return null;
+  return `1970-01-01T${val}:00`;
+}
+
 export default function TurmasPage() {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [lista, setLista] = useState<Turma[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [saving, setSaving] = useState<boolean>(false);
-  const [search, setSearch] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [formData, setFormData] = useState<
-    Partial<
-      Turma & {
-        TurObservacoes: string;
-        TurPlanoCurricular: number;
-        TurStatus: string;
-      }
-    >
-  >({
-    TurCurso: "",
-    TurNome: "",
-    TurDiaSemana: "",
-    TurInicio: "",
-    Termino: "",
-    TurObservacoes: "",
-    TurStatus: "A",
-    TurPlanoCurricular: 1,
-  });
-  const openModalNew = () => {
-    setEditingId(null);
-    setFormData({
-      TurCurso: "",
-      TurNome: "",
-      TurDiaSemana: "",
-      TurInicio: "",
-      Termino: "",
-      TurObservacoes: "",
-      TurStatus: "A",
-      TurPlanoCurricular: 1,
-    });
-    setIsModalOpen(true);
-  };
-  const handleEdit = (item: Turma) => {
-    setEditingId(item.TurCodigo);
-    setFormData({
-      ...item,
-      TurInicio: item.TurInicio
-        ? new Date(item.TurInicio).toISOString().split("T")[0]
-        : "",
-      Termino: item.Termino
-        ? new Date(item.Termino).toISOString().split("T")[0]
-        : "",
-    } as any);
-    setIsModalOpen(true);
-  };
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
-  };
-  async function fetchData(pagina: number, searchTerm: string = search) {
+  const [formData, setFormData] = useState<FormData>(FORM_EMPTY);
+
+  // Dados de seleção
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [educadores, setEducadores] = useState<Educador[]>([]);
+  const [planos, setPlanos] = useState<Plano[]>([]);
+  const [unidades, setUnidades] = useState<Unidade[]>([]);
+
+  // Planos filtrados pelo curso selecionado
+  const filteredPlanos = formData.TurCurso
+    ? planos.filter((p) => p.PlanCurso === formData.TurCurso)
+    : planos;
+
+  const fetchData = useCallback(async (pagina: number, searchTerm = "") => {
     setLoading(true);
     try {
       const response = await api.get(
-        `/turmas?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
+        `/turmas?page=${pagina}&limit=10${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`,
       );
       setLista(response.data.data);
       setTotalPages(response.data.meta.totalPages);
-    } catch (err) {
-      console.error(err);
+      setError(null);
+    } catch {
       setError("Falha ao carregar dados.");
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  const loadSelects = useCallback(async () => {
+    try {
+      const [resCursos, resEducadores, resPlanos, resUnidades] =
+        await Promise.allSettled([
+          api.get("/cursos?limit=1000"),
+          api.get("/educadores?limit=1000"),
+          api.get("/planos?limit=1000"),
+          api.get("/unidade?limit=1000"),
+        ]);
+
+      console.log("[loadSelects] cursos:", resCursos);
+      console.log("[loadSelects] educadores:", resEducadores);
+      console.log("[loadSelects] planos:", resPlanos);
+      console.log("[loadSelects] unidades:", resUnidades);
+
+      if (resCursos.status === "fulfilled") setCursos(resCursos.value.data.data || []);
+      if (resEducadores.status === "fulfilled") setEducadores(resEducadores.value.data.data || []);
+      if (resPlanos.status === "fulfilled") setPlanos(resPlanos.value.data.data || []);
+      if (resUnidades.status === "fulfilled") setUnidades(resUnidades.value.data.data || []);
+    } catch (err) {
+      console.error("Erro ao carregar dados auxiliares:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData(page);
+  }, [page, fetchData]);
+
+  useEffect(() => {
+    loadSelects();
+  }, [loadSelects]);
+
   const handleSearch = () => {
     setPage(1);
     fetchData(1, search);
   };
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSearch();
   };
+
   const handleClearSearch = () => {
     setSearch("");
     setPage(1);
     fetchData(1, "");
   };
-  useEffect(() => {
-    fetchData(page);
-  }, [page]);
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "TurPlanoCurricular" ? Number(value) : value,
-    }));
+
+  const openModalNew = () => {
+    setEditingId(null);
+    setFormData(FORM_EMPTY);
+    setIsModalOpen(true);
   };
+
+  const handleEdit = (item: Turma) => {
+    setEditingId(item.TurCodigo);
+    setFormData({
+      TurCurso: item.TurCurso ?? "",
+      TurNome: item.TurNome ?? "",
+      TurDiaSemana: item.TurDiaSemana ?? "",
+      TurDiaSemana02: item.TurDiaSemana02 ?? "",
+      TurSemanaEncontro: item.TurSemanaEncontro ?? "",
+      TurInicio: extractTime(item.TurInicio),
+      Termino: extractTime(item.Termino),
+      TurObservacoes: item.TurObservacoes ?? "",
+      TurStatus: item.TurStatus ?? "A",
+      TurPlanoCurricular: item.TurPlanoCurricular ?? "",
+      TurUnidade: item.TurUnidade ?? "",
+      TurNumeroMeses: item.TurNumeroMeses ?? "",
+      TurEducadorResponsavel: item.TurEducadorResponsavel ?? "",
+      TurEducadorInformatica: item.TurEducadorInformatica ?? "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+  };
+
+  const handleChange = useCallback(
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: INT_FIELDS.includes(name)
+          ? value === ""
+            ? ""
+            : Number(value)
+          : value,
+      }));
+    },
+    [],
+  );
+
   const handleDelete = (id: number) => {
     setItemToDelete(id);
     setIsConfirmOpen(true);
   };
+
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     setDeleting(true);
@@ -123,35 +238,62 @@ export default function TurmasPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir.");
     } finally {
       setDeleting(false);
     }
   };
+
   const handleSalvar = async () => {
+    if (!formData.TurPlanoCurricular) {
+      toast.error("O Plano Curricular é obrigatório.");
+      return;
+    }
     setSaving(true);
     try {
+      const payload = {
+        TurCurso: formData.TurCurso || null,
+        TurNome: formData.TurNome || null,
+        TurDiaSemana: formData.TurDiaSemana || null,
+        TurDiaSemana02: formData.TurDiaSemana02 || null,
+        TurSemanaEncontro: formData.TurSemanaEncontro || null,
+        TurInicio: timeToISO(formData.TurInicio),
+        Termino: timeToISO(formData.Termino),
+        TurObservacoes: formData.TurObservacoes || null,
+        TurStatus: formData.TurStatus || "A",
+        TurPlanoCurricular: Number(formData.TurPlanoCurricular),
+        TurUnidade: formData.TurUnidade === "" ? null : Number(formData.TurUnidade),
+        TurNumeroMeses: formData.TurNumeroMeses === "" ? null : Number(formData.TurNumeroMeses),
+        TurEducadorResponsavel: formData.TurEducadorResponsavel === "" ? null : Number(formData.TurEducadorResponsavel),
+        TurEducadorInformatica: formData.TurEducadorInformatica === "" ? null : Number(formData.TurEducadorInformatica),
+      };
+
       if (editingId) {
-        await api.put(`/turmas/${editingId}`, formData);
+        await api.put(`/turmas/${editingId}`, payload);
         toast.success("Atualizado com sucesso!");
       } else {
-        await api.post("/turmas", formData);
+        await api.post("/turmas", payload);
         toast.success("Cadastrado com sucesso!");
       }
       closeModal();
       fetchData(page);
     } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao salvar.");
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Erro ao salvar.";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
+
   return (
     <div className="flex flex-row h-screen w-screen overflow-hidden">
       <PedagogicoSidebar />
       <div className="flex flex-col w-full h-full overflow-y-auto">
+        {/* Barra de pesquisa */}
         <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center shadow-sm">
           <div className="flex items-center gap-2 ml-4">
             <div className="relative">
@@ -199,6 +341,8 @@ export default function TurmasPage() {
             Nova Turma
           </button>
         </div>
+
+        {/* Tabela */}
         <div className="flex-1">
           <TabelaTurmas
             dados={lista}
@@ -217,88 +361,116 @@ export default function TurmasPage() {
             )}
           </div>
         </div>
+
+        {/* Modal de Cadastro / Edição */}
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Turma" : "Nova Turma"}
           </h2>
+
           <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+
+            {/* Código da Turma (somente leitura) */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Curso (Cód)
+                Código da Turma
               </label>
               <input
-                name="TurCurso"
-                value={formData.TurCurso || ""}
-                onChange={handleChange}
                 type="text"
-                maxLength={6}
-                className="p-2 w-full rounded border border-gray-300"
+                value={editingId ?? "Gerado automaticamente"}
+                disabled
+                className="p-2 w-full rounded border border-gray-300 bg-gray-100 text-gray-500"
               />
             </div>
+
+            {/* Nome da Turma */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Nome da Turma
               </label>
               <input
                 name="TurNome"
-                value={formData.TurNome || ""}
+                value={formData.TurNome}
                 onChange={handleChange}
                 type="text"
                 maxLength={40}
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
+
+            {/* Curso */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Início
-              </label>
-              <input
-                name="TurInicio"
-                value={formData.TurInicio || ""}
-                onChange={handleChange}
-                type="date"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Término
-              </label>
-              <input
-                name="Termino"
-                value={formData.Termino || ""}
-                onChange={handleChange}
-                type="date"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Dia da Semana
+                Curso <span className="text-red-500">*</span>
               </label>
               <select
-                name="TurDiaSemana"
-                value={formData.TurDiaSemana || ""}
+                name="TurCurso"
+                value={formData.TurCurso}
                 onChange={handleChange}
                 className="p-2 w-full rounded border border-gray-300"
               >
                 <option value="">Selecione...</option>
-                <option value="1">Segunda</option>
-                <option value="2">Terça</option>
-                <option value="3">Quarta</option>
-                <option value="4">Quinta</option>
-                <option value="5">Sexta</option>
-                <option value="6">Sábado</option>
-                <option value="7">Domingo</option>
+                {cursos.map((c) => (
+                  <option key={c.CurCodigo} value={c.CurCodigo}>
+                    {c.CurCodigo} — {c.CurDescricao}
+                  </option>
+                ))}
               </select>
             </div>
+
+            {/* Plano Curricular (filtrado pelo curso) */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Plano Curricular <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="TurPlanoCurricular"
+                value={formData.TurPlanoCurricular}
+                onChange={handleChange}
+                className="p-2 w-full rounded border border-gray-300"
+              >
+                <option value="">Selecione...</option>
+                {filteredPlanos.map((p) => (
+                  <option key={p.PlanCodigo} value={p.PlanCodigo}>
+                    {p.PlanCodigo} — {p.PlanDescricao || p.PlanCurso}
+                  </option>
+                ))}
+              </select>
+              {formData.TurCurso && filteredPlanos.length === 0 && (
+                <p className="text-xs text-amber-600">
+                  Nenhum plano vinculado a este curso.
+                </p>
+              )}
+            </div>
+
+            {/* Unidade */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Unidade
+              </label>
+              <select
+                name="TurUnidade"
+                value={formData.TurUnidade}
+                onChange={handleChange}
+                className="p-2 w-full rounded border border-gray-300"
+              >
+                <option value="">Selecione...</option>
+                {unidades.map((u) => (
+                  <option key={u.UniCodigo} value={u.UniCodigo}>
+                    {u.UniNome || `Unidade ${u.UniCodigo}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Status
               </label>
               <select
                 name="TurStatus"
-                value={formData.TurStatus || "A"}
+                value={formData.TurStatus}
                 onChange={handleChange}
                 className="p-2 w-full rounded border border-gray-300"
               >
@@ -306,25 +478,160 @@ export default function TurmasPage() {
                 <option value="I">Inativo</option>
               </select>
             </div>
+
+            {/* Educador Responsável */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Plano Curricular (ID)
+                Educador Responsável
+              </label>
+              <select
+                name="TurEducadorResponsavel"
+                value={formData.TurEducadorResponsavel}
+                onChange={handleChange}
+                className="p-2 w-full rounded border border-gray-300"
+              >
+                <option value="">Selecione...</option>
+                {educadores.map((e) => (
+                  <option key={e.EducCodigo} value={e.EducCodigo}>
+                    {e.EducNome || `Educador ${e.EducCodigo}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Educador Informática */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Educador Informática
+              </label>
+              <select
+                name="TurEducadorInformatica"
+                value={formData.TurEducadorInformatica}
+                onChange={handleChange}
+                className="p-2 w-full rounded border border-gray-300"
+              >
+                <option value="">Selecione...</option>
+                {educadores.map((e) => (
+                  <option key={e.EducCodigo} value={e.EducCodigo}>
+                    {e.EducNome || `Educador ${e.EducCodigo}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Dia da Semana */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Dia da Semana
+              </label>
+              <select
+                name="TurDiaSemana"
+                value={formData.TurDiaSemana}
+                onChange={handleChange}
+                className="p-2 w-full rounded border border-gray-300"
+              >
+                <option value="">Selecione...</option>
+                <option value="1">Segunda à Sexta</option>
+                <option value="2">Segunda-Feira</option>
+                <option value="3">Terça-Feira</option>
+                <option value="4">Quarta-Feira</option>
+                <option value="5">Quinta-Feira</option>
+                <option value="6">Sexta-Feira</option>
+              </select>
+            </div>
+
+            {/* Dia do Encontro Semanal */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Dia do Encontro Semanal
+              </label>
+              <select
+                name="TurDiaSemana02"
+                value={formData.TurDiaSemana02}
+                onChange={handleChange}
+                className="p-2 w-full rounded border border-gray-300"
+              >
+                <option value="">Selecione...</option>
+                <option value="1">Domingo</option>
+                <option value="2">Segunda-Feira</option>
+                <option value="3">Terça-Feira</option>
+                <option value="4">Quarta-Feira</option>
+                <option value="5">Quinta-Feira</option>
+                <option value="6">Sexta-Feira</option>
+                <option value="7">Sábado</option>
+              </select>
+            </div>
+
+            {/* Semana do Encontro */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Semana do Encontro
+              </label>
+              <select
+                name="TurSemanaEncontro"
+                value={formData.TurSemanaEncontro}
+                onChange={handleChange}
+                className="p-2 w-full rounded border border-gray-300"
+              >
+                <option value="">Selecione...</option>
+                <option value="1">1ª Semana</option>
+                <option value="2">2ª Semana</option>
+                <option value="3">3ª Semana</option>
+                <option value="4">4ª Semana</option>
+              </select>
+            </div>
+
+            {/* Número de Meses */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Número de Meses
               </label>
               <input
-                name="TurPlanoCurricular"
-                value={formData.TurPlanoCurricular || ""}
+                name="TurNumeroMeses"
+                value={formData.TurNumeroMeses}
                 onChange={handleChange}
                 type="number"
+                min={1}
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
+
+            {/* Hora Início */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Hora Início
+              </label>
+              <input
+                name="TurInicio"
+                value={formData.TurInicio}
+                onChange={handleChange}
+                type="time"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            {/* Hora Término */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Hora Término
+              </label>
+              <input
+                name="Termino"
+                value={formData.Termino}
+                onChange={handleChange}
+                type="time"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+
+            {/* Observações */}
             <div className="flex flex-col col-span-2 gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Observações
               </label>
               <textarea
                 name="TurObservacoes"
-                value={formData.TurObservacoes || ""}
+                value={formData.TurObservacoes}
                 onChange={handleChange}
                 maxLength={255}
                 rows={3}
@@ -332,6 +639,7 @@ export default function TurmasPage() {
               />
             </div>
           </div>
+
           <div className="flex justify-end gap-4 m-4 pt-4 border-t">
             <button
               onClick={closeModal}
@@ -348,6 +656,7 @@ export default function TurmasPage() {
             </button>
           </div>
         </Modal>
+
         <ConfirmModal
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}

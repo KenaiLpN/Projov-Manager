@@ -261,6 +261,9 @@ function AprendizesContent() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="p-4 font-bold text-gray-700 uppercase text-xs tracking-wider">
+                  Código
+                </th>
+                <th className="p-4 font-bold text-gray-700 uppercase text-xs tracking-wider">
                   Nome
                 </th>
                 <th className="p-4 font-bold text-gray-700 uppercase text-xs tracking-wider">
@@ -308,11 +311,14 @@ function AprendizesContent() {
                       key={a.IdAluno}
                       className={rowBg}
                     >
-                    <td className="p-4 font-medium text-gray-800">
-                      {a.NomeJovem}
-                    </td>
-                    <td className="p-4 text-gray-600">
-                      {a.CPF || "Não informado"}
+                      <td className="p-4 font-medium text-gray-800">
+                        {a.IdAluno}
+                      </td>
+                      <td className="p-4 font-medium text-gray-800">
+                        {a.NomeJovem}
+                      </td>
+                      <td className="p-4 text-gray-600">
+                        {a.CPF || "Não informado"}
                     </td>
                     <td className="p-4 text-gray-600">
                       <span className="bg-gray-100 px-2 py-1 rounded text-sm underline decoration-blue-200">

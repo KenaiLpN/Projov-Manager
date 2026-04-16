@@ -6,8 +6,15 @@ export interface Turma {
   TurDiaSemana: string | null;
   TurInicio: string | null;
   Termino: string | null;
+  TurObservacoes: string | null;
   TurStatus: string | null;
+  TurPlanoCurricular: number;
   TurUnidade: number | null;
+  TurNumeroMeses: number | null;
+  TurEducadorResponsavel: number | null;
+  TurEducadorInformatica: number | null;
+  TurSemanaEncontro: string | null;
+  TurDiaSemana02: string | null;
 }
 interface TabelaTurmasProps {
   dados: Turma[];
