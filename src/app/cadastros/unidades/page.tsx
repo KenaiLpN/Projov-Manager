@@ -27,6 +27,7 @@ interface UnidadeFormData {
   UniDataRefPesquisa: Date;
 }
 export default function Unidades() {
+  // const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [unidades, setUnidades] = useState<any[]>([]);
