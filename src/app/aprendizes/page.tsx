@@ -66,9 +66,9 @@ function AprendizesContent() {
         api.get("/turmas?limit=1000"),
         api.get("/grau-escolaridade?limit=1000"),
       ]);
-      setEmpresas(resParceiros.data?.data || []);
-      setTurmas(resTurmas.data?.data || []);
-      setGrausEscolaridade(resGraus.data?.data || []);
+      setEmpresas(Array.isArray(resParceiros.data?.data) ? resParceiros.data.data : []);
+      setTurmas(Array.isArray(resTurmas.data?.data) ? resTurmas.data.data : []);
+      setGrausEscolaridade(Array.isArray(resGraus.data?.data) ? resGraus.data.data : []);
       setAuxDataLoaded(true);
     } catch (err) {
       console.error("Erro ao carregar dados do filtro", err);
@@ -241,6 +241,14 @@ function AprendizesContent() {
           <span>Mostrando página {page} de {totalPages}</span>
           <div className="flex gap-2">
             <button
+              onClick={() => setPage(1)}
+              disabled={page <= 1}
+              className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Primeira página"
+            >
+              «
+            </button>
+            <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page <= 1}
               className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -253,6 +261,14 @@ function AprendizesContent() {
               className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próxima
+            </button>
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={page >= totalPages}
+              className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Última página"
+            >
+              »
             </button>
           </div>
         </div>

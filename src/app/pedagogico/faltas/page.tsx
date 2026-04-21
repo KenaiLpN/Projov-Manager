@@ -69,7 +69,7 @@ export default function LancarFaltasPage() {
 
   useEffect(() => {
     api.get("/turmas?limit=1000")
-      .then(r => setTurmas(r.data.data))
+      .then(r => setTurmas(Array.isArray(r.data?.data) ? r.data.data : []))
       .catch(() => toast.error("Erro ao carregar lista de turmas."));
   }, []);
 
@@ -83,7 +83,7 @@ export default function LancarFaltasPage() {
     if (!selectedTurma) return;
 
     api.get(`/attendance/turmas/${selectedTurma}/dates`)
-      .then(r => setDatas(r.data))
+      .then(r => setDatas(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error("Erro ao carregar datas de aula."));
 
     api.get(`/attendance/turmas/${selectedTurma}/disciplines`)

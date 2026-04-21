@@ -46,7 +46,7 @@ export default function ListaPresencaPage() {
 
   useEffect(() => {
     api.get("/turmas?limit=1000")
-      .then(r => setTurmas(r.data.data))
+      .then(r => setTurmas(Array.isArray(r.data?.data) ? r.data.data : []))
       .catch(() => toast.error("Erro ao carregar turmas."));
   }, []);
 
@@ -57,7 +57,7 @@ export default function ListaPresencaPage() {
     setPresencaData(null);
     if (!selectedTurma) { setDatas([]); return; }
     api.get(`/attendance/turmas/${selectedTurma}/dates`)
-      .then(r => setDatas(r.data))
+      .then(r => setDatas(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error("Erro ao carregar datas."));
   }, [selectedTurma]);
 

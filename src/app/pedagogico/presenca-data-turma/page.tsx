@@ -79,15 +79,15 @@ export default function ControlePresencaPage() {
 
   // load reference data
   useEffect(() => {
-    api.get("/turmas?limit=1000").then(r => setTurmas(r.data.data)).catch(() => {});
-    api.get("/parceiros?page=1&limit=1000").then(r => setParceiros(r.data.data)).catch(() => {});
+    api.get("/turmas?limit=1000").then(r => setTurmas(Array.isArray(r.data?.data) ? r.data.data : [])).catch(() => {});
+    api.get("/parceiros?page=1&limit=1000").then(r => setParceiros(Array.isArray(r.data?.data) ? r.data.data : [])).catch(() => {});
   }, []);
 
   // load available dates when turma changes (for "Por Data" tab)
   useEffect(() => {
     if (!selTurma) { setDatas([]); setSelData(""); return; }
     api.get(`/attendance/turmas/${selTurma}/dates`)
-      .then(r => { setDatas(r.data); setSelData(""); })
+      .then(r => { setDatas(Array.isArray(r.data) ? r.data : []); setSelData(""); })
       .catch(() => {});
   }, [selTurma]);
 
