@@ -8,23 +8,38 @@ import {
   Briefcase,
   UserPlus,
   ArrowUpRight,
+  BookmarkCheck,
+  UserMinus,
+  BookType,
+  Globe,
+  Rocket,
+  CircleSlash2,
 } from "lucide-react";
 
 interface DashboardStats {
-  total: number;
-  vacation: number;
-  working: number;
-  available: number;
+    alunos: number;
+    inscritos: number;
+    habilitados: number;
+    desligados: number;
+    aprendizagem: number;
+    inscritosinternet: number;
+    aprovados: number;
+    naohabilitados: number;
 }
 
 
 export default function Home() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
-    total: 0,
-    vacation: 0,
-    working: 0,
-    available: 0,
+    alunos: 0,
+    inscritos: 0,
+    habilitados: 0,
+    desligados: 0,
+    aprendizagem: 0,
+    inscritosinternet:0,
+    aprovados:0,
+    naohabilitados:0,
+
   });
   const [loading, setLoading] = useState(true);
 
@@ -45,40 +60,76 @@ export default function Home() {
 
   const cards = [
     {
-      title: "Aprendizes Ativos",
-      value: stats.total,
+      title: "Alunos",
+      value: stats.alunos,
       icon: <Users size={24} />,
       color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
       shadow: "shadow-blue-700/20",
-      link: "/aprendizes?filter=active",
-      description: "Jovens com situação ativa",
+      link: "/aprendizes?filter=alunos",
+      description: "Jovens Alunos",
     },
     {
-      title: "Férias / Maternidade",
-      value: stats.vacation,
-      icon: <Palmtree size={24} />,
-      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
-      shadow: "shadow-blue-700/20",
-      link: "/aprendizes?filter=vacation",
-      description: "Ativos em período de férias",
-    },
-    {
-      title: "Trabalhando",
-      value: stats.working,
-      icon: <Briefcase size={24} />,
-      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
-      shadow: "shadow-blue-700/20",
-      link: "/aprendizes?filter=working",
-      description: "Ativos vinculados a empresas",
-    },
-    {
-      title: "Disponíveis",
-      value: stats.available,
+      title: "Inscritos",
+      value: stats.inscritos,
       icon: <UserPlus size={24} />,
       color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
       shadow: "shadow-blue-700/20",
-      link: "/aprendizes?filter=available",
-      description: "Ativos aguardando contratação",
+      link: "/aprendizes?filter=inscritos",
+      description: "Jovens Inscritos",
+    },
+    {
+      title: "Habilitados",
+      value: stats.habilitados,
+      icon: <BookmarkCheck size={24} />,
+      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
+      shadow: "shadow-blue-700/20",
+      link: "/aprendizes?filter=habilitados",
+      description: "Jovens Habilitados",
+    },
+    {
+      title: "Desligados",
+      value: stats.desligados,
+      icon: <UserMinus size={24} />,
+      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
+      shadow: "shadow-blue-700/20",
+      link: "/aprendizes?filter=desligados",
+      description: "Jovens Desligados",
+    },
+        {
+      title: "Aprendizagem",
+      value: stats.aprendizagem,
+      icon: <BookType size={24} />,
+      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
+      shadow: "shadow-blue-700/20",
+      link: "/aprendizes?filter=aprendizagem",
+      description: "Jovens Em Aprendizagem",
+    },
+    {
+      title: "Inscritos Internet",
+      value: stats.inscritosinternet,
+      icon: <Globe size={24} />,
+      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
+      shadow: "shadow-blue-700/20",
+      link: "/aprendizes?filter=inscritosinternet",
+      description: "Jovens Inscritos Internet",
+    },
+    {
+      title: "Aprovados",
+      value: stats.aprovados,
+      icon: <Rocket size={24} />,
+      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
+      shadow: "shadow-blue-700/20",
+      link: "/aprendizes?filter=aprovados",
+      description: "Jovens Aprovados",
+    },
+    {
+      title: "Não Habilitados",
+      value: stats.naohabilitados,
+      icon: <CircleSlash2 size={24} />,
+      color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
+      shadow: "shadow-blue-700/20",
+      link: "/aprendizes?filter=naohabilitados",
+      description: "Não Habilitados",
     },
   ];
 
