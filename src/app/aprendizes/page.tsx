@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filter } from "lucide-react";
+import { Filter, Pencil, MapPin, BookOpen, Star, Calendar, LayoutGrid, FileText } from "lucide-react";
 import * as caAprendizService from "@/services/caAprendizService";
 import { CA_Aprendiz } from "@/types";
 import SearchBar from "@/components/SearchBar";
@@ -23,6 +23,7 @@ interface GrauEscolaridade {
 
 type AdvancedFilter = typeof INITIAL_FILTER_STATE;
 const INITIAL_FILTER_STATE = {
+  Codigo: "",
   Nome: "",
   Empresa: "",
   Turma: "",
@@ -178,59 +179,94 @@ function AprendizesContent() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table className="w-full text-left border-collapse">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+          <table className="w-full text-left border-collapse text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {["Código", "Nome", "CPF", "Unidade", "Turma", "Ações"].map(h => (
-                  <th key={h} className="p-4 font-bold text-gray-700 uppercase text-xs tracking-wider">{h}</th>
+                {["Código", "Nome", "Telefone", "Sexo", "Situação", "E-mail", "Alocações", "Capacitações", "Avaliação", "Calendário", "Cal. Turma", "Emitir Cal.", "Ações"].map(h => (
+                  <th key={h} className="px-3 py-3 font-bold text-gray-700 uppercase text-xs tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-10 text-center text-gray-400">Carregando dados...</td>
+                  <td colSpan={13} className="p-10 text-center text-gray-400">Carregando dados...</td>
                 </tr>
               ) : aprendizes.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-10 text-center text-gray-400">Nenhum aprendiz encontrado.</td>
+                  <td colSpan={13} className="p-10 text-center text-gray-400">Nenhum aprendiz encontrado.</td>
                 </tr>
               ) : (
-                aprendizes.map((a) => (
-                  <tr key={a.Apr_Codigo} className="hover:bg-blue-50 transition-colors bg-white">
-                    <td className="p-4 font-medium text-gray-800">{a.Apr_Codigo}</td>
-                    <td className="p-4 font-medium text-gray-800">
-                      {a.Apr_Nome}
-                      {a.Apr_NomeSocial && (
-                        <span className="ml-2 text-xs text-gray-400 italic">({a.Apr_NomeSocial})</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-gray-600">{a.Apr_CPF || "—"}</td>
-                    <td className="p-4 text-gray-600">
-                      <span className="bg-gray-100 px-2 py-1 rounded text-sm">
-                        {(a as any).unidadeNome || "Não vinculada"}
-                      </span>
-                    </td>
-                    <td className="p-4 text-gray-600">
-                      {a.Apr_Turma ?? "—"}
-                    </td>
-                    <td className="p-4 flex gap-2">
-                      <button
-                        onClick={() => router.push(`/aprendizes/cadaprendizes?id=${a.Apr_Codigo}`)}
-                        className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-sm"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => router.push(`/aprendizes/cadaprendizes?id=${a.Apr_Codigo}&tab=calendario`)}
-                        className="px-3 py-1.5 bg-slate-50 text-slate-600 rounded-md hover:bg-slate-600 hover:text-white transition-all font-semibold text-sm"
-                      >
-                        Calendário
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                aprendizes.map((a) => {
+                  const id = a.Apr_Codigo;
+                  const row = a as any;
+                  return (
+                    <tr key={id} className="hover:bg-blue-50 transition-colors bg-white">
+                      <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">{id}</td>
+                      <td className="px-3 py-2 text-gray-800 max-w-[180px]">
+                        <span className="block truncate font-medium">{a.Apr_Nome}</span>
+                      </td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
+                        {row.Apr_Telefone || a.Apr_Celular || "—"}
+                      </td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
+                        {a.Apr_Sexo || "—"}
+                      </td>
+                      <td className="px-3 py-2 max-w-[160px]">
+                        {row.situacaoDescricao ? (
+                          <span className="block truncate text-xs text-gray-700">{row.situacaoDescricao}</span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-gray-600 max-w-[160px]">
+                        <span className="block truncate text-xs">{a.Apr_Email || "Não Informado"}</span>
+                      </td>
+
+                      {/* Botões de ação iconográficos */}
+                      <td className="px-3 py-2 text-center">
+                        <button title="Alocações" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=alocacoes`)} className="p-1.5 rounded hover:bg-blue-100 text-blue-600 transition-colors">
+                          <MapPin size={15} />
+                        </button>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button title="Capacitações" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=capacitacoes`)} className="p-1.5 rounded hover:bg-green-100 text-green-600 transition-colors">
+                          <BookOpen size={15} />
+                        </button>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button title="Avaliação" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=avaliacao`)} className="p-1.5 rounded hover:bg-yellow-100 text-yellow-600 transition-colors">
+                          <Star size={15} />
+                        </button>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button title="Calendário" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=calendario`)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600 transition-colors">
+                          <Calendar size={15} />
+                        </button>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button title="Calcular Calendário Turma" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=calendario-turma`)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600 transition-colors">
+                          <LayoutGrid size={15} />
+                        </button>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button title="Emitir Calendário" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=emitir-calendario`)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600 transition-colors">
+                          <FileText size={15} />
+                        </button>
+                      </td>
+
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <button
+                          onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}`)}
+                          className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-xs flex items-center gap-1"
+                        >
+                          <Pencil size={12} /> Editar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -285,6 +321,17 @@ function AprendizesContent() {
                 Dados Gerais e Demográficos
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Código</label>
+                  <input
+                    type="number"
+                    value={advancedFilterForm.Codigo}
+                    onChange={e => setField("Codigo", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm"
+                    placeholder="Nº do código"
+                  />
+                </div>
 
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-gray-700 mb-1">Nome</label>

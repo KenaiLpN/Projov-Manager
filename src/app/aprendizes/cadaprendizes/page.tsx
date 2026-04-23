@@ -3,8 +3,11 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Save, User, Briefcase, GraduationCap,
-  FileText, MapPin, HeartPulse, Users, DollarSign,
+  FileText, MapPin, HeartPulse, Users, DollarSign, CalendarDays,
 } from "lucide-react";
+import { CalendarioForm } from "@/components/forms/aprendiz/CalendarioForm";
+import { AprendizFormData } from "@/components/forms/aprendiz/types";
+import { TabAlocacao } from "@/components/forms/aprendiz/TabAlocacao";
 import { toast } from "react-hot-toast";
 import api from "@/services/api";
 import * as caAprendizService from "@/services/caAprendizService";
@@ -854,16 +857,19 @@ function CadastroForm() {
   const [cidades, setCidades] = useState<{ MunICodigo: string; MunIDescricao: string }[]>([]);
   const [escolaEndereco, setEscolaEndereco] = useState("");
   const [formData, setFormData] = useState<CA_Aprendiz>({});
+  const [calFormData, setCalFormData] = useState<AprendizFormData>({ NomeJovem: "" });
   const [rascunhoSalvoEm, setRascunhoSalvoEm] = useState<Date | null>(null);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextDraftSave = useRef(false);
 
   const tabs = [
-    { id: "jovem",        label: "Jovem",          icon: <User size={16} /> },
+    { id: "jovem",        label: "Jovem",           icon: <User size={16} /> },
     { id: "socio",        label: "Sócio-Econômico", icon: <DollarSign size={16} /> },
     { id: "documentacao", label: "Documentação",    icon: <FileText size={16} /> },
     { id: "endereco",     label: "Endereço",        icon: <MapPin size={16} /> },
     { id: "saude",        label: "Saúde",           icon: <HeartPulse size={16} /> },
+    { id: "calendario",   label: "Calendário",      icon: <CalendarDays size={16} /> },
+    ...(editingId ? [{ id: "alocacoes", label: "Alocações", icon: <MapPin size={16} /> }] : []),
   ];
   const [activeTab, setActiveTab] = useState("jovem");
 
@@ -960,6 +966,16 @@ function CadastroForm() {
       DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f]); });
       formatted.Apr_senha = "";
       setFormData(formatted);
+      setCalFormData(prev => ({
+        ...prev,
+        NomeJovem:              formatted.Apr_Nome              || "",
+        CalEmpresa:             formatted.Apr_InstParceira      ? Number(formatted.Apr_InstParceira) : undefined,
+        CalDataAdmissao:        formatted.Apr_InicioAprendizagem  ? String(formatted.Apr_InicioAprendizagem).substring(0, 10) : "",
+        DataPrevistaTermino:    formatted.Apr_PrevFimAprendizagem ? String(formatted.Apr_PrevFimAprendizagem).substring(0, 10) : "",
+        CalJornadaDiaria:       formatted.Apr_HorasDiarias      ? String(formatted.Apr_HorasDiarias) : "",
+        CalPeriodoFeriasDe:     formatted.Apr_DataInicioFerias   ? String(formatted.Apr_DataInicioFerias).substring(0, 10) : "",
+        CalPeriodoFeriasAte:    formatted.Apr_DataTerminoFerias  ? String(formatted.Apr_DataTerminoFerias).substring(0, 10) : "",
+      }));
     } catch (err) {
       console.error(err);
       toast.error("Erro ao carregar dados do aprendiz.");
@@ -967,6 +983,13 @@ function CadastroForm() {
       setLoading(false);
     }
   };
+
+  const handleCalChange = useCallback((
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setCalFormData(prev => ({ ...prev, [name]: value }));
+  }, []);
 
   const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -1146,6 +1169,8 @@ function CadastroForm() {
             {activeTab === "familiares"   && <TabFamiliares f={formData} hc={handleChange} />}
             {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
             {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
+            {activeTab === "calendario"   && <CalendarioForm formData={calFormData} handleChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} cursos={areasAtuacao} />}
+            {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} turmas={turmas} motivos={motivos} />}
           </div>
         </div>
 
