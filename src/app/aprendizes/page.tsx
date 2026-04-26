@@ -20,6 +20,10 @@ interface GrauEscolaridade {
   GreCodigo: number;
   GreDescricao: string;
 }
+interface SituacaoParticipante {
+  StaCodigo: number;
+  StaDescricao: string;
+}
 
 type AdvancedFilter = typeof INITIAL_FILTER_STATE;
 const INITIAL_FILTER_STATE = {
@@ -37,6 +41,7 @@ const INITIAL_FILTER_STATE = {
   IdadeDe: "",
   IdadeAte: "",
   Deficiencia: "",
+  StatusAprendiz: "",
 };
 
 function AprendizesContent() {
@@ -57,19 +62,22 @@ function AprendizesContent() {
   const [empresas, setEmpresas] = useState<InstituicaoParceira[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [grausEscolaridade, setGrausEscolaridade] = useState<GrauEscolaridade[]>([]);
+  const [situacoes, setSituacoes] = useState<SituacaoParticipante[]>([]);
   const [auxDataLoaded, setAuxDataLoaded] = useState(false);
 
   const loadAuxData = async () => {
     if (auxDataLoaded) return;
     try {
-      const [resParceiros, resTurmas, resGraus] = await Promise.all([
+      const [resParceiros, resTurmas, resGraus, resSituacoes] = await Promise.all([
         api.get("/instituicoes-parceiras?limit=1000"),
         api.get("/turmas?limit=1000"),
         api.get("/grau-escolaridade?limit=1000"),
+        api.get("/situacao-participante?limit=200"),
       ]);
       setEmpresas(Array.isArray(resParceiros.data?.data) ? resParceiros.data.data : []);
       setTurmas(Array.isArray(resTurmas.data?.data) ? resTurmas.data.data : []);
       setGrausEscolaridade(Array.isArray(resGraus.data?.data) ? resGraus.data.data : []);
+      setSituacoes(Array.isArray(resSituacoes.data?.data) ? resSituacoes.data.data : []);
       setAuxDataLoaded(true);
     } catch (err) {
       console.error("Erro ao carregar dados do filtro", err);
@@ -398,6 +406,17 @@ function AprendizesContent() {
                   <input type="text" value={advancedFilterForm.Bairro} onChange={e => setField("Bairro", e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm"
                     placeholder="Nome do bairro" />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Status do Aprendiz</label>
+                  <select value={advancedFilterForm.StatusAprendiz} onChange={e => setField("StatusAprendiz", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
+                    <option value="">Selecione</option>
+                    {situacoes.map(s => (
+                      <option key={s.StaCodigo} value={s.StaCodigo}>{s.StaDescricao}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="col-span-2">
