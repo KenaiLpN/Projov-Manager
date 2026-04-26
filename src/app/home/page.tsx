@@ -47,6 +47,7 @@ export default function Home() {
     async function fetchStats() {
       try {
         const response = await api.get("/ca-aprendiz/stats");
+        console.log("Dados da API:", response.data);
         setStats(response.data);
       } catch (err) {
         console.error("Erro ao carregar estatísticas:", err);
@@ -60,7 +61,7 @@ export default function Home() {
 
   const cards = [
     {
-      title: "Alunos",
+      title: "Aluns",
       value: stats.alunos,
       icon: <Users size={24} />,
       color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
