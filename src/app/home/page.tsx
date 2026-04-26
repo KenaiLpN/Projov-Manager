@@ -61,12 +61,12 @@ export default function Home() {
 
   const cards = [
     {
-      title: "Aluns",
+      title: "Alunos",
       value: stats.alunos,
       icon: <Users size={24} />,
       color: "bg-gradient-to-br from-[#133c86] to-[#133C86]",
       shadow: "shadow-blue-700/20",
-      link: "/aprendizes?filter=alunos",
+      link: "/aprendizes?filter=active",
       description: "Jovens Alunos",
     },
     {
