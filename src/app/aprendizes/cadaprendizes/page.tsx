@@ -8,6 +8,7 @@ import {
 import { CalendarioForm } from "@/components/forms/aprendiz/CalendarioForm";
 import { AprendizFormData } from "@/components/forms/aprendiz/types";
 import { TabAlocacao } from "@/components/forms/aprendiz/TabAlocacao";
+import { TabCapacitacao } from "@/components/forms/aprendiz/TabCapacitacao";
 import { toast } from "react-hot-toast";
 import api from "@/services/api";
 import * as caAprendizService from "@/services/caAprendizService";
@@ -869,7 +870,8 @@ function CadastroForm() {
     { id: "endereco",     label: "Endereço",        icon: <MapPin size={16} /> },
     { id: "saude",        label: "Saúde",           icon: <HeartPulse size={16} /> },
     { id: "calendario",   label: "Calendário",      icon: <CalendarDays size={16} /> },
-    ...(editingId ? [{ id: "alocacoes", label: "Alocações", icon: <MapPin size={16} /> }] : []),
+    ...(editingId ? [{ id: "alocacoes",    label: "Alocações",    icon: <MapPin size={16} /> }] : []),
+    ...(editingId ? [{ id: "capacitacoes", label: "Capacitações", icon: <GraduationCap size={16} /> }] : []),
   ];
   const [activeTab, setActiveTab] = useState("jovem");
 
@@ -1171,6 +1173,7 @@ function CadastroForm() {
             {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
             {activeTab === "calendario"   && <CalendarioForm formData={calFormData} handleChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} cursos={areasAtuacao} />}
             {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} turmas={turmas} motivos={motivos} />}
+            {activeTab === "capacitacoes" && editingId && <TabCapacitacao aprendizId={Number(editingId)} turmas={TURMAS_ENC} unidades={unidades} />}
           </div>
         </div>
 
