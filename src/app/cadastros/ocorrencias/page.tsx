@@ -40,8 +40,8 @@ export default function OcorrenciasPage() {
       const response = await api.get(
         `/ocorrencia?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
       );
-      setOcorrencias(response.data.data);
-      setTotalPages(response.data.meta.totalPages);
+      setOcorrencias(response.data.data ?? []);
+      setTotalPages(response.data.meta?.totalPages ?? 1);
     } catch (err) {
       console.error(err);
       setError("Falha ao carregar dados.");

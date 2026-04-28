@@ -132,6 +132,7 @@ export default function Home() {
       link: "/aprendizes?filter=naohabilitados",
       description: "Não Habilitados",
     },
+    
   ];
 
   return (

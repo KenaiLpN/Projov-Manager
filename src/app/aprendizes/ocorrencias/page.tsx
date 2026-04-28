@@ -36,8 +36,8 @@ export default function OcorrenciasPage() {
         itemsPerPage,
         search,
       );
-      setData(result.data);
-      setTotalPages(result.meta.totalPages);
+      setData(result.data ?? []);
+      setTotalPages(result.meta?.totalPages ?? 1);
     } catch (error) {
       toast.error("Erro ao carregar tipos de ocorrência.");
       console.error(error);
