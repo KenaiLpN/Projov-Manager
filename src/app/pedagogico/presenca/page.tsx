@@ -68,14 +68,14 @@ export default function ListaPresencaPage() {
   }, [selectedData]);
 
   const handleGerar = async () => {
-    if (!selectedTurma || !selectedData || !selectedDisciplina) {
-      toast.error("Selecione turma, data e disciplina.");
+    if (!selectedTurma || !selectedData) {
+      toast.error("Selecione turma e data.");
       return;
     }
     setLoading(true);
     try {
       const r = await api.get(
-        `/attendance/turmas/${selectedTurma}/presenca-list?date=${selectedData}&disciplineId=${selectedDisciplina}`
+        `/attendance/turmas/${selectedTurma}/presenca-list?date=${selectedData}`
       );
       setPresencaData(r.data);
     } catch {
@@ -257,7 +257,7 @@ export default function ListaPresencaPage() {
               <div className="flex items-end">
                 <button
                   onClick={handleGerar}
-                  disabled={loading || !selectedTurma || !selectedData || !selectedDisciplina}
+                  disabled={loading || !selectedTurma || !selectedData}
                   className="w-full bg-[#133c86] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#0f2e6b] transition-all disabled:bg-slate-300 disabled:shadow-none shadow-md active:scale-95"
                 >
                   {loading ? "Gerando..." : "Gerar Relatório"}
