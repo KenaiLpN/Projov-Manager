@@ -968,16 +968,10 @@ function CadastroForm() {
       DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f]); });
       formatted.Apr_senha = "";
       setFormData(formatted);
-      setCalFormData(prev => ({
-        ...prev,
-        NomeJovem:              formatted.Apr_Nome              || "",
-        CalEmpresa:             formatted.Apr_InstParceira      ? Number(formatted.Apr_InstParceira) : undefined,
-        CalDataAdmissao:        formatted.Apr_InicioAprendizagem  ? String(formatted.Apr_InicioAprendizagem).substring(0, 10) : "",
-        DataPrevistaTermino:    formatted.Apr_PrevFimAprendizagem ? String(formatted.Apr_PrevFimAprendizagem).substring(0, 10) : "",
-        CalJornadaDiaria:       formatted.Apr_HorasDiarias      ? String(formatted.Apr_HorasDiarias) : "",
-        CalPeriodoFeriasDe:     formatted.Apr_DataInicioFerias   ? String(formatted.Apr_DataInicioFerias).substring(0, 10) : "",
-        CalPeriodoFeriasAte:    formatted.Apr_DataTerminoFerias  ? String(formatted.Apr_DataTerminoFerias).substring(0, 10) : "",
-      }));
+      // calFormData guarda apenas campos de cálculo sem coluna em CA_Aprendiz.
+      // Os campos Apr_* (curso, jornada, datas, empresa, férias) são lidos
+      // diretamente de formData no CalendarioForm.
+      setCalFormData({ NomeJovem: "" });
     } catch (err) {
       console.error(err);
       toast.error("Erro ao carregar dados do aprendiz.");
@@ -1171,7 +1165,7 @@ function CadastroForm() {
             {activeTab === "familiares"   && <TabFamiliares f={formData} hc={handleChange} />}
             {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
             {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
-            {activeTab === "calendario"   && <CalendarioForm formData={calFormData} handleChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} cursos={areasAtuacao} />}
+            {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} cursos={areasAtuacao} />}
             {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} turmas={turmas} motivos={motivos} />}
             {activeTab === "capacitacoes" && editingId && <TabCapacitacao aprendizId={Number(editingId)} turmas={TURMAS_ENC} unidades={unidades} />}
           </div>

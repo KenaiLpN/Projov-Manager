@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { CalendarDays, Calculator, Eye } from "lucide-react";
+import { CA_Aprendiz } from "@/types";
 import { AprendizFormData } from "./types";
 import { CalendarioPreview } from "./CalendarioPreview";
 import {
@@ -8,68 +9,78 @@ import {
   CalendarioInput,
 } from "@/utils/calendarioAprendizagem";
 import { toast } from "react-hot-toast";
+
 interface Props {
-  formData: AprendizFormData;
+  // Campos com coluna no banco — lidos/gravados direto em formData (Apr_*)
+  formData: CA_Aprendiz;
   handleChange: (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => void;
+  // Campos só de cálculo — não existem em CA_Aprendiz, ficam em calFormData
+  calFormData: AprendizFormData;
+  handleCalChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
   unidades: any[];
   instituicoes: any[];
   cursos: any[];
 }
+
 export const CalendarioForm = React.memo(function CalendarioForm({
   formData,
   handleChange,
+  calFormData,
+  handleCalChange,
   unidades,
   instituicoes,
   cursos,
 }: Props) {
-  const [calendarioGerado, setCalendarioGerado] =
-    useState<CalendarioGerado | null>(null);
+  const [calendarioGerado, setCalendarioGerado] = useState<CalendarioGerado | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+
   const gerarCalendarioHandler = () => {
-    if (!formData.CalDataAdmissao) {
+    if (!formData.Apr_InicioAprendizagem) {
       toast.error("Preencha a Data de Admissão.");
       return;
     }
-    if (
-      !formData.DataPrevistaTermino &&
-      !formData.CalDataTerminoIntrodutorios
-    ) {
+    if (!formData.Apr_PrevFimAprendizagem && !calFormData.CalDataTerminoIntrodutorios) {
       toast.error("Preencha a Data Prevista de Término do contrato.");
       return;
     }
+
     const empresaNome =
       instituicoes.find(
-        (i: any) => String(i.IpaCodigo) === String(formData.CalEmpresa),
+        (i: any) => String(i.IpaCodigo) === String(formData.Apr_InstParceira),
       )?.IpaDescricao || "";
+
     const cursoNome =
-      cursos.find((c: any) => String(c.AreaCodigo) === String(formData.CalCurso))
-        ?.AreaDescricao || formData.CalCurso;
+      cursos.find(
+        (c: any) => String(c.AreaCodigo) === String(formData.Apr_AreaAtuacao),
+      )?.AreaDescricao || String(formData.Apr_AreaAtuacao || "");
+
     const input: CalendarioInput = {
-      nomeAprendiz: formData.NomeJovem || "",
-      curso: cursoNome || "",
-      empresa: empresaNome,
-      jornadaDiaria: formData.CalJornadaDiaria || "4",
-      diasTeoria: formData.CalDiasAprendizagemTeorica || "",
-      diasPratica: formData.CalDiasAprendizagemPratica || "",
-      dataAdmissao: formData.CalDataAdmissao || "",
-      dataTerminoIntrodutorios: formData.CalDataTerminoIntrodutorios || "",
-      diaEncontroSemanal: formData.CalDiaEncontroSemanal || "",
-      dataInicioEncontroSemanal: formData.CalDataInicioEncontroSemanal || "",
-      diaEncontroMensal: formData.CalDiaEncontroMensal || "",
-      semanaEncontroMensal: formData.CalSemanaEncontroMensal || "",
-      folga: formData.CalFolga || "Normal",
-      feriados: [],
-      periodoFeriasDe: formData.CalPeriodoFeriasDe,
-      periodoFeriasAte: formData.CalPeriodoFeriasAte,
-      periodoFerias2De: formData.CalPeriodoFerias2De,
-      periodoFerias2Ate: formData.CalPeriodoFerias2Ate,
-      periodoSuspensaoDe: formData.CalPeriodoSuspensaoDe,
-      periodoSuspensaoAte: formData.CalPeriodoSuspensaoAte,
+      nomeAprendiz:             formData.Apr_Nome || "",
+      curso:                    cursoNome,
+      empresa:                  empresaNome,
+      jornadaDiaria:            String(formData.Apr_HorasDiarias || "4"),
+      diasTeoria:               calFormData.CalDiasAprendizagemTeorica || "",
+      diasPratica:              calFormData.CalDiasAprendizagemPratica || "",
+      dataAdmissao:             formData.Apr_InicioAprendizagem || "",
+      dataTerminoIntrodutorios: calFormData.CalDataTerminoIntrodutorios || "",
+      diaEncontroSemanal:       calFormData.CalDiaEncontroSemanal || "",
+      dataInicioEncontroSemanal: calFormData.CalDataInicioEncontroSemanal || "",
+      diaEncontroMensal:        calFormData.CalDiaEncontroMensal || "",
+      semanaEncontroMensal:     calFormData.CalSemanaEncontroMensal || "",
+      folga:                    calFormData.CalFolga || "Normal",
+      feriados:                 [],
+      periodoFeriasDe:          formData.Apr_DataInicioFerias  ?? undefined,
+      periodoFeriasAte:         formData.Apr_DataTerminoFerias ?? undefined,
+      periodoFerias2De:         calFormData.CalPeriodoFerias2De,
+      periodoFerias2Ate:        calFormData.CalPeriodoFerias2Ate,
+      periodoSuspensaoDe:       calFormData.CalPeriodoSuspensaoDe,
+      periodoSuspensaoAte:      calFormData.CalPeriodoSuspensaoAte,
     };
+
     try {
       const resultado = gerarCalendario(input);
       setCalendarioGerado(resultado);
@@ -81,6 +92,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
       toast.error("Erro ao gerar o calendário. Verifique os dados.");
     }
   };
+
   const visualizarCalendario = () => {
     if (!calendarioGerado) {
       toast.error("Gere o calendário primeiro clicando em 'Calcular'.");
@@ -88,6 +100,10 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     }
     setShowPreview(true);
   };
+
+  const inputCls = "p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all";
+  const labelCls = "text-xs font-bold text-gray-500 uppercase";
+
   return (
     <>
       <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -97,18 +113,18 @@ export const CalendarioForm = React.memo(function CalendarioForm({
             Calendário
           </h2>
         </div>
+
         <div className="p-8 space-y-8">
-          {}
+          {/* ── Parâmetros básicos (persistidos em CA_Aprendiz) ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Curso → Apr_AreaAtuacao */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Curso
-              </label>
+              <label className={labelCls}>Curso</label>
               <select
-                name="CalCurso"
-                value={formData.CalCurso || ""}
+                name="Apr_AreaAtuacao"
+                value={formData.Apr_AreaAtuacao ?? ""}
                 onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
                 {cursos.map((c: any) => (
@@ -118,164 +134,147 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 ))}
               </select>
             </div>
+
+            {/* Jornada → Apr_HorasDiarias */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Jornada Diária
-              </label>
+              <label className={labelCls}>Jornada Diária (horas)</label>
               <input
-                name="CalJornadaDiaria"
-                value={formData.CalJornadaDiaria || ""}
+                name="Apr_HorasDiarias"
+                type="number"
+                value={formData.Apr_HorasDiarias ?? ""}
                 onChange={handleChange}
                 placeholder="Ex: 4"
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                className={inputCls}
               />
             </div>
+
+            {/* Dias teoria → calFormData (sem coluna no banco) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Dias de Aprendizagem Teórica
-              </label>
+              <label className={labelCls}>Dias de Aprendizagem Teórica</label>
               <input
                 name="CalDiasAprendizagemTeorica"
-                value={formData.CalDiasAprendizagemTeorica || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalDiasAprendizagemTeorica || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               />
             </div>
+
+            {/* Dias prática → calFormData */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Dias de Aprendizagem Prática
-              </label>
+              <label className={labelCls}>Dias de Aprendizagem Prática</label>
               <input
                 name="CalDiasAprendizagemPratica"
-                value={formData.CalDiasAprendizagemPratica || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalDiasAprendizagemPratica || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               />
             </div>
+
+            {/* Data admissão → Apr_InicioAprendizagem */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Data de Admissão
-              </label>
+              <label className={labelCls}>Data de Admissão</label>
               <input
                 type="date"
-                name="CalDataAdmissao"
-                value={formData.CalDataAdmissao || ""}
+                name="Apr_InicioAprendizagem"
+                value={formData.Apr_InicioAprendizagem ?? ""}
                 onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                className={inputCls}
               />
             </div>
+
+            {/* Término introdutórios → calFormData (sem coluna no banco) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Data de Término Introdutórios
-              </label>
+              <label className={labelCls}>Data de Término Introdutórios</label>
               <input
                 type="date"
                 name="CalDataTerminoIntrodutorios"
-                value={formData.CalDataTerminoIntrodutorios || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalDataTerminoIntrodutorios || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               />
             </div>
           </div>
-          {}
+
+          {/* ── Agenda de encontros (calFormData — sem coluna no banco) ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Unidade Introdutório
-              </label>
+              <label className={labelCls}>Unidade Introdutório</label>
               <select
                 name="CalUnidadeIntrodutorio"
-                value={formData.CalUnidadeIntrodutorio || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalUnidadeIntrodutorio || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
                 {unidades.map((u: any) => (
-                  <option key={u.UniCodigo} value={u.UniCodigo}>
-                    {u.UniNome}
-                  </option>
+                  <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
                 ))}
               </select>
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Dia Encontro Semanal
-              </label>
+              <label className={labelCls}>Dia Encontro Semanal</label>
               <select
                 name="CalDiaEncontroSemanal"
-                value={formData.CalDiaEncontroSemanal || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalDiaEncontroSemanal || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
-                <option value="Segunda-Feira">Segunda-Feira</option>
-                <option value="Terça-Feira">Terça-Feira</option>
-                <option value="Quarta-Feira">Quarta-Feira</option>
-                <option value="Quinta-Feira">Quinta-Feira</option>
-                <option value="Sexta-Feira">Sexta-Feira</option>
-                <option value="Sábado">Sábado</option>
-                <option value="Domingo">Domingo</option>
+                {["Segunda-Feira","Terça-Feira","Quarta-Feira","Quinta-Feira","Sexta-Feira","Sábado","Domingo"].map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
               </select>
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Data Início Encontro Semanal
-              </label>
+              <label className={labelCls}>Data Início Encontro Semanal</label>
               <input
                 type="date"
                 name="CalDataInicioEncontroSemanal"
-                value={formData.CalDataInicioEncontroSemanal || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalDataInicioEncontroSemanal || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               />
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Dia Encontro Mensal
-              </label>
+              <label className={labelCls}>Dia Encontro Mensal</label>
               <select
                 name="CalDiaEncontroMensal"
-                value={formData.CalDiaEncontroMensal || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalDiaEncontroMensal || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
-                <option value="Segunda-Feira">Segunda-Feira</option>
-                <option value="Terça-Feira">Terça-Feira</option>
-                <option value="Quarta-Feira">Quarta-Feira</option>
-                <option value="Quinta-Feira">Quinta-Feira</option>
-                <option value="Sexta-Feira">Sexta-Feira</option>
-                <option value="Sábado">Sábado</option>
-                <option value="Domingo">Domingo</option>
+                {["Segunda-Feira","Terça-Feira","Quarta-Feira","Quinta-Feira","Sexta-Feira","Sábado","Domingo"].map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
               </select>
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Semana Encontro Mensal
-              </label>
+              <label className={labelCls}>Semana Encontro Mensal</label>
               <select
                 name="CalSemanaEncontroMensal"
-                value={formData.CalSemanaEncontroMensal || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalSemanaEncontroMensal || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
-                <option value="Primeira Semana">Primeira Semana</option>
-                <option value="Segunda Semana">Segunda Semana</option>
-                <option value="Terceira Semana">Terceira Semana</option>
-                <option value="Quarta Semana">Quarta Semana</option>
-                <option value="Última Semana">Última Semana</option>
+                {["Primeira Semana","Segunda Semana","Terceira Semana","Quarta Semana","Última Semana"].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
               </select>
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Folga
-              </label>
+              <label className={labelCls}>Folga</label>
               <select
                 name="CalFolga"
-                value={formData.CalFolga || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalFolga || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
                 <option value="Normal">Normal</option>
@@ -285,154 +284,139 @@ export const CalendarioForm = React.memo(function CalendarioForm({
               </select>
             </div>
           </div>
-          {}
+
+          {/* ── Unidades de feriado e empresa (misto) ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Unidade Feriado Teoria
-              </label>
+              <label className={labelCls}>Unidade Feriado Teoria</label>
               <select
                 name="CalUnidadeFeriadoTeoria"
-                value={formData.CalUnidadeFeriadoTeoria || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalUnidadeFeriadoTeoria || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
                 {unidades.map((u: any) => (
-                  <option key={u.UniCodigo} value={u.UniCodigo}>
-                    {u.UniNome}
-                  </option>
+                  <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
                 ))}
               </select>
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Unidade Feriado Prática
-              </label>
+              <label className={labelCls}>Unidade Feriado Prática</label>
               <select
                 name="CalUnidadeFeriadoPratica"
-                value={formData.CalUnidadeFeriadoPratica || ""}
-                onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                value={calFormData.CalUnidadeFeriadoPratica || ""}
+                onChange={handleCalChange}
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
                 {unidades.map((u: any) => (
-                  <option key={u.UniCodigo} value={u.UniCodigo}>
-                    {u.UniNome}
-                  </option>
+                  <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
                 ))}
               </select>
             </div>
+
+            {/* Empresa → Apr_InstParceira */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Empresa
-              </label>
+              <label className={labelCls}>Empresa</label>
               <select
-                name="CalEmpresa"
-                value={formData.CalEmpresa || ""}
+                name="Apr_InstParceira"
+                value={formData.Apr_InstParceira ?? ""}
                 onChange={handleChange}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                className={inputCls}
               >
                 <option value="">Selecione...</option>
                 {instituicoes.map((i: any) => (
-                  <option key={i.IpaCodigo} value={i.IpaCodigo}>
-                    {i.IpaDescricao}
-                  </option>
+                  <option key={i.IpaCodigo} value={i.IpaCodigo}>{i.IpaDescricao}</option>
                 ))}
               </select>
             </div>
           </div>
-          {}
+
+          {/* ── Período de Férias ── */}
           <div className="border-t border-gray-100 pt-6">
             <h3 className="text-xs font-bold text-gray-500 uppercase mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+              <span className="w-2 h-2 bg-blue-400 rounded-full" />
               Período de Férias
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* 1º período → Apr_DataInicioFerias / Apr_DataTerminoFerias */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">
-                  Período Férias De
-                </label>
+                <label className={labelCls}>Férias De</label>
                 <input
                   type="date"
-                  name="CalPeriodoFeriasDe"
-                  value={formData.CalPeriodoFeriasDe || ""}
+                  name="Apr_DataInicioFerias"
+                  value={formData.Apr_DataInicioFerias ?? ""}
                   onChange={handleChange}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                  className={inputCls}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">
-                  Período Férias Até
-                </label>
+                <label className={labelCls}>Férias Até</label>
                 <input
                   type="date"
-                  name="CalPeriodoFeriasAte"
-                  value={formData.CalPeriodoFeriasAte || ""}
+                  name="Apr_DataTerminoFerias"
+                  value={formData.Apr_DataTerminoFerias ?? ""}
                   onChange={handleChange}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                  className={inputCls}
                 />
               </div>
+              {/* 2º período → calFormData (sem coluna no banco) */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">
-                  Período Férias 2 De
-                </label>
+                <label className={labelCls}>Férias 2 De</label>
                 <input
                   type="date"
                   name="CalPeriodoFerias2De"
-                  value={formData.CalPeriodoFerias2De || ""}
-                  onChange={handleChange}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                  value={calFormData.CalPeriodoFerias2De || ""}
+                  onChange={handleCalChange}
+                  className={inputCls}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">
-                  Período Férias 2 Até
-                </label>
+                <label className={labelCls}>Férias 2 Até</label>
                 <input
                   type="date"
                   name="CalPeriodoFerias2Ate"
-                  value={formData.CalPeriodoFerias2Ate || ""}
-                  onChange={handleChange}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
+                  value={calFormData.CalPeriodoFerias2Ate || ""}
+                  onChange={handleCalChange}
+                  className={inputCls}
                 />
               </div>
             </div>
           </div>
-          {}
+
+          {/* ── Período de Suspensão (calFormData — sem coluna no banco) ── */}
           <div className="border-t border-gray-100 pt-6">
             <h3 className="text-xs font-bold text-gray-500 uppercase mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+              <span className="w-2 h-2 bg-orange-400 rounded-full" />
               Período de Suspensão
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">
-                  Período Suspensão De
-                </label>
+                <label className={labelCls}>Suspensão De</label>
                 <input
                   type="date"
                   name="CalPeriodoSuspensaoDe"
-                  value={formData.CalPeriodoSuspensaoDe || ""}
-                  onChange={handleChange}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-100 focus:bg-white outline-none transition-all"
+                  value={calFormData.CalPeriodoSuspensaoDe || ""}
+                  onChange={handleCalChange}
+                  className={inputCls}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">
-                  Período Suspensão Até
-                </label>
+                <label className={labelCls}>Suspensão Até</label>
                 <input
                   type="date"
                   name="CalPeriodoSuspensaoAte"
-                  value={formData.CalPeriodoSuspensaoAte || ""}
-                  onChange={handleChange}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-100 focus:bg-white outline-none transition-all"
+                  value={calFormData.CalPeriodoSuspensaoAte || ""}
+                  onChange={handleCalChange}
+                  className={inputCls}
                 />
               </div>
             </div>
           </div>
-          {}
+
+          {/* ── Botões ── */}
           <div className="border-t border-gray-100 pt-6 flex flex-wrap gap-4">
             <button
               type="button"
@@ -453,31 +437,19 @@ export const CalendarioForm = React.memo(function CalendarioForm({
             </button>
             {calendarioGerado && (
               <div className="flex items-center gap-3 ml-4 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                <span>
-                  📊 <strong>{calendarioGerado.resumo.totalEncontros}</strong>{" "}
-                  encontros
-                </span>
+                <span>📊 <strong>{calendarioGerado.resumo.totalEncontros}</strong> encontros</span>
                 <span className="text-gray-300">|</span>
-                <span>
-                  ⏱️ <strong>{calendarioGerado.resumo.totalHoras}</strong>h
-                  total
-                </span>
+                <span>⏱️ <strong>{calendarioGerado.resumo.totalHoras}</strong>h total</span>
                 <span className="text-gray-300">|</span>
-                <span>
-                  📘 {calendarioGerado.resumo.porcentagemTeoria.toFixed(1)}%
-                  teoria
-                </span>
+                <span>📘 {calendarioGerado.resumo.porcentagemTeoria.toFixed(1)}% teoria</span>
                 <span className="text-gray-300">|</span>
-                <span>
-                  📗 {calendarioGerado.resumo.porcentagemPratica.toFixed(1)}%
-                  prática
-                </span>
+                <span>📗 {calendarioGerado.resumo.porcentagemPratica.toFixed(1)}% prática</span>
               </div>
             )}
           </div>
         </div>
       </section>
-      {}
+
       {showPreview && calendarioGerado && (
         <CalendarioPreview
           calendario={calendarioGerado}
@@ -486,4 +458,4 @@ export const CalendarioForm = React.memo(function CalendarioForm({
       )}
     </>
   );
-});
+});

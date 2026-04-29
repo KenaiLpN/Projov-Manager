@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+const BotaoBaixarPDF = dynamic(
+  () => import("@/components/PresencaPDF").then(m => m.BotaoBaixarPDF),
+  { ssr: false, loading: () => null }
+);
 
 interface Turma {
   TurCodigo: number;
@@ -191,15 +197,23 @@ export default function ListaPresencaPage() {
                 <p className="text-slate-500 text-sm mt-1">Gere a lista de presença para impressão dos educadores.</p>
               </div>
               {presencaData && (
-                <button
-                  onClick={handlePrint}
-                  className="bg-[#133c86] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#0f2e6b] transition-all flex items-center gap-2 shadow-md active:scale-95"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
-                  Imprimir
-                </button>
+                <div className="flex items-center gap-3">
+                  <BotaoBaixarPDF
+                    presencaData={presencaData}
+                    dataFormatada={dataFormatada}
+                    diaSemana={diaSemana}
+                    disciplinaNome={disciplinaNome}
+                  />
+                  <button
+                    onClick={handlePrint}
+                    className="bg-[#133c86] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#0f2e6b] transition-all flex items-center gap-2 shadow-md active:scale-95"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Imprimir
+                  </button>
+                </div>
               )}
             </div>
 
