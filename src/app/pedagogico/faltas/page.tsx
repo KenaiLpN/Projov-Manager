@@ -12,25 +12,31 @@ interface Turma {
   TurNome: string;
 }
 
+interface Disciplina {
+  DisCodigo: number;
+  DisDescricao: string;
+}
+
+const PERIODOS = [
+  { id: 1, nome: "ENCONTRO SEMANAL - Aula 01" },
+  { id: 2, nome: "ENCONTRO SEMANAL - Aula 02" },
+  { id: 3, nome: "ENCONTRO SEMANAL - Aula 03" },
+];
+
 interface StudentAttendance {
   IdAluno: number;
   NomeJovem: string;
   presenca: string;
 }
 
-const AULA_OPTIONS = [
-  { value: "1", label: "Aula 1 — Manhã" },
-  { value: "2", label: "Aula 2 — Tarde" },
-  { value: "3", label: "Aula 3" },
-];
-
 const PRESENCA_OPTIONS = [
-  { value: "P", label: "P - Presença" },
-  { value: "F", label: "F - Falta" },
-  { value: "J", label: "J - Falta Justificada" },
-  { value: "L", label: "L - Licença Maternidade" },
-  { value: "S", label: "S - Serviço Militar" },
-  { value: "D", label: "D - Desligado" },
+  { value: ".", label: ". — Sem registro" },
+  { value: "P", label: "P — Presença" },
+  { value: "F", label: "F — Falta" },
+  { value: "J", label: "J — Falta Justificada" },
+  { value: "L", label: "L — Licença Maternidade" },
+  { value: "S", label: "S — Serviço Militar" },
+  { value: "D", label: "D — Desligado" },
 ];
 
 const PRESENCA_ROW_COLOR: Record<string, string> = {
@@ -42,84 +48,77 @@ const PRESENCA_ROW_COLOR: Record<string, string> = {
   D: "bg-slate-100",
 };
 
-const PRESENCA_AVATAR_COLOR: Record<string, string> = {
+const PRESENCA_BADGE: Record<string, string> = {
   P: "bg-green-100 text-green-700",
   F: "bg-red-100 text-red-700",
   J: "bg-amber-100 text-amber-700",
   L: "bg-blue-100 text-blue-700",
   S: "bg-purple-100 text-purple-700",
   D: "bg-slate-200 text-slate-600",
+  ".": "bg-slate-100 text-slate-400",
 };
 
 export default function LancarFaltasPage() {
   const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [disciplinas, setDisciplinas] = useState<Disciplina[]>([]);
   const [datas, setDatas] = useState<string[]>([]);
 
-  const [selectedTurma, setSelectedTurma] = useState<string>("");
-  const [selectedData, setSelectedData] = useState<string>("");
-  const [selectedAula, setSelectedAula] = useState<string>("");
-
-  // Disciplina buscada silenciosamente após seleção de turma — usada apenas nas chamadas de API
-  const [disciplinaId, setDisciplinaId] = useState<number | null>(null);
+  const [selectedTurma, setSelectedTurma] = useState("");
+  const [selectedData, setSelectedData] = useState("");
+  const [selectedPeriodo, setSelectedPeriodo] = useState("");
+  const [selectedDisciplina, setSelectedDisciplina] = useState("");
 
   const [students, setStudents] = useState<StudentAttendance[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Carrega turmas na montagem
   useEffect(() => {
     api.get("/turmas?limit=1000")
       .then(r => setTurmas(Array.isArray(r.data?.data) ? r.data.data : []))
-      .catch(() => toast.error("Erro ao carregar lista de turmas."));
+      .catch(() => toast.error("Erro ao carregar turmas."));
   }, []);
 
-  // Ao trocar de turma: carrega datas e busca disciplina silenciosamente
+  // Turma → datas e disciplinas em paralelo
   useEffect(() => {
-    setSelectedData("");
-    setSelectedAula("");
     setDatas([]);
-    setDisciplinaId(null);
+    setDisciplinas([]);
+    setSelectedData("");
+    setSelectedPeriodo("");
+    setSelectedDisciplina("");
     setStudents([]);
     if (!selectedTurma) return;
 
-    api.get(`/attendance/turmas/${selectedTurma}/dates`)
-      .then(r => setDatas(Array.isArray(r.data) ? r.data : []))
-      .catch(() => toast.error("Erro ao carregar datas de aula."));
-
-    api.get(`/attendance/turmas/${selectedTurma}/disciplines`)
-      .then(r => { if (r.data.length > 0) setDisciplinaId(r.data[0].DisCodigo); })
-      .catch(() => {});
+    Promise.all([
+      api.get(`/attendance/turmas/${selectedTurma}/dates`),
+      api.get(`/attendance/turmas/${selectedTurma}/disciplines`),
+    ])
+      .then(([rDatas, rDisc]) => {
+        setDatas(Array.isArray(rDatas.data) ? rDatas.data : []);
+        setDisciplinas(Array.isArray(rDisc.data) ? rDisc.data : []);
+      })
+      .catch(() => toast.error("Erro ao carregar dados da turma."));
   }, [selectedTurma]);
 
-  // Ao trocar de data: reinicia seleção de aula e alunos
+  // Turma + Data → carrega alunos automaticamente (sem depender de período ou disciplina)
   useEffect(() => {
-    setSelectedAula("");
     setStudents([]);
-  }, [selectedData]);
+    if (!selectedTurma || !selectedData) return;
 
-  // Ao selecionar turma + data + aula: carrega alunos com presença já existente
-  useEffect(() => {
-    setStudents([]);
-    if (!selectedTurma || !selectedData || !selectedAula || !disciplinaId) return;
     setLoadingStudents(true);
     api
-      .get(`/attendance/turmas/${selectedTurma}/disciplines/${disciplinaId}/students?date=${selectedData}&aula=${selectedAula}`)
+      .get(`/attendance/turmas/${selectedTurma}/students?date=${selectedData}`)
       .then(r => {
-        const data: Array<{ IdAluno: number; NomeJovem: string; Presenca: string | null }> = r.data;
-        setStudents(data.map(a => ({
-          IdAluno: a.IdAluno,
-          NomeJovem: a.NomeJovem,
-          presenca: a.Presenca || "P",
-        })));
+        const data: Array<{ IdAluno: number; NomeJovem: string }> = r.data;
+        setStudents(data.map(a => ({ IdAluno: a.IdAluno, NomeJovem: a.NomeJovem, presenca: "." })));
       })
-      .catch(() => toast.error("Erro ao carregar lista de alunos."))
+      .catch(() => toast.error("Erro ao carregar alunos."))
       .finally(() => setLoadingStudents(false));
-  }, [selectedTurma, selectedData, selectedAula, disciplinaId]);
+  }, [selectedTurma, selectedData]);
 
   const handlePresencaChange = (studentId: number, value: string) => {
-    setStudents(prev =>
-      prev.map(s => s.IdAluno === studentId ? { ...s, presenca: value } : s)
-    );
+    setStudents(prev => prev.map(s => s.IdAluno === studentId ? { ...s, presenca: value } : s));
   };
 
   const handleMarkAll = (value: string) => {
@@ -127,21 +126,20 @@ export default function LancarFaltasPage() {
   };
 
   const handleSave = async () => {
-    if (!selectedTurma || !selectedData || !selectedAula || !disciplinaId) {
-      toast.error("Selecione todos os filtros antes de salvar.");
+    if (!selectedTurma || !selectedData || !selectedDisciplina || !selectedPeriodo) {
+      toast.error("Selecione turma, data, período e disciplina antes de salvar.");
       return;
     }
     setSaving(true);
     try {
-      await api.post("/attendance", {
+      await api.post("/attendance/faltas", {
         turmaId: Number(selectedTurma),
-        disciplineId: disciplinaId,
+        disciplineId: Number(selectedDisciplina),
         date: selectedData,
-        aula: Number(selectedAula),
+        periodo: Number(selectedPeriodo),
         records: students.map(s => ({
           studentId: s.IdAluno,
           presence: s.presenca,
-          observation: "",
         })),
       });
       toast.success("Lançamentos salvos com sucesso!");
@@ -156,213 +154,182 @@ export default function LancarFaltasPage() {
     s.NomeJovem.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const presentCount = students.filter(s => s.presenca === "P").length;
+  const faltaCount = students.filter(s => s.presenca === "F" || s.presenca === "J").length;
 
   return (
     <div className="flex flex-row h-screen w-screen overflow-hidden font-sans antialiased text-slate-900">
       <PedagogicoSidebar />
       <div className="flex-1 flex flex-col bg-[#F8FAFC] overflow-y-auto">
-        {/* Header */}
-        <div className="bg-white border-b border-slate-200 px-8 py-6 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-[#133c86] tracking-tight">LANÇAMENTO DE FALTAS</h1>
-              <p className="text-slate-500 text-sm mt-1">Registre a presença dos alunos nas aulas presenciais.</p>
-            </div>
-            <button
-              onClick={handleSave}
-              disabled={saving || students.length === 0}
-              className="bg-[#133c86] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#0f2e6b] transition-all flex items-center gap-2 shadow-md active:scale-95 disabled:bg-slate-300 disabled:shadow-none"
-            >
-              {saving ? (
-                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Salvar Lançamentos
-                </>
-              )}
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* 1. Turma */}
-            <div className="flex flex-col gap-2">
+        {/* Header com filtros */}
+        <div className="bg-white border-b border-slate-200 px-8 py-5 shadow-sm">
+          <div className="flex flex-wrap items-end gap-4 mb-4">
+            {/* Turma */}
+            <div className="flex flex-col gap-1 min-w-[200px] flex-1">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Turma</label>
               <select
                 value={selectedTurma}
                 onChange={e => setSelectedTurma(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none transition-all"
+                className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none"
               >
-                <option value="">Selecione uma turma...</option>
+                <option value="">Selecione...</option>
                 {turmas.map(t => (
                   <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
                 ))}
               </select>
             </div>
 
-            {/* 2. Data */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Data da Aula</label>
+            {/* Data */}
+            <div className="flex flex-col gap-1 min-w-[180px] flex-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Data</label>
               <select
                 value={selectedData}
                 onChange={e => setSelectedData(e.target.value)}
-                disabled={!selectedTurma || datas.length === 0}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none transition-all disabled:opacity-50"
+                className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none"
               >
-                <option value="">Selecione a data...</option>
+                <option value="">Selecione...</option>
                 {datas.map(d => (
                   <option key={d} value={d}>
-                    {format(new Date(d.substring(0, 10) + "T12:00:00"), "dd/MM/yyyy (EEEE)", { locale: ptBR })}
+                    {format(new Date(d.substring(0, 10) + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* 3. Aula */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Aula</label>
+            {/* Período */}
+            <div className="flex flex-col gap-1 min-w-[240px] flex-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Período</label>
               <select
-                value={selectedAula}
-                onChange={e => setSelectedAula(e.target.value)}
-                disabled={!selectedData}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none transition-all disabled:opacity-50"
+                value={selectedPeriodo}
+                onChange={e => setSelectedPeriodo(e.target.value)}
+                className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none"
               >
-                <option value="">Selecione a aula...</option>
-                {AULA_OPTIONS.map(a => (
-                  <option key={a.value} value={a.value}>{a.label}</option>
+                <option value="">Selecione...</option>
+                {PERIODOS.map(p => (
+                  <option key={p.id} value={p.id}>{p.nome}</option>
                 ))}
               </select>
             </div>
+
+            {/* Disciplina (CA_Disciplinas) */}
+            <div className="flex flex-col gap-1 min-w-[200px] flex-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Disciplina</label>
+              <select
+                value={selectedDisciplina}
+                onChange={e => setSelectedDisciplina(e.target.value)}
+                className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none"
+              >
+                <option value="">Selecione...</option>
+                {disciplinas.map(d => (
+                  <option key={d.DisCodigo} value={d.DisCodigo}>{d.DisDescricao}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Salvar */}
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-[#2563eb] text-white px-6 py-1.5 rounded text-sm font-semibold hover:bg-[#1d4ed8] transition-all active:scale-95 disabled:opacity-60 whitespace-nowrap"
+            >
+              {saving ? "Salvando..." : "Salvar"}
+            </button>
           </div>
+
+          {/* Legenda */}
+          <p className="text-xs text-slate-600">
+            <span className="font-semibold">Legenda</span>{" "}
+            F - Falta,{" "}J - Falta Justificada,{" "}L - Licença Maternidade,{" "}S - Serviço Militar,{" "}D - Desligado,{" "}P - Presença.
+          </p>
         </div>
 
-        {/* Content Area */}
-        <div className="p-8">
-          {/* Legenda */}
-          <div className="mb-4 bg-white rounded-xl border border-slate-200 px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Legenda:</span>
-            {[
-              { code: "P", label: "Presença",           bg: "bg-green-100",  text: "text-green-700"  },
-              { code: "F", label: "Falta",               bg: "bg-red-100",    text: "text-red-700"    },
-              { code: "J", label: "Falta Justificada",   bg: "bg-amber-100",  text: "text-amber-700"  },
-              { code: "L", label: "Licença Maternidade", bg: "bg-blue-100",   text: "text-blue-700"   },
-              { code: "S", label: "Serviço Militar",     bg: "bg-purple-100", text: "text-purple-700" },
-              { code: "D", label: "Desligado",           bg: "bg-slate-200",  text: "text-slate-600"  },
-            ].map(({ code, label, bg, text }) => (
-              <div key={code} className="flex items-center gap-1.5">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${bg} ${text}`}>
-                  {code}
-                </span>
-                <span className="text-sm text-slate-600">{label}</span>
-              </div>
-            ))}
-          </div>
-
-          {(!selectedTurma || !selectedData || !selectedAula) ? (
-            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 flex flex-col items-center justify-center text-center">
-              <div className="bg-slate-50 p-4 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-700">Aguardando Filtros</h3>
-              <p className="text-slate-500 max-w-sm mt-1">Selecione a turma, data e aula acima para carregar a lista de alunos.</p>
+        {/* Tabela */}
+        <div className="p-6">
+          {(!selectedTurma || !selectedData) ? (
+            <div className="bg-white rounded border border-dashed border-slate-300 p-16 flex flex-col items-center justify-center text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <p className="text-slate-500 text-sm">Selecione a turma e a data para carregar os alunos.</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-slate-600">
-                    {presentCount} / {students.length} presentes
-                  </span>
-                  <button
-                    onClick={() => handleMarkAll("P")}
-                    className="text-xs font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full hover:bg-green-200 transition-colors cursor-pointer"
-                  >
-                    Marcar todos Presentes
-                  </button>
-                  <button
-                    onClick={() => handleMarkAll("F")}
-                    className="text-xs font-bold text-red-700 bg-red-100 px-3 py-1 rounded-full hover:bg-red-200 transition-colors cursor-pointer"
-                  >
-                    Marcar todos Falta
-                  </button>
+            <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-2 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <div className="flex items-center gap-3">
+                  {students.length > 0 && (
+                    <>
+                      <span className="text-xs text-slate-500">{faltaCount} falta(s) em {students.length} aluno(s)</span>
+                      <button onClick={() => handleMarkAll("P")} className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded hover:bg-green-200 transition-colors">
+                        Todos Presentes
+                      </button>
+                      <button onClick={() => handleMarkAll("F")} className="text-xs font-semibold text-red-700 bg-red-100 px-2 py-0.5 rounded hover:bg-red-200 transition-colors">
+                        Todos Falta
+                      </button>
+                    </>
+                  )}
                 </div>
-                <div className="relative">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Procurar:</span>
                   <input
                     type="text"
-                    placeholder="Filtrar aluno por nome..."
+                    placeholder="Search"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="pl-9 pr-4 py-1.5 bg-white border border-slate-200 rounded-lg text-sm w-64 focus:ring-2 focus:ring-[#133c86]/20 outline-none"
+                    className="border border-slate-300 rounded px-2 py-1 text-xs w-40 focus:outline-none focus:ring-1 focus:ring-[#133c86]/30"
                   />
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
                 </div>
               </div>
 
               {loadingStudents ? (
-                <div className="p-20 flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 border-4 border-[#133c86]/20 border-t-[#133c86] rounded-full animate-spin"></div>
-                  <p className="text-slate-500 mt-4 font-medium">Carregando lista de alunos...</p>
+                <div className="p-16 flex flex-col items-center justify-center">
+                  <div className="w-10 h-10 border-4 border-[#133c86]/20 border-t-[#133c86] rounded-full animate-spin"></div>
+                  <p className="text-slate-500 mt-3 text-sm">Carregando alunos...</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-[#133c86] text-white text-xs uppercase tracking-wider">
-                      <tr>
-                        <th className="px-6 py-4 text-left font-semibold">Aluno</th>
-                        <th className="px-6 py-4 text-center font-semibold w-56">Presença</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredStudents.length > 0 ? (
-                        filteredStudents.map(s => (
-                          <tr
-                            key={s.IdAluno}
-                            className={`transition-colors ${PRESENCA_ROW_COLOR[s.presenca] ?? ""}`}
-                          >
-                            <td className="px-6 py-3">
-                              <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${PRESENCA_AVATAR_COLOR[s.presenca] ?? "bg-slate-100 text-slate-600"}`}>
-                                  {s.NomeJovem.charAt(0)}
-                                </div>
-                                <span className="font-medium text-slate-700">{s.NomeJovem}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-3">
-                              <div className="flex justify-center">
-                                <select
-                                  value={s.presenca}
-                                  onChange={e => handlePresencaChange(s.IdAluno, e.target.value)}
-                                  className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none cursor-pointer"
-                                >
-                                  {PRESENCA_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={2} className="px-6 py-20 text-center text-slate-400 italic">
-                            Nenhum aluno encontrado nesta turma.
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-300 bg-slate-100 text-sm text-slate-700">
+                      <th className="px-4 py-2 text-left font-semibold">Aluno</th>
+                      <th className="px-4 py-2 text-left font-semibold w-48">Presença</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredStudents.length > 0 ? (
+                      filteredStudents.map(s => (
+                        <tr key={s.IdAluno} className={`text-sm ${PRESENCA_ROW_COLOR[s.presenca] ?? ""}`}>
+                          <td className="px-4 py-2 text-slate-800 font-medium">{s.NomeJovem}</td>
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${PRESENCA_BADGE[s.presenca] ?? "bg-slate-100 text-slate-400"}`}>
+                                {s.presenca}
+                              </span>
+                              <select
+                                value={s.presenca}
+                                onChange={e => handlePresencaChange(s.IdAluno, e.target.value)}
+                                className="border border-slate-300 rounded px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-[#133c86]/30 focus:outline-none cursor-pointer"
+                              >
+                                {PRESENCA_OPTIONS.map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={2} className="px-4 py-16 text-center text-slate-400 text-sm italic">
+                          Nenhum aluno encontrado.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               )}
             </div>
           )}
         </div>
+
       </div>
     </div>
   );
