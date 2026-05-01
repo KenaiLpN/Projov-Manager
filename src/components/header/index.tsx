@@ -153,7 +153,19 @@ const navItems: NavItemWithSub[] = [
       },
     ],
   },
-  { name: "Estatísticas", href: "/estatisticas" },
+  { name: "Estatísticas", 
+    href: "/estatisticas" ,
+    subMenu: [
+      {name: "Participantes Por Situação",href: "/estatisticas/part_por_situacao"},
+      {name: "Estatística Geral Aprendizes",href: "/estatisticas/geral_aprendiz"},  
+      {name: "Aprendizes Por Parceiro",href: "/estatisticas/aprendiz_por_parceiro"},  
+      {name: "Gestão De Avaliações",href: "/estatisticas/gestao_avaliacao"},  
+      {name: "Avaliações Disponíveis Educadores",href: "/estatisticas/avaliacoes_educadores"},  
+      {name: "Avaliações Disponíveis Empresa",href: "/estatisticas/avaliacoes_empresa"},  
+      {name: "Avaliações Realizadas",href: "/estatisticas/avaliacoes_realizadas"},  
+      {name: "Relatório LOG",href: "/estatisticas/relatorio_log"},  
+    ],
+  },
 ];
 
 function SubMenuItem({ 
