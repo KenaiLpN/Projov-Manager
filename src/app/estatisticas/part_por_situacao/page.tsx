@@ -10,12 +10,6 @@ interface RelatorioData {
 }
 
 export default function ParticipantesPorSituacaoPage() {
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split("T")[0];
-  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split("T")[0];
-
-  const [startDate, setStartDate] = useState(firstDayOfMonth);
-  const [endDate, setEndDate] = useState(lastDayOfMonth);
   const [data, setData] = useState<RelatorioData[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,10 +18,15 @@ export default function ParticipantesPorSituacaoPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/relatorio/carga_horaria_final", {
-        params: { startDate, endDate },
-      });
-      setData(response.data || []);
+        // src/app/estatisticas/part_por_situacao/page.tsx
+        const response = await api.get("/participantes-situacao", { 
+          params: { page: 1, limit: 10 } // Lembre-se que agora a rota espera query params!
+        });
+
+      // const response = await api.get("/participantes-por-situacao/participantes-situacao", {
+        
+      // });
+      setData(response.data.data || []);
     } catch (error) {
       console.error(error);
       toast.error("Erro ao carregar relatório.");
@@ -53,7 +52,7 @@ export default function ParticipantesPorSituacaoPage() {
       <EstatSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <div className="bg-[#133c86] p-4 flex justify-between items-center text-white shadow-md">
+        <div className="bg-[#133c86] p-4 flex justify-between items-left text-white shadow-md">
           <h1 className="text-xl font-bold uppercase tracking-wide">Participantes Por Situação</h1>
           <div className="text-sm opacity-80">
              Estatísticas / Participantes Por Situação
