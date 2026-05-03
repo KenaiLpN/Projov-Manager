@@ -1,19 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
+import { EstatSidebar } from "@/components/estatsidebar";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
 
 interface RelatorioData {
   CodAprendiz: number;
   Aprendiz: string;
-  Parceiro: string;
-  CNPJParceiro: string;
-  InicioAprendizagem: string | null;
-  PrevTermino: string | null;
-  Turma: string;
-  DataInicioTurma: string;
-  DataTerminoTurma: string;
 }
 
 export default function ListaJovensCargaHorariaPage() {
@@ -56,14 +49,13 @@ export default function ListaJovensCargaHorariaPage() {
     const term = searchTerm.toLowerCase();
     return (
       item.Aprendiz.toLowerCase().includes(term) ||
-      item.Parceiro.toLowerCase().includes(term) ||
       item.CodAprendiz.toString().includes(term)
     );
   });
 
   return (
     <div className="flex flex-row h-screen w-screen overflow-hidden bg-gray-50">
-      <PedagogicoSidebar />
+      <EstatSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header azul como no print */}
         <div className="bg-[#133c86] p-4 flex justify-between items-center text-white">
@@ -78,15 +70,7 @@ export default function ListaJovensCargaHorariaPage() {
           {/* Tabela */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-               <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Mostrar</span>
-                  <select className="border border-gray-300 rounded p-1 text-sm outline-none">
-                    <option>10</option>
-                    <option>25</option>
-                    <option>50</option>
-                  </select>
-                  <span className="text-sm text-gray-600">registros</span>
-               </div>
+
                <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600 font-medium">Procurar:</span>
                   <input
@@ -104,36 +88,22 @@ export default function ListaJovensCargaHorariaPage() {
                   <tr className="bg-white border-b border-gray-200">
                     <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Cod. Aprendiz</th>
                     <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Aprendiz</th>
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Parceiro</th>
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">CNPJ Parceiro</th>
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100 uppercase">Início Aprendizagem</th>
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100 uppercase">Prev. Término</th>
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Turma</th>
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Data Início da Turma</th>
-                    <th className="p-3 text-sm font-bold text-gray-800">Data Término da Turma</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-gray-500 italic">Carregando dados...</td>
+                      <td colSpan={2} className="p-8 text-center text-gray-500 italic">Carregando dados...</td>
                     </tr>
                   ) : filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado para este período.</td>
+                      <td colSpan={2} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado para este período.</td>
                     </tr>
                   ) : (
                     filteredData.map((item, idx) => (
                       <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}>
                         <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.CodAprendiz}</td>
                         <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.Aprendiz}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.Parceiro}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-mono">{item.CNPJParceiro}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{formatDate(item.InicioAprendizagem)}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{formatDate(item.PrevTermino)}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.Turma}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{formatDate(item.DataInicioTurma)}</td>
-                        <td className="p-3 text-sm text-gray-700">{formatDate(item.DataTerminoTurma)}</td>
                       </tr>
                     ))
                   )}
