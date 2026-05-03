@@ -23,7 +23,7 @@ export default function ListaJovensCargaHorariaPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/relatorio/carga_horaria_final", {
+      const response = await api.get("/participantessituacao/carga_horaria_final", {
         params: { startDate, endDate },
       });
       setData(response.data);
