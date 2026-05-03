@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 interface RelatorioData {
   CodAprendiz: number;
   Aprendiz: string;
+  StatusAprendiz: string;
 }
 
 export default function ListaJovensCargaHorariaPage() {
@@ -49,7 +50,8 @@ export default function ListaJovensCargaHorariaPage() {
     const term = searchTerm.toLowerCase();
     return (
       item.Aprendiz.toLowerCase().includes(term) ||
-      item.CodAprendiz.toString().includes(term)
+      item.CodAprendiz.toString().includes(term) ||
+      item.StatusAprendiz.toLowerCase().includes(term)
     );
   });
 
@@ -102,7 +104,7 @@ export default function ListaJovensCargaHorariaPage() {
                   ) : (
                     filteredData.map((item, idx) => (
                       <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.CodAprendiz}</td>
+                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.StatusAprendiz}</td>
                         <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.Aprendiz}</td>
                       </tr>
                     ))
