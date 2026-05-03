@@ -59,9 +59,9 @@ export default function ListaJovensCargaHorariaPage() {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header azul como no print */}
         <div className="bg-[#133c86] p-4 flex justify-between items-center text-white">
-          <h1 className="text-xl font-bold uppercase tracking-wide">Estatística Geral Aprendizes</h1>
+          <h1 className="text-xl font-bold uppercase tracking-wide">Estatística Geral Aprendiz</h1>
           <div className="text-sm">
-             Estatística / Estatística Geral Aprendizes
+             Estatística / Estatística Geral Aprendiz
           </div>
         </div>
 
