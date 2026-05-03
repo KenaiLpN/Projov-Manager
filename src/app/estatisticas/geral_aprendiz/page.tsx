@@ -86,8 +86,8 @@ export default function ListaJovensCargaHorariaPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-white border-b border-gray-200">
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Cod. Aprendiz</th>
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Aprendiz</th>
+                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Status Do Participante</th>
+                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Quantidade</th>
                   </tr>
                 </thead>
                 <tbody>
