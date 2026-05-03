@@ -106,8 +106,11 @@ export default function ParticipantesPorSituacaoPage() {
                   ) : (
                     filteredData.map((item, idx) => (
                       <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}>
+
                         <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.StatusAprendiz}</td>
+
                         <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.QtdeAprendiz}</td>
+                        
                       </tr>
                     ))
                   )}
