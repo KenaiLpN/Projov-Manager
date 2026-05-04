@@ -172,7 +172,18 @@ function AprendizesContent() {
               <span className="text-xs font-bold text-[#133c86] uppercase">Filtros Ativos:</span>
               {filter && (
                 <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center gap-2">
-                  {filter === "working" ? "Trabalhando" : filter === "available" ? "Disponíveis" : "Férias/Licença"}
+                  {({
+                    active: "Alunos",
+                    inscritos: "Inscritos",
+                    habilitados: "Habilitados",
+                    desligados: "Desligados",
+                    aprendizagem: "Aprendizagem",
+                    inscritosinternet: "Inscritos Internet",
+                    aprovados: "Aprovados",
+                    naohabilitados: "Não Habilitados",
+                    "1": "Trabalhando",
+                    "2": "Disponíveis",
+                  } as Record<string, string>)[filter] ?? filter}
                   <button onClick={() => router.push("/aprendizes")} className="hover:text-blue-200 cursor-pointer">×</button>
                 </span>
               )}

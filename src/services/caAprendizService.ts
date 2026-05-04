@@ -39,3 +39,4 @@ export const update = async (id: number, data: Partial<CA_Aprendiz>): Promise<CA
 export const remove = async (id: number): Promise<void> => {
   await api.delete(`/ca-aprendiz/${id}`);
 };
+//Update
