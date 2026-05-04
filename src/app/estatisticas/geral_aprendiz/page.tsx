@@ -5,8 +5,7 @@ import api from "@/services/api";
 import { toast } from "react-hot-toast";
 
 interface RelatorioData {
-  CodAprendiz: number;
-  Aprendiz: string;
+  Apr_Codigo: number;
   StatusAprendiz: string;
 }
 
@@ -49,12 +48,10 @@ export default function ListaJovensCargaHorariaPage() {
     const term = searchTerm.toLowerCase();
     
     // Use optional chaining and fallback to empty string
-    const nomeAprendiz = (item.Aprendiz ?? "").toLowerCase();
-    const codAprendiz = (item.CodAprendiz ?? "").toString();
+    const codAprendiz = (item.Apr_Codigo ?? "").toString();
     const status = (item.StatusAprendiz ?? "").toLowerCase();
 
     return (
-      nomeAprendiz.includes(term) ||
       codAprendiz.includes(term) ||
       status.includes(term)
     );
@@ -109,8 +106,9 @@ export default function ListaJovensCargaHorariaPage() {
                   ) : (
                     filteredData.map((item, idx) => (
                       <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.CodAprendiz}</td>
+                        
                         <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.StatusAprendiz}</td>
+                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.Apr_Codigo}</td>
                       </tr>
                     ))
                   )}
