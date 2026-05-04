@@ -24,9 +24,7 @@ export default function ListaJovensCargaHorariaPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/participantessituacao/carga_horaria_final", {
-        params: { startDate, endDate },
-      });
+      const response = await api.get("/participantessituacao/carga_horaria_final");
       setData(response.data);
     } catch (error) {
       console.error(error);
@@ -45,13 +43,20 @@ export default function ListaJovensCargaHorariaPage() {
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR");
   };
+  // src/app/estatisticas/geral_aprendiz/page.tsx
 
   const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
+    
+    // Use optional chaining and fallback to empty string
+    const nomeAprendiz = (item.Aprendiz ?? "").toLowerCase();
+    const codAprendiz = (item.CodAprendiz ?? "").toString();
+    const status = (item.StatusAprendiz ?? "").toLowerCase();
+
     return (
-      item.Aprendiz.toLowerCase().includes(term) ||
-      item.CodAprendiz.toString().includes(term) ||
-      item.StatusAprendiz.toLowerCase().includes(term)
+      nomeAprendiz.includes(term) ||
+      codAprendiz.includes(term) ||
+      status.includes(term)
     );
   });
 
@@ -104,8 +109,8 @@ export default function ListaJovensCargaHorariaPage() {
                   ) : (
                     filteredData.map((item, idx) => (
                       <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.StatusAprendiz}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.Aprendiz}</td>
+                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.CodAprendiz}</td>
+                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.StatusAprendiz}</td>
                       </tr>
                     ))
                   )}
