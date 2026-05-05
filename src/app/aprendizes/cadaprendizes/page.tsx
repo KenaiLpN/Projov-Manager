@@ -848,6 +848,7 @@ function CadastroForm() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [unidades, setUnidades] = useState<any[]>([]);
   const [instituicoes, setInstituicoes] = useState<any[]>([]);
+  const [parceiros, setParceiros] = useState<any[]>([]);
   const [escolas, setEscolas] = useState<any[]>([]);
   const [turmas, setTurmas] = useState<any[]>([]);
   const [situacoes, setSituacoes] = useState<any[]>([]);
@@ -907,13 +908,14 @@ function CadastroForm() {
   }, [editingId]);
 
   const loadSelectData = useCallback(async () => {
-    const CACHE = "cad_ca_select_v8";
+    const CACHE = "cad_ca_select_v9";
     try {
       const cached = sessionStorage.getItem(CACHE);
       if (cached) {
         const p = JSON.parse(cached);
         setUnidades(p.unidades);
         setInstituicoes(p.instituicoes);
+        setParceiros(p.parceiros ?? []);
         setEscolas(p.escolas);
         setTurmas(p.turmas);
         setSituacoes(p.situacoes ?? []);
@@ -923,9 +925,10 @@ function CadastroForm() {
         setParentescos(p.parentescos ?? []);
         return;
       }
-      const [resU, resI, resE, resT, resS, resA, resP, resM, resGP] = await Promise.allSettled([
+      const [resU, resI, resPar, resE, resT, resS, resA, resP, resM, resGP] = await Promise.allSettled([
         api.get("/unidade?limit=1000"),
         api.get("/instituicoes-parceiras?limit=1000"),
+        api.get("/parceiros?limit=1000"),
         api.get("/escolas"),
         api.get("/turmas?limit=1000"),
         api.get("/situacao-participante?limit=200"),
@@ -937,6 +940,7 @@ function CadastroForm() {
       const data = {
         unidades:     resU.status === "fulfilled" ? (resU.value.data.data ?? []) : [],
         instituicoes: resI.status === "fulfilled" ? (resI.value.data.data ?? []) : [],
+        parceiros:    resPar.status === "fulfilled" ? (resPar.value.data.data ?? []) : [],
         escolas:      resE.status === "fulfilled" ? (resE.value.data.data ?? []) : [],
         turmas:       resT.status === "fulfilled" ? (resT.value.data.data ?? []) : [],
         situacoes:    resS.status === "fulfilled" ? (resS.value.data.data ?? []) : [],
@@ -948,6 +952,7 @@ function CadastroForm() {
       sessionStorage.setItem(CACHE, JSON.stringify(data));
       setUnidades(data.unidades);
       setInstituicoes(data.instituicoes);
+      setParceiros(data.parceiros);
       setEscolas(data.escolas);
       setTurmas(data.turmas);
       setSituacoes(data.situacoes);
@@ -1165,7 +1170,7 @@ function CadastroForm() {
             {activeTab === "familiares"   && <TabFamiliares f={formData} hc={handleChange} />}
             {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
             {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
-            {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} cursos={areasAtuacao} />}
+            {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} parceiros={parceiros} cursos={areasAtuacao} />}
             {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} turmas={turmas} motivos={motivos} />}
             {activeTab === "capacitacoes" && editingId && <TabCapacitacao aprendizId={Number(editingId)} turmas={TURMAS_ENC} unidades={unidades} />}
           </div>

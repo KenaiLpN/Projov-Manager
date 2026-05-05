@@ -73,32 +73,28 @@ export default function LancarFaltasPage() {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Carrega turmas na montagem
+  // Carrega turmas e disciplinas na montagem
   useEffect(() => {
     api.get("/turmas?limit=1000")
       .then(r => setTurmas(Array.isArray(r.data?.data) ? r.data.data : []))
       .catch(() => toast.error("Erro ao carregar turmas."));
+    api.get("/attendance/disciplinas")
+      .then(r => setDisciplinas(Array.isArray(r.data) ? r.data : []))
+      .catch(() => toast.error("Erro ao carregar disciplinas."));
   }, []);
 
-  // Turma → datas e disciplinas em paralelo
+  // Turma → carrega datas
   useEffect(() => {
     setDatas([]);
-    setDisciplinas([]);
     setSelectedData("");
     setSelectedPeriodo("");
     setSelectedDisciplina("");
     setStudents([]);
     if (!selectedTurma) return;
 
-    Promise.all([
-      api.get(`/attendance/turmas/${selectedTurma}/dates`),
-      api.get(`/attendance/turmas/${selectedTurma}/disciplines`),
-    ])
-      .then(([rDatas, rDisc]) => {
-        setDatas(Array.isArray(rDatas.data) ? rDatas.data : []);
-        setDisciplinas(Array.isArray(rDisc.data) ? rDisc.data : []);
-      })
-      .catch(() => toast.error("Erro ao carregar dados da turma."));
+    api.get(`/attendance/turmas/${selectedTurma}/dates`)
+      .then(r => setDatas(Array.isArray(r.data) ? r.data : []))
+      .catch(() => toast.error("Erro ao carregar datas da turma."));
   }, [selectedTurma]);
 
   // Turma + Data → carrega alunos automaticamente (sem depender de período ou disciplina)
@@ -143,8 +139,11 @@ export default function LancarFaltasPage() {
         })),
       });
       toast.success("Lançamentos salvos com sucesso!");
-    } catch {
-      toast.error("Erro ao salvar os lançamentos.");
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data;
+      console.error("FALTAS ERROR RESPONSE:", data);
+      const msg = data?.error ?? data?.message;
+      toast.error(msg ? `Erro: ${msg}` : "Erro ao salvar os lançamentos.");
     } finally {
       setSaving(false);
     }

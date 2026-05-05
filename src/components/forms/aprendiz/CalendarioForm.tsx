@@ -11,18 +11,17 @@ import {
 import { toast } from "react-hot-toast";
 
 interface Props {
-  // Campos com coluna no banco — lidos/gravados direto em formData (Apr_*)
   formData: CA_Aprendiz;
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
-  // Campos só de cálculo — não existem em CA_Aprendiz, ficam em calFormData
   calFormData: AprendizFormData;
   handleCalChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
   unidades: any[];
   instituicoes: any[];
+  parceiros: any[];
   cursos: any[];
 }
 
@@ -33,6 +32,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
   handleCalChange,
   unidades,
   instituicoes,
+  parceiros,
   cursos,
 }: Props) {
   const [calendarioGerado, setCalendarioGerado] = useState<CalendarioGerado | null>(null);
@@ -49,9 +49,9 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     }
 
     const empresaNome =
-      instituicoes.find(
-        (i: any) => String(i.IpaCodigo) === String(formData.Apr_InstParceira),
-      )?.IpaDescricao || "";
+      parceiros.find(
+        (p: any) => String(p.ParCodigo) === String(formData.Apr_InstParceira),
+      )?.ParDescricao || "";
 
     const cursoNome =
       cursos.find(
@@ -317,7 +317,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
               </select>
             </div>
 
-            {/* Empresa → Apr_InstParceira */}
+            {/* Empresa → Apr_InstParceira (CA_Parceiros) */}
             <div className="flex flex-col gap-1.5">
               <label className={labelCls}>Empresa</label>
               <select
@@ -327,8 +327,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 className={inputCls}
               >
                 <option value="">Selecione...</option>
-                {instituicoes.map((i: any) => (
-                  <option key={i.IpaCodigo} value={i.IpaCodigo}>{i.IpaDescricao}</option>
+                {parceiros.map((p: any) => (
+                  <option key={p.ParCodigo} value={p.ParCodigo}>{p.ParDescricao}</option>
                 ))}
               </select>
             </div>
