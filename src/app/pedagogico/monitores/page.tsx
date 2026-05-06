@@ -170,6 +170,16 @@ export default function MonitoresFuncionariosPage() {
     }
   };
 
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  const requestSave = () => {
+    if (editingId) {
+      setShowSaveConfirm(true);
+    } else {
+      handleSalvar();
+    }
+  };
+
   const handleSalvar = async () => {
     if (!formData.EducNome) {
       toast.error("O nome é obrigatório.");
@@ -502,7 +512,7 @@ export default function MonitoresFuncionariosPage() {
                <button onClick={closeModal} className="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-100 transition-all cursor-pointer">
                  Cancelar
                </button>
-               <button onClick={handleSalvar} disabled={saving} className="px-8 py-2.5 bg-[#133c86] text-white rounded-xl font-bold hover:bg-blue-800 transition-all shadow-md flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+               <button onClick={requestSave} disabled={saving} className="px-8 py-2.5 bg-[#133c86] text-white rounded-xl font-bold hover:bg-blue-800 transition-all shadow-md flex items-center gap-2 disabled:opacity-50 cursor-pointer">
                  {saving ? "Salvando..." : (
                    <>
                      <Save size={18} />
@@ -519,6 +529,15 @@ export default function MonitoresFuncionariosPage() {
           onClose={() => setIsConfirmOpen(false)}
           onConfirm={confirmDelete}
           message="Tem certeza que deseja excluir este monitor/funcionário? Esta ação não pode ser desfeita."
+        />
+        <ConfirmModal
+          isOpen={showSaveConfirm}
+          onClose={() => setShowSaveConfirm(false)}
+          onConfirm={() => { setShowSaveConfirm(false); handleSalvar(); }}
+          title="Confirmar Alteração"
+          message="Deseja salvar as alterações neste registro?"
+          confirmText="Salvar"
+          cancelText="Cancelar"
         />
       </main>
     </div>

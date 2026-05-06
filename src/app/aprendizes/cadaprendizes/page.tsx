@@ -5,6 +5,7 @@ import {
   ArrowLeft, Save, User, Briefcase, GraduationCap,
   FileText, MapPin, HeartPulse, Users, DollarSign, CalendarDays,
 } from "lucide-react";
+import ConfirmModal from "@/components/modal/ConfirmModal";
 import { CalendarioForm } from "@/components/forms/aprendiz/CalendarioForm";
 import { AprendizFormData } from "@/components/forms/aprendiz/types";
 import { TabAlocacao } from "@/components/forms/aprendiz/TabAlocacao";
@@ -1056,6 +1057,16 @@ function CadastroForm() {
     }
   }, []);
 
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  const requestSave = () => {
+    if (editingId) {
+      setShowSaveConfirm(true);
+    } else {
+      handleSave();
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.Apr_Nome) {
       toast.error("O nome completo é obrigatório.");
@@ -1140,7 +1151,7 @@ function CadastroForm() {
                   Cancelar
                 </button>
               )}
-              <button onClick={handleSave} disabled={loading}
+              <button onClick={requestSave} disabled={loading}
                 className="px-5 py-2 bg-[#133c86] text-white rounded-lg font-bold hover:bg-[#0f2e6b] transition-all shadow-lg flex items-center gap-2 disabled:opacity-50">
                 {loading ? "Processando..." : (<><Save size={16} />{editingId ? "Atualizar" : "Salvar"}</>)}
               </button>
@@ -1198,7 +1209,7 @@ function CadastroForm() {
                 Próximo <div className="rotate-180"><ArrowLeft size={16} /></div>
               </button>
             ) : (
-              <button onClick={handleSave} disabled={loading}
+              <button onClick={requestSave} disabled={loading}
                 className="flex items-center gap-2 px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition-all shadow-lg disabled:opacity-50">
                 <Save size={16} /> {editingId ? "Finalizar Atualização" : "Finalizar Cadastro"}
               </button>
@@ -1206,6 +1217,17 @@ function CadastroForm() {
           </div>
         </div>
       </main>
+
+      <ConfirmModal
+        isOpen={showSaveConfirm}
+        onClose={() => setShowSaveConfirm(false)}
+        onConfirm={() => { setShowSaveConfirm(false); handleSave(); }}
+        title="Confirmar Atualização"
+        message={`Deseja salvar as alterações no cadastro de ${formData.Apr_Nome || "este aprendiz"}?`}
+        confirmText="Salvar"
+        cancelText="Cancelar"
+        loading={loading}
+      />
     </div>
   );
 }

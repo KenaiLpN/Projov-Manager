@@ -37,6 +37,8 @@ export default function FeriadosPage() {
   const [editingUnidadeData, setEditingUnidadeData] = useState<string | null>(
     null,
   );
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [pendingData, setPendingData] = useState<FeriadoFormData | null>(null);
   const {
     register,
     handleSubmit,
@@ -66,13 +68,31 @@ export default function FeriadosPage() {
     setEditingUnidadeData(null);
   };
   const onSubmit = async (data: FeriadoFormData) => {
+    if (editingUnidadeData) {
+      setPendingData(data);
+      setShowSaveConfirm(true);
+    } else {
+      const success = await handleSalvar(editingUnidadeData, {
+        ...data,
+        FerUnidade: Number(data.FerUnidade),
+      });
+      if (success) {
+        reset();
+        setEditingUnidadeData(null);
+      }
+    }
+  };
+  const confirmSave = async () => {
+    if (!pendingData) return;
+    setShowSaveConfirm(false);
     const success = await handleSalvar(editingUnidadeData, {
-      ...data,
-      FerUnidade: Number(data.FerUnidade), 
+      ...pendingData,
+      FerUnidade: Number(pendingData.FerUnidade),
     });
     if (success) {
       reset();
       setEditingUnidadeData(null);
+      setPendingData(null);
     }
   };
   const handleDelete = (item: Feriado) => {
@@ -213,6 +233,15 @@ export default function FeriadosPage() {
           onConfirm={confirmDelete}
           loading={deleting}
           message="Tem certeza que deseja excluir este feriado? Esta ação não pode ser desfeita."
+        />
+        <ConfirmModal
+          isOpen={showSaveConfirm}
+          onClose={() => setShowSaveConfirm(false)}
+          onConfirm={confirmSave}
+          title="Confirmar Alteração"
+          message="Deseja salvar as alterações neste registro?"
+          confirmText="Salvar"
+          cancelText="Cancelar"
         />
       </div>
     </div>

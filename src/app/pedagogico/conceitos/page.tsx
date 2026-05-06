@@ -106,6 +106,16 @@ export default function ConceitosPage() {
       setDeleting(false);
     }
   };
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  const requestSave = () => {
+    if (editingId) {
+      setShowSaveConfirm(true);
+    } else {
+      handleSalvar();
+    }
+  };
+
   const handleSalvar = async () => {
     setSaving(true);
     try {
@@ -262,7 +272,7 @@ export default function ConceitosPage() {
               Cancelar
             </button>
             <button
-              onClick={handleSalvar}
+              onClick={requestSave}
               disabled={saving}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors cursor-pointer"
             >
@@ -276,6 +286,15 @@ export default function ConceitosPage() {
           onConfirm={confirmDelete}
           loading={deleting}
           message="Tem certeza que deseja excluir este conceito? Esta ação não pode ser desfeita."
+        />
+        <ConfirmModal
+          isOpen={showSaveConfirm}
+          onClose={() => setShowSaveConfirm(false)}
+          onConfirm={() => { setShowSaveConfirm(false); handleSalvar(); }}
+          title="Confirmar Alteração"
+          message="Deseja salvar as alterações neste registro?"
+          confirmText="Salvar"
+          cancelText="Cancelar"
         />
       </div>
     </div>

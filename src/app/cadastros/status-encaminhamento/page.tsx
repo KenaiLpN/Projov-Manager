@@ -8,6 +8,7 @@ import TabelaStatus, {
 import Pagination from "@/components/pagination";
 import { useCrud } from "@/hooks/useCrud";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 import SearchBar from "@/components/SearchBar";
 interface SteFormData {
   Ste_Codigo: string;
@@ -59,10 +60,26 @@ export default function StatusEncaminhamentoPage() {
     setIsModalOpen(false);
     setEditingId(null);
   };
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [pendingData, setPendingData] = useState<SteFormData | null>(null);
   const onSubmit = async (data: SteFormData) => {
-    const success = await handleSalvar(editingId as string, data);
+    if (editingId) {
+      setPendingData(data);
+      setShowSaveConfirm(true);
+    } else {
+      const success = await handleSalvar(editingId as string, data);
+      if (success) {
+        reset();
+      }
+    }
+  };
+  const confirmSave = async () => {
+    if (!pendingData) return;
+    setShowSaveConfirm(false);
+    const success = await handleSalvar(editingId as string, pendingData);
     if (success) {
       reset();
+      setPendingData(null);
     }
   };
   return (
@@ -185,6 +202,15 @@ export default function StatusEncaminhamentoPage() {
           onConfirm={confirmDelete}
           loading={deleting}
           message="Tem certeza que deseja excluir este status? Esta ação não pode ser desfeita."
+        />
+        <ConfirmModal
+          isOpen={showSaveConfirm}
+          onClose={() => setShowSaveConfirm(false)}
+          onConfirm={confirmSave}
+          title="Confirmar Alteração"
+          message="Deseja salvar as alterações neste registro?"
+          confirmText="Salvar"
+          cancelText="Cancelar"
         />
       </div>
     </div>

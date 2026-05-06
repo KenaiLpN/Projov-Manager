@@ -40,6 +40,15 @@ export default function RegioesPage() {
   } = useCrud<CadastroRegiao>({ endpoint: "/regiao" });
 
   const [formData, setFormData] = useState<RegFormData>({ DescRegiao: "" });
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  const requestSave = () => {
+    if (editingId) {
+      setShowSaveConfirm(true);
+    } else {
+      onSave();
+    }
+  };
 
   const openModalNew = () => {
     setEditingId(null);
@@ -139,7 +148,7 @@ export default function RegioesPage() {
               Cancelar
             </button>
             <button
-              onClick={onSave}
+              onClick={requestSave}
               disabled={saving}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors cursor-pointer"
             >
@@ -153,6 +162,15 @@ export default function RegioesPage() {
           onConfirm={confirmDelete}
           loading={deleting}
           message="Tem certeza que deseja excluir esta região? Esta ação não pode ser desfeita."
+        />
+        <ConfirmModal
+          isOpen={showSaveConfirm}
+          onClose={() => setShowSaveConfirm(false)}
+          onConfirm={() => { setShowSaveConfirm(false); onSave(); }}
+          title="Confirmar Alteração"
+          message="Deseja salvar as alterações neste registro?"
+          confirmText="Salvar"
+          cancelText="Cancelar"
         />
       </div>
     </div>

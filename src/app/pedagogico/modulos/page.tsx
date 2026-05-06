@@ -117,6 +117,16 @@ export default function ModulosAprendizagemPage() {
     }
   };
 
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  const requestSave = () => {
+    if (editingId) {
+      setShowSaveConfirm(true);
+    } else {
+      handleSalvar();
+    }
+  };
+
   const handleSalvar = async () => {
     if (!formData.PlanCurso) {
       toast.error("O código do curso é obrigatório.");
@@ -259,7 +269,7 @@ export default function ModulosAprendizagemPage() {
                 Cancelar
               </button>
               <button
-                onClick={handleSalvar}
+                onClick={requestSave}
                 disabled={saving}
                 className="px-6 py-2 bg-[#133c86] text-white font-semibold rounded-lg hover:bg-[#0f2e6b] disabled:bg-gray-300 transition-all shadow-md flex items-center justify-center min-w-[120px]"
               >
@@ -279,6 +289,15 @@ export default function ModulosAprendizagemPage() {
           onConfirm={confirmDelete}
           loading={deleting}
           message="Tem certeza que deseja excluir este módulo de aprendizagem? Esta ação não pode ser desfeita."
+        />
+        <ConfirmModal
+          isOpen={showSaveConfirm}
+          onClose={() => setShowSaveConfirm(false)}
+          onConfirm={() => { setShowSaveConfirm(false); handleSalvar(); }}
+          title="Confirmar Alteração"
+          message="Deseja salvar as alterações neste registro?"
+          confirmText="Salvar"
+          cancelText="Cancelar"
         />
       </div>
     </div>
