@@ -222,7 +222,7 @@ export default function CadRamosAtividadePage() {
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Ramo de Atividade" : "Novo Ramo de Atividade"}
           </h2>
-          <div className="p-4 grid grid-cols-1 gap-4 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 grid grid-cols-1 gap-4 ">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Descrição (Máx 150)

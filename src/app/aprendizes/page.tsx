@@ -8,40 +8,42 @@ import SearchBar from "@/components/SearchBar";
 import Modal from "@/components/modal";
 import api from "@/services/api";
 
-interface InstituicaoParceira {
-  IpaCodigo: number;
-  IpaDescricao: string;
-}
-interface Turma {
-  TurCodigo: number;
-  TurNome: string;
-}
-interface GrauEscolaridade {
-  GreCodigo: number;
-  GreDescricao: string;
-}
-interface SituacaoParticipante {
-  StaCodigo: number;
-  StaDescricao: string;
-}
+interface InstituicaoParceira { IpaCodigo: number; IpaDescricao: string; }
+interface Turma { TurCodigo: number; TurNome: string; }
+interface SituacaoParticipante { StaCodigo: number; StaDescricao: string; }
+interface Unidade { UniCodigo: number; UniNome: string; }
+interface AreaAtuacao { AreaCodigo: number; AreaDescricao: string; }
+interface Plano { PlanCodigo: number; PlanDescricao: string; }
+interface Motivo { MotCodigo: number; MotDescricao: string; }
+interface Escola { EscCodigo: number; EscNome: string; }
 
 type AdvancedFilter = typeof INITIAL_FILTER_STATE;
 const INITIAL_FILTER_STATE = {
-  Codigo: "",
-  Nome: "",
-  Empresa: "",
-  Turma: "",
-  Unidade: "",
-  InstParceira: "",
-  Sexo: "",
-  Estudante: "",
-  TurnoEscolar: "",
-  Municipio: "",
-  Bairro: "",
-  IdadeDe: "",
-  IdadeAte: "",
-  Deficiencia: "",
-  StatusAprendiz: "",
+  // Identificação
+  Codigo: "", Nome: "", CPF: "", NomeSocial: "", CBO: "", NumSistExterno: "",
+  NomeMae: "", NomePai: "",
+  // Dados pessoais
+  Sexo: "", EstadoCivil: "", Exercito: "",
+  IdadeDe: "", IdadeAte: "",
+  // Vínculo institucional
+  Unidade: "", InstParceira: "", StatusAprendiz: "",
+  Turma: "", TurmaCCI: "", TurmaENC: "",
+  AreaAtuacao: "", PlanoCurricular: "",
+  MotivoDesligamento: "",
+  // Escolaridade
+  Estudante: "", TurnoEscolar: "", Escolaridade: "",
+  TipoAprendizagem: "", Escola: "", NomeEscola: "",
+  // Contrato / datas
+  TipoContrato: "",
+  DataContratoDe: "", DataContratoAte: "",
+  DataInicioEmpresaDe: "", DataInicioEmpresaAte: "",
+  InicioAprendizagemDe: "", InicioAprendizagemAte: "",
+  FimAprendizagemDe: "", FimAprendizagemAte: "",
+  PrevFimAprendizagemDe: "", PrevFimAprendizagemAte: "",
+  // Localização
+  Municipio: "", Bairro: "",
+  // Saúde / outros
+  Deficiencia: "", Piercing: "", Tatuagem: "",
 };
 
 function AprendizesContent() {
@@ -61,23 +63,36 @@ function AprendizesContent() {
 
   const [empresas, setEmpresas] = useState<InstituicaoParceira[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
-  const [grausEscolaridade, setGrausEscolaridade] = useState<GrauEscolaridade[]>([]);
   const [situacoes, setSituacoes] = useState<SituacaoParticipante[]>([]);
+  const [unidades, setUnidades] = useState<Unidade[]>([]);
+  const [areasAtuacao, setAreasAtuacao] = useState<AreaAtuacao[]>([]);
+  const [planos, setPlanos] = useState<Plano[]>([]);
+  const [motivos, setMotivos] = useState<Motivo[]>([]);
+  const [escolas, setEscolas] = useState<Escola[]>([]);
   const [auxDataLoaded, setAuxDataLoaded] = useState(false);
 
   const loadAuxData = async () => {
     if (auxDataLoaded) return;
     try {
-      const [resParceiros, resTurmas, resGraus, resSituacoes] = await Promise.all([
-        api.get("/instituicoes-parceiras?limit=1000"),
-        api.get("/turmas?limit=1000"),
-        api.get("/grau-escolaridade?limit=1000"),
-        api.get("/situacao-participante?limit=200"),
-      ]);
-      setEmpresas(Array.isArray(resParceiros.data?.data) ? resParceiros.data.data : []);
-      setTurmas(Array.isArray(resTurmas.data?.data) ? resTurmas.data.data : []);
-      setGrausEscolaridade(Array.isArray(resGraus.data?.data) ? resGraus.data.data : []);
-      setSituacoes(Array.isArray(resSituacoes.data?.data) ? resSituacoes.data.data : []);
+      const [resIP, resTurmas, resSituacoes, resUnidades, resAreas, resPlanos, resMotivos, resEscolas] =
+        await Promise.allSettled([
+          api.get("/instituicoes-parceiras?limit=1000"),
+          api.get("/turmas?limit=1000"),
+          api.get("/situacao-participante?limit=200"),
+          api.get("/unidade?limit=1000"),
+          api.get("/areas?limit=1000"),
+          api.get("/planos?limit=1000"),
+          api.get("/motivo-desligamento?limit=1000"),
+          api.get("/escolas"),
+        ]);
+      if (resIP.status === "fulfilled")        setEmpresas(resIP.value.data?.data ?? []);
+      if (resTurmas.status === "fulfilled")    setTurmas(resTurmas.value.data?.data ?? []);
+      if (resSituacoes.status === "fulfilled") setSituacoes(resSituacoes.value.data?.data ?? []);
+      if (resUnidades.status === "fulfilled")  setUnidades(resUnidades.value.data?.data ?? []);
+      if (resAreas.status === "fulfilled")     setAreasAtuacao(resAreas.value.data?.data ?? []);
+      if (resPlanos.status === "fulfilled")    setPlanos(resPlanos.value.data?.data ?? []);
+      if (resMotivos.status === "fulfilled")   setMotivos(resMotivos.value.data?.data ?? []);
+      if (resEscolas.status === "fulfilled")   setEscolas(resEscolas.value.data?.data ?? []);
       setAuxDataLoaded(true);
     } catch (err) {
       console.error("Erro ao carregar dados do filtro", err);
@@ -334,143 +349,320 @@ function AprendizesContent() {
             Filtro Avançado de Aprendizes
           </h2>
 
-          <div className="space-y-8">
-            <section>
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 border-l-4 border-[#133c86] pl-2">
-                Dados Gerais e Demográficos
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="space-y-6">
 
+            {/* ── Identificação ── */}
+            <section>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-l-4 border-[#133c86] pl-2">Identificação</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Código</label>
-                  <input
-                    type="number"
-                    value={advancedFilterForm.Codigo}
-                    onChange={e => setField("Codigo", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm"
-                    placeholder="Nº do código"
-                  />
+                  <input type="number" value={advancedFilterForm.Codigo} onChange={e => setField("Codigo", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nº do código" />
                 </div>
-
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-gray-700 mb-1">Nome</label>
-                  <input
-                    type="text"
-                    value={advancedFilterForm.Nome}
-                    onChange={e => setField("Nome", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm"
-                    placeholder="Filtrar por nome"
-                  />
+                  <input type="text" value={advancedFilterForm.Nome} onChange={e => setField("Nome", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Filtrar por nome" />
                 </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">CPF</label>
+                  <input type="text" value={advancedFilterForm.CPF} onChange={e => setField("CPF", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="000.000.000-00" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Nome Social</label>
+                  <input type="text" value={advancedFilterForm.NomeSocial} onChange={e => setField("NomeSocial", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nome social" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">CBO</label>
+                  <input type="text" value={advancedFilterForm.CBO} onChange={e => setField("CBO", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="CBO" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Nº Sistema Externo</label>
+                  <input type="text" value={advancedFilterForm.NumSistExterno} onChange={e => setField("NumSistExterno", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nº externo" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Nome da Mãe</label>
+                  <input type="text" value={advancedFilterForm.NomeMae} onChange={e => setField("NomeMae", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nome da mãe" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Nome do Pai</label>
+                  <input type="text" value={advancedFilterForm.NomePai} onChange={e => setField("NomePai", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nome do pai" />
+                </div>
+              </div>
+            </section>
 
+            {/* ── Dados Pessoais ── */}
+            <section>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-l-4 border-[#133c86] pl-2">Dados Pessoais</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Sexo</label>
                   <select value={advancedFilterForm.Sexo} onChange={e => setField("Sexo", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
-                    <option value="">Selecione</option>
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
                     <option value="M">Masculino</option>
                     <option value="F">Feminino</option>
-                    <option value="L">LGBTQIA+</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Estuda Atualmente</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Estado Civil</label>
+                  <select value={advancedFilterForm.EstadoCivil} onChange={e => setField("EstadoCivil", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    <option value="Solteiro">Solteiro(a)</option>
+                    <option value="Casado">Casado(a)</option>
+                    <option value="Divorciado">Divorciado(a)</option>
+                    <option value="Viúvo">Viúvo(a)</option>
+                    <option value="União Estável">União Estável</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Alistamento Militar</label>
+                  <select value={advancedFilterForm.Exercito} onChange={e => setField("Exercito", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    <option value="S">Sim</option>
+                    <option value="N">Não</option>
+                  </select>
+                </div>
+                <div className="col-span-2 flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Idade de</label>
+                    <input type="number" value={advancedFilterForm.IdadeDe} onChange={e => setField("IdadeDe", e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="0" />
+                  </div>
+                  <span className="mb-2 text-gray-400">até</span>
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">&nbsp;</label>
+                    <input type="number" value={advancedFilterForm.IdadeAte} onChange={e => setField("IdadeAte", e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="0" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ── Vínculo Institucional ── */}
+            <section>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-l-4 border-[#133c86] pl-2">Vínculo Institucional</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Unidade</label>
+                  <select value={advancedFilterForm.Unidade} onChange={e => setField("Unidade", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todas</option>
+                    {unidades.map(u => <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Instituição Parceira</label>
+                  <select value={advancedFilterForm.InstParceira} onChange={e => setField("InstParceira", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todas</option>
+                    {empresas.map(e => <option key={e.IpaCodigo} value={e.IpaCodigo}>{e.IpaDescricao}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Status do Jovem</label>
+                  <select value={advancedFilterForm.StatusAprendiz} onChange={e => setField("StatusAprendiz", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    {situacoes.map(s => <option key={s.StaCodigo} value={s.StaCodigo}>{s.StaDescricao}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Turma Simultaneidade</label>
+                  <select value={advancedFilterForm.Turma} onChange={e => setField("Turma", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todas</option>
+                    {turmas.map(t => <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Área de Atuação</label>
+                  <select value={advancedFilterForm.AreaAtuacao} onChange={e => setField("AreaAtuacao", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todas</option>
+                    {areasAtuacao.map(a => <option key={a.AreaCodigo} value={a.AreaCodigo}>{a.AreaDescricao}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Plano Curricular</label>
+                  <select value={advancedFilterForm.PlanoCurricular} onChange={e => setField("PlanoCurricular", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    {planos.map(p => <option key={p.PlanCodigo} value={p.PlanCodigo}>{p.PlanDescricao}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Motivo de Desligamento</label>
+                  <select value={advancedFilterForm.MotivoDesligamento} onChange={e => setField("MotivoDesligamento", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    {motivos.map(m => <option key={m.MotCodigo} value={m.MotCodigo}>{m.MotDescricao}</option>)}
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* ── Escolaridade ── */}
+            <section>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-l-4 border-[#133c86] pl-2">Escolaridade</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">É Estudante?</label>
                   <select value={advancedFilterForm.Estudante} onChange={e => setField("Estudante", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
-                    <option value="">Selecione</option>
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
                     <option value="Sim">Sim</option>
                     <option value="Não">Não</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Turno Escolar</label>
                   <select value={advancedFilterForm.TurnoEscolar} onChange={e => setField("TurnoEscolar", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
-                    <option value="">Selecione</option>
-                    <option value="M">Manhã</option>
-                    <option value="T">Tarde</option>
-                    <option value="N">Noite</option>
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    <option value="Manhã">Manhã</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noite">Noite</option>
+                    <option value="Integral">Integral</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Escolaridade</label>
+                  <select value={advancedFilterForm.Escolaridade} onChange={e => setField("Escolaridade", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todas</option>
+                    <option value="1">Fund. Incompleto</option>
+                    <option value="2">Fund. Completo</option>
+                    <option value="3">Médio Incompleto</option>
+                    <option value="4">Médio Completo</option>
+                    <option value="5">Superior Incompleto</option>
+                    <option value="6">Superior Completo</option>
+                    <option value="7">Pós-Graduação</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Tipo de Aprendizagem</label>
+                  <select value={advancedFilterForm.TipoAprendizagem} onChange={e => setField("TipoAprendizagem", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    <option value="Escola Municipal">Escola Municipal</option>
+                    <option value="Escola Estadual">Escola Estadual</option>
+                    <option value="Escola Particular">Escola Particular</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Escola</label>
+                  <select value={advancedFilterForm.Escola} onChange={e => setField("Escola", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todas</option>
+                    {escolas.map(e => <option key={e.EscCodigo} value={e.EscCodigo}>{e.EscNome}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Nome da Escola</label>
+                  <input type="text" value={advancedFilterForm.NomeEscola} onChange={e => setField("NomeEscola", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nome da escola" />
+                </div>
+              </div>
+            </section>
 
+            {/* ── Contrato e Datas ── */}
+            <section>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-l-4 border-[#133c86] pl-2">Contrato e Datas</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Tipo de Pagamento</label>
+                  <select value={advancedFilterForm.TipoContrato} onChange={e => setField("TipoContrato", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    <option value="C">Projov</option>
+                    <option value="E">Empresa</option>
+                  </select>
+                </div>
+                {([
+                  ["DataContratoDe",       "DataContratoAte",       "Data do Contrato"],
+                  ["DataInicioEmpresaDe",  "DataInicioEmpresaAte",  "Início na Empresa"],
+                  ["InicioAprendizagemDe", "InicioAprendizagemAte", "Início Aprendizagem"],
+                  ["FimAprendizagemDe",    "FimAprendizagemAte",    "Fim Aprendizagem"],
+                  ["PrevFimAprendizagemDe","PrevFimAprendizagemAte","Prev. Término"],
+                ] as [keyof AdvancedFilter, keyof AdvancedFilter, string][]).map(([de, ate, label]) => (
+                  <div key={de} className="col-span-2">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">{label}</label>
+                    <div className="flex gap-2">
+                      <input type="date" value={advancedFilterForm[de]} onChange={e => setField(de, e.target.value)}
+                        className="flex-1 p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" />
+                      <span className="self-center text-gray-400 text-xs">até</span>
+                      <input type="date" value={advancedFilterForm[ate]} onChange={e => setField(ate, e.target.value)}
+                        className="flex-1 p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* ── Localização ── */}
+            <section>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-l-4 border-[#133c86] pl-2">Localização</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Município</label>
+                  <input type="text" value={advancedFilterForm.Municipio} onChange={e => setField("Municipio", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nome do município" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Bairro</label>
+                  <input type="text" value={advancedFilterForm.Bairro} onChange={e => setField("Bairro", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none" placeholder="Nome do bairro" />
+                </div>
+              </div>
+            </section>
+
+            {/* ── Saúde e Outros ── */}
+            <section>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-l-4 border-[#133c86] pl-2">Saúde e Outros</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Deficiência</label>
                   <select value={advancedFilterForm.Deficiencia} onChange={e => setField("Deficiencia", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
-                    <option value="">Selecione</option>
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
                     <option value="sim">Com deficiência</option>
                     <option value="nao">Sem deficiência</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Município</label>
-                  <input type="text" value={advancedFilterForm.Municipio} onChange={e => setField("Municipio", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm"
-                    placeholder="Nome do município" />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Piercing</label>
+                  <select value={advancedFilterForm.Piercing} onChange={e => setField("Piercing", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Bairro</label>
-                  <input type="text" value={advancedFilterForm.Bairro} onChange={e => setField("Bairro", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm"
-                    placeholder="Nome do bairro" />
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Status do Aprendiz</label>
-                  <select value={advancedFilterForm.StatusAprendiz} onChange={e => setField("StatusAprendiz", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
-                    <option value="">Selecione</option>
-                    {situacoes.map(s => (
-                      <option key={s.StaCodigo} value={s.StaCodigo}>{s.StaDescricao}</option>
-                    ))}
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Tatuagem</label>
+                  <select value={advancedFilterForm.Tatuagem} onChange={e => setField("Tatuagem", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white">
+                    <option value="">Todos</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
                   </select>
                 </div>
-
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Instituição Parceira (Empresa)</label>
-                  <select value={advancedFilterForm.InstParceira} onChange={e => setField("InstParceira", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
-                    <option value="">Selecione</option>
-                    {empresas.map(e => (
-                      <option key={e.IpaCodigo} value={e.IpaCodigo}>{e.IpaDescricao}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Turma Capacitação</label>
-                  <select value={advancedFilterForm.Turma} onChange={e => setField("Turma", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none bg-white text-sm">
-                    <option value="">Selecione</option>
-                    {turmas.map(t => (
-                      <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Idade entre</label>
-                    <input type="number" value={advancedFilterForm.IdadeDe} onChange={e => setField("IdadeDe", e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm" placeholder="0" />
-                  </div>
-                  <span className="mb-2 text-gray-500">e</span>
-                  <div className="flex-1">
-                    <label className="block text-xs font-bold text-gray-700 mb-1">&nbsp;</label>
-                    <input type="number" value={advancedFilterForm.IdadeAte} onChange={e => setField("IdadeAte", e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#133c86] focus:outline-none text-sm" placeholder="0" />
-                  </div>
-                </div>
-
               </div>
             </section>
+
           </div>
 
-          <div className="flex justify-end gap-3 mt-8 pt-4 border-t">
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
             <button type="button" onClick={handleClearAdvancedFilter}
               className="px-6 py-2 border border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 cursor-pointer">
               Limpar Filtros

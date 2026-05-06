@@ -280,7 +280,7 @@ export default function CadUnidadeParceiroPage() {
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Unidade" : "Nova Unidade"}
           </h2>
-          <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 grid grid-cols-2 gap-4">
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Empresa (Parceiro) *

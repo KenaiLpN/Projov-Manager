@@ -53,7 +53,7 @@ const navItems: NavItemWithSub[] = [
     href: "/empresa/cadramosatividade",
     subMenu: [
       { name: "Ramos de Atividade", href: "/empresa/cadramosatividade" },
-      { name: "Empresas", href: "/empresa/cadramosatividade" },
+      { name: "Empresas", href: "/empresa/cadempresas" },
       { name: "Unidades de Parceiro", href: "/empresa/cadunidadeparceiro" },
       { name: "Orientadores", href: "/empresa/cadoriantadores" },
     ],

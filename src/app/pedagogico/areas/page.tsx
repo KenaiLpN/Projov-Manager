@@ -226,7 +226,7 @@ export default function AreasAtuacaoPage() {
           <h2 className="text-2xl font-bold m-4 text-gray-800">
             {editingId ? "Editar Área de Atuação" : "Nova Área de Atuação"}
           </h2>
-          <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 grid grid-cols-2 gap-4 ">
             <div className="flex flex-col col-span-2 gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Descrição

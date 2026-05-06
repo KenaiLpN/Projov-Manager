@@ -30,6 +30,8 @@ interface ParceiroFormData {
   ParCelular: string;
   ParSituacao: string;
   ParObservacoes: string;
+  ParInscricao: string;
+  ParInscricaoMunicipal: string;
 }
 export default function CadEmpresasPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -62,6 +64,8 @@ export default function CadEmpresasPage() {
     ParCelular: "",
     ParSituacao: "A",
     ParObservacoes: "",
+    ParInscricao: "",
+    ParInscricaoMunicipal: "",
   });
   useEffect(() => {
     fetchRamos();
@@ -111,6 +115,8 @@ export default function CadEmpresasPage() {
       ParCelular: "",
       ParSituacao: "A",
       ParObservacoes: "",
+      ParInscricao: "",
+      ParInscricaoMunicipal: "",
     });
     setIsModalOpen(true);
   };
@@ -136,6 +142,8 @@ export default function CadEmpresasPage() {
         ParCelular: data.ParCelular || "",
         ParSituacao: data.ParSituacao || "A",
         ParObservacoes: data.ParObservacoes || "",
+        ParInscricao: data.ParInscricao || "",
+        ParInscricaoMunicipal: data.ParInscricaoMunicipal || "",
       });
       setIsModalOpen(true);
     } catch (err) {
@@ -289,7 +297,7 @@ export default function CadEmpresasPage() {
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Empresa" : "Nova Empresa"}
           </h2>
-          <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 grid grid-cols-2 gap-4">
             <div className="col-span-2 flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
                 Razão Social *
@@ -326,6 +334,32 @@ export default function CadEmpresasPage() {
                 onChange={handleChange}
                 type="text"
                 maxLength={14}
+                className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Inscrição Estadual
+              </label>
+              <input
+                name="ParInscricao"
+                value={formData.ParInscricao}
+                onChange={handleChange}
+                type="text"
+                maxLength={30}
+                className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Inscrição Municipal
+              </label>
+              <input
+                name="ParInscricaoMunicipal"
+                value={formData.ParInscricaoMunicipal}
+                onChange={handleChange}
+                type="text"
+                maxLength={30}
                 className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none"
               />
             </div>

@@ -368,7 +368,7 @@ export default function TurmasPage() {
             {editingId ? "Editar Turma" : "Nova Turma"}
           </h2>
 
-          <div className="p-4 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 grid grid-cols-2 gap-4 ">
 
             {/* Código da Turma (somente leitura) */}
             <div className="flex flex-col gap-1">

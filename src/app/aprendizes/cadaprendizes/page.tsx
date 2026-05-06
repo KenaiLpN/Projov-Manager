@@ -1171,7 +1171,7 @@ function CadastroForm() {
             {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
             {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
             {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} parceiros={parceiros} cursos={areasAtuacao} />}
-            {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} turmas={turmas} motivos={motivos} />}
+            {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} aprendizNome={formData.Apr_Nome || ""} turmas={turmas} motivos={motivos} />}
             {activeTab === "capacitacoes" && editingId && <TabCapacitacao aprendizId={Number(editingId)} turmas={TURMAS_ENC} unidades={unidades} />}
           </div>
         </div>
