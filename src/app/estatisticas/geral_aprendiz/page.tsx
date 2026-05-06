@@ -5,17 +5,11 @@ import api from "@/services/api";
 import { toast } from "react-hot-toast";
 
 interface RelatorioData {
-  Apr_Codigo: number;
-  StatusAprendiz: string;
+  Qtde: number;
+  Turma: string;
 }
 
 export default function ListaJovensCargaHorariaPage() {
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split("T")[0];
-  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split("T")[0];
-
-  const [startDate, setStartDate] = useState(firstDayOfMonth);
-  const [endDate, setEndDate] = useState(lastDayOfMonth);
   const [data, setData] = useState<RelatorioData[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +17,7 @@ export default function ListaJovensCargaHorariaPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/participantessituacao/carga_horaria_final");
+      const response = await api.get("/participantessituacao/ativos_por_turma");
       setData(response.data);
     } catch (error) {
       console.error(error);
@@ -48,8 +42,8 @@ export default function ListaJovensCargaHorariaPage() {
     const term = searchTerm.toLowerCase();
     
     // Use optional chaining and fallback to empty string
-    const codAprendiz = (item.Apr_Codigo ?? "").toString();
-    const status = (item.StatusAprendiz ?? "").toLowerCase();
+    const codAprendiz = (item.Qtde ?? "").toString();
+    const status = (item.Turma ?? "").toLowerCase();
 
     return (
       codAprendiz.includes(term) ||
@@ -63,9 +57,9 @@ export default function ListaJovensCargaHorariaPage() {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header azul como no print */}
         <div className="bg-[#133c86] p-4 flex justify-between items-center text-white">
-          <h1 className="text-xl font-bold uppercase tracking-wide">Estatística Geral Aprendiz</h1>
+          <h1 className="text-xl font-bold uppercase tracking-wide">Ativos Por Turma</h1>
           <div className="text-sm">
-             Estatística / Estatística Geral Aprendiz
+             Estatística / Ativos Por Turma
           </div>
         </div>
 
@@ -90,7 +84,7 @@ export default function ListaJovensCargaHorariaPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-white border-b border-gray-200">
-                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Status Do Participante</th>
+                    <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Turma</th>
                     <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Quantidade</th>
                   </tr>
                 </thead>
@@ -107,8 +101,8 @@ export default function ListaJovensCargaHorariaPage() {
                     filteredData.map((item, idx) => (
                       <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}>
                         
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.StatusAprendiz}</td>
-                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.Apr_Codigo}</td>
+                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100 font-medium">{item.Turma}</td>
+                        <td className="p-3 text-sm text-gray-700 border-r border-gray-100">{item.Qtde}</td>
                       </tr>
                     ))
                   )}
