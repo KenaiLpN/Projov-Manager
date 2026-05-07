@@ -83,7 +83,7 @@ export default function LancarFaltasPage() {
       .catch(() => toast.error("Erro ao carregar disciplinas."));
   }, []);
 
-  // Turma → carrega datas
+  // Turma → carrega datas (passadas + futuras no mesmo dia da semana, até 1 mês)
   useEffect(() => {
     setDatas([]);
     setSelectedData("");
@@ -93,7 +93,11 @@ export default function LancarFaltasPage() {
     if (!selectedTurma) return;
 
     api.get(`/attendance/turmas/${selectedTurma}/dates`)
-      .then(r => setDatas(Array.isArray(r.data) ? r.data : []))
+      .then(r => {
+        const list: string[] = (Array.isArray(r.data) ? r.data : [])
+          .map((d: string) => d.substring(0, 10));
+        setDatas(list);
+      })
       .catch(() => toast.error("Erro ao carregar datas da turma."));
   }, [selectedTurma]);
 
@@ -184,12 +188,13 @@ export default function LancarFaltasPage() {
               <select
                 value={selectedData}
                 onChange={e => setSelectedData(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none"
+                disabled={!selectedTurma}
+                className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#133c86]/20 focus:outline-none disabled:opacity-50"
               >
                 <option value="">Selecione...</option>
                 {datas.map(d => (
                   <option key={d} value={d}>
-                    {format(new Date(d.substring(0, 10) + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(d + "T12:00:00"), "dd/MM/yyyy (EEEE)", { locale: ptBR })}
                   </option>
                 ))}
               </select>
