@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CalendarDays, Calculator, Eye } from "lucide-react";
 import { CA_Aprendiz } from "@/types";
 import { AprendizFormData } from "./types";
@@ -37,6 +37,33 @@ export const CalendarioForm = React.memo(function CalendarioForm({
 }: Props) {
   const [calendarioGerado, setCalendarioGerado] = useState<CalendarioGerado | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    const cursoId = formData.Apr_AreaAtuacao;
+    const jornada = Number(formData.Apr_HorasDiarias);
+    if (!cursoId || !jornada) return;
+
+    const curso = cursos.find((c: any) => String(c.AreaCodigo) === String(cursoId));
+    if (!curso) return;
+
+    let diasTeoria: number | undefined;
+    let diasPratica: number | undefined;
+
+    if (jornada === 4) {
+      diasTeoria = Math.ceil((curso.AreaCargaTeorica4h || 0) / 4);
+      diasPratica = Math.ceil((curso.AreaCargaPratica4h || 0) / 4);
+    } else if (jornada === 6) {
+      diasTeoria = Math.ceil((curso.AreaCargaTeorica6h || 0) / 6);
+      diasPratica = Math.ceil((curso.AreaCargaPratica6h || 0) / 6);
+    }
+
+    if (diasTeoria !== undefined && diasTeoria > 0) {
+      handleCalChange({ target: { name: "CalDiasAprendizagemTeorica", value: String(diasTeoria) } } as React.ChangeEvent<HTMLInputElement>);
+    }
+    if (diasPratica !== undefined && diasPratica > 0) {
+      handleCalChange({ target: { name: "CalDiasAprendizagemPratica", value: String(diasPratica) } } as React.ChangeEvent<HTMLInputElement>);
+    }
+  }, [formData.Apr_AreaAtuacao, formData.Apr_HorasDiarias]);
 
   const gerarCalendarioHandler = () => {
     if (!formData.Apr_InicioAprendizagem) {
@@ -138,21 +165,29 @@ export const CalendarioForm = React.memo(function CalendarioForm({
             {/* Jornada → Apr_HorasDiarias */}
             <div className="flex flex-col gap-1.5">
               <label className={labelCls}>Jornada Diária (horas)</label>
-              <input
+              <select
                 name="Apr_HorasDiarias"
-                type="number"
                 value={formData.Apr_HorasDiarias ?? ""}
                 onChange={handleChange}
-                placeholder="Ex: 4"
                 className={inputCls}
-              />
+              >
+                <option value="">Selecione...</option>
+                <option value="4">4 horas</option>
+                <option value="6">6 horas</option>
+              </select>
             </div>
 
-            {/* Dias teoria → calFormData (sem coluna no banco) */}
+            {/* Dias teoria → calFormData (preenchido automaticamente pelo curso + jornada) */}
             <div className="flex flex-col gap-1.5">
-              <label className={labelCls}>Dias de Aprendizagem Teórica</label>
+              <label className={labelCls}>
+                Dias de Aprendizagem Teórica
+                {calFormData.CalDiasAprendizagemTeorica && formData.Apr_AreaAtuacao && (
+                  <span className="ml-2 text-blue-500 normal-case font-normal text-[10px]">auto</span>
+                )}
+              </label>
               <input
                 name="CalDiasAprendizagemTeorica"
+                type="number"
                 value={calFormData.CalDiasAprendizagemTeorica || ""}
                 onChange={handleCalChange}
                 className={inputCls}
@@ -161,9 +196,15 @@ export const CalendarioForm = React.memo(function CalendarioForm({
 
             {/* Dias prática → calFormData */}
             <div className="flex flex-col gap-1.5">
-              <label className={labelCls}>Dias de Aprendizagem Prática</label>
+              <label className={labelCls}>
+                Dias de Aprendizagem Prática
+                {calFormData.CalDiasAprendizagemPratica && formData.Apr_AreaAtuacao && (
+                  <span className="ml-2 text-blue-500 normal-case font-normal text-[10px]">auto</span>
+                )}
+              </label>
               <input
                 name="CalDiasAprendizagemPratica"
+                type="number"
                 value={calFormData.CalDiasAprendizagemPratica || ""}
                 onChange={handleCalChange}
                 className={inputCls}
@@ -435,18 +476,41 @@ export const CalendarioForm = React.memo(function CalendarioForm({
               <Eye size={18} />
               Visualizar Calendário
             </button>
-            {calendarioGerado && (
-              <div className="flex items-center gap-3 ml-4 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                <span>📊 <strong>{calendarioGerado.resumo.totalEncontros}</strong> encontros</span>
-                <span className="text-gray-300">|</span>
-                <span>⏱️ <strong>{calendarioGerado.resumo.totalHoras}</strong>h total</span>
-                <span className="text-gray-300">|</span>
-                <span>📘 {calendarioGerado.resumo.porcentagemTeoria.toFixed(1)}% teoria</span>
-                <span className="text-gray-300">|</span>
-                <span>📗 {calendarioGerado.resumo.porcentagemPratica.toFixed(1)}% prática</span>
-              </div>
-            )}
           </div>
+
+          {/* ── Resumo do calendário gerado ── */}
+          {calendarioGerado && (
+            <div className="border-t border-gray-100 pt-6">
+              <table className="w-full text-sm border-collapse">
+                <tbody>
+                  {[
+                    { label: "Data de Término de Contrato", valor: calendarioGerado.resumo.dataTerminoContrato },
+                    { label: "Data de Início Introdutório", valor: calendarioGerado.resumo.inicioFormacao },
+                    { label: "Data de Término Introdutório", valor: calFormData.CalDataTerminoIntrodutorios
+                        ? calFormData.CalDataTerminoIntrodutorios.split("-").reverse().join("/")
+                        : "" },
+                    { label: "Número de Encontros Introdutório", valor: calendarioGerado.resumo.encontrosIntrodutorio },
+                    { label: "Data de Início na Empresa", valor: calendarioGerado.resumo.dataInicioEmpresa },
+                    { label: "Data de Início Encontro Semanal", valor: calendarioGerado.resumo.dataInicioEncontroSemanal },
+                    { label: "Número de Encontros Semanal", valor: calendarioGerado.resumo.encontrosSemanal },
+                    { label: "Data de Início Encontro Finais", valor: calendarioGerado.resumo.dataInicioEncontroFinais },
+                    { label: "Encontros Finais (Mensal)", valor: calendarioGerado.resumo.encontrosMensal },
+                    { label: "Número de Dias Teoria", valor: calendarioGerado.resumo.diasTeoria },
+                    { label: "Número de Dias Prática", valor: calendarioGerado.resumo.diasPratica },
+                  ].map((item, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                      <td className="px-4 py-2 font-semibold text-gray-700 border border-gray-200 w-2/3">
+                        {item.label}
+                      </td>
+                      <td className="px-4 py-2 text-right font-mono text-gray-800 border border-gray-200 w-1/3">
+                        {item.valor}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </section>
 

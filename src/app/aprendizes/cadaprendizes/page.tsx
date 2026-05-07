@@ -1082,7 +1082,7 @@ function CadastroForm() {
         toast.success("Aprendiz cadastrado com sucesso!");
         api.delete("/aprendiz/rascunho").catch(() => {});
       }
-      if (isAdmin) router.push("/aprendizes");
+      if (isAdmin && !editingId) router.push("/aprendizes");
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || "Erro ao salvar aprendiz.");

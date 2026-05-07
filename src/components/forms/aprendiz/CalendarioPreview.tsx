@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { CalendarioGerado, TipoDia } from "@/utils/calendarioAprendizagem";
-import { X, Printer } from "lucide-react";
+import { X, Download } from "lucide-react";
 interface Props {
   calendario: CalendarioGerado;
   onClose: () => void;
@@ -59,54 +59,76 @@ const CORES: Record<TipoDia, { bg: string; text: string; border: string }> = {
 };
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 export function CalendarioPreview({ calendario, onClose }: Props) {
-  const handlePrint = () => {
-    window.print();
+  const printRef = useRef<HTMLDivElement>(null);
+  const [gerando, setGerando] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current) return;
+    setGerando(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).jsPDF;
+
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const ratio = canvas.height / canvas.width;
+      const imgW = pageW;
+      const imgH = imgW * ratio;
+
+      let posY = 0;
+      let remaining = imgH;
+      let first = true;
+
+      while (remaining > 0) {
+        if (!first) pdf.addPage();
+        const sliceH = Math.min(pageH, remaining);
+        const srcY = (imgH - remaining) * (canvas.height / imgH);
+        const srcH = sliceH * (canvas.height / imgH);
+
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = srcH;
+        const ctx = sliceCanvas.getContext("2d")!;
+        ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+
+        pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 0, 0, imgW, sliceH);
+        remaining -= pageH;
+        posY += pageH;
+        first = false;
+      }
+
+      const nomeArquivo = `Calendario_${calendario.nomeAprendiz.replace(/\s+/g, "_") || "Aprendiz"}.pdf`;
+      pdf.save(nomeArquivo);
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+    } finally {
+      setGerando(false);
+    }
   };
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-auto print:bg-white print:p-0 print:static print:overflow-visible print:h-auto">
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media print {
-          @page { size: portrait; margin: 1cm; }
-          body { 
-            background: white !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          /* Oculta tudo que não é o calendário */
-          body > *:not(#__next), .modal-overlay, nav, header, footer { 
-            display: none !important; 
-          }
-          /* Garante que este componente é o único visível */
-          .fixed.inset-0 { 
-            position: static !important; 
-            background: transparent !important;
-            overflow: visible !important;
-            padding: 0 !important;
-          }
-          #calendario-print {
-            padding: 0 !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-            border: none !important;
-            width: 100% !important;
-            max-width: none !important;
-          }
-          .print\\:hidden { display: none !important; }
-        }
-      `}} />
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-auto">
       <div className="min-h-screen py-8 px-4">
-        {}
-        <div className="print:hidden sticky top-0 z-10 max-w-7xl mx-auto mb-6 flex justify-between items-center bg-white/90 backdrop-blur-md rounded-2xl shadow-xl px-6 py-4 border border-gray-200">
+        <div className="sticky top-0 z-10 max-w-7xl mx-auto mb-6 flex justify-between items-center bg-white/90 backdrop-blur-md rounded-2xl shadow-xl px-6 py-4 border border-gray-200">
           <h2 className="text-xl font-bold text-[#133c86]">
             📅 ANEXO - CALENDÁRIO DA APRENDIZAGEM
           </h2>
           <div className="flex gap-3">
             <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 bg-[#133c86] text-white rounded-lg hover:bg-[#0f2e6b] transition-all font-medium text-sm"
+              onClick={handleDownloadPDF}
+              disabled={gerando}
+              className="flex items-center gap-2 px-4 py-2 bg-[#133c86] text-white rounded-lg hover:bg-[#0f2e6b] transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Printer size={16} />
-              Imprimir
+              <Download size={16} />
+              {gerando ? "Gerando PDF..." : "Baixar PDF"}
             </button>
             <button
               onClick={onClose}
@@ -119,12 +141,13 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
         </div>
         {}
         <div
+          ref={printRef}
           id="calendario-print"
-          className="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl p-8 print:shadow-none print:rounded-none print:p-4"
+          className="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl p-8"
         >
           {}
           <div className="mb-8 border-b border-gray-200 pb-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4 print:text-lg">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">
               ANEXO - CALENDÁRIO DA APRENDIZAGEM
             </h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
@@ -186,28 +209,25 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
             </div>
           </div>
           {}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 print:grid-cols-4 print:gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {calendario.meses.map((mes) => (
               <div
                 key={`${mes.ano}-${mes.mes}`}
-                className="border border-gray-200 rounded-xl overflow-hidden shadow-sm print:shadow-none print:border-gray-300"
+                className="border border-gray-200 rounded-xl overflow-hidden shadow-sm"
               >
-                {}
-                <div className="bg-[#133c86] text-white text-center py-2 font-bold text-xs tracking-wider print:py-1 print:text-[10px]">
+                <div className="bg-[#133c86] text-white text-center py-2 font-bold text-xs tracking-wider">
                   {mes.nome}
                 </div>
-                {}
                 <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
                   {DIAS_SEMANA.map((dia) => (
                     <div
                       key={dia}
-                      className="text-center py-1 text-[10px] font-semibold text-gray-500 print:text-[8px] print:py-0.5"
+                      className="text-center py-1 text-[10px] font-semibold text-gray-500"
                     >
                       {dia}
                     </div>
                   ))}
                 </div>
-                {}
                 <div className="p-1">
                   {mes.semanas.map((semana, si) => (
                     <div key={si} className="grid grid-cols-7 gap-px">
@@ -224,15 +244,11 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
                             className={`aspect-square p-0.5 flex flex-col items-center justify-center rounded-md ${cor.bg} ${cor.border} border text-center transition-all`}
                             title={`${dia.dia} - ${dia.tipo}`}
                           >
-                            <span
-                              className={`text-xs font-bold leading-none ${cor.text} print:text-[9px]`}
-                            >
+                            <span className={`text-xs font-bold leading-none ${cor.text}`}>
                               {dia.dia}
                             </span>
                             {dia.label && (
-                              <span
-                                className={`text-[8px] font-medium ${cor.text} print:text-[6px]`}
-                              >
+                              <span className={`text-[8px] font-medium ${cor.text}`}>
                                 {dia.label}
                               </span>
                             )}
@@ -247,7 +263,7 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
           </div>
           {}
           <div className="mt-8 border-t border-gray-200 pt-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4 print:text-sm">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
               Resumo Geral
             </h2>
             <div className="overflow-x-auto">
@@ -312,7 +328,7 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
             </div>
           </div>
           {}
-          <div className="mt-12 grid grid-cols-2 gap-8 text-center text-sm text-gray-600 print:mt-8">
+          <div className="mt-12 grid grid-cols-2 gap-8 text-center text-sm text-gray-600">
             <div>
               <div className="border-t border-gray-400 pt-2 mx-8">
                 {calendario.nomeAprendiz}

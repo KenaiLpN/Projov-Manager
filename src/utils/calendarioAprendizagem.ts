@@ -34,6 +34,16 @@ export interface ResumoCalendario {
   totalEncontros: number;
   totalHoras: number;
   inicioFormacao: string;
+  // detalhamento por tipo
+  encontrosIntrodutorio: number;
+  encontrosSemanal: number;
+  encontrosMensal: number;
+  dataTerminoContrato: string;
+  dataInicioEmpresa: string;
+  dataInicioEncontroSemanal: string;
+  dataInicioEncontroFinais: string;
+  diasTeoria: number;
+  diasPratica: number;
 }
 
 export interface CalendarioGerado {
@@ -253,6 +263,12 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
   const meses: MesCalendario[] = [];
   let encontrosTeoria = 0;
   let encontrosPratica = 0;
+  let encontrosIntrodutorio = 0;
+  let encontrosSemanal = 0;
+  let encontrosMensal = 0;
+  let primeiraDataSemanal: Date | null = null;
+  let primeiraDataMensal: Date | null = null;
+  let primeiraDataEmpresa: Date | null = null;
   let dataAtualParaLoop = new Date(dataAdmissao.getFullYear(), dataAdmissao.getMonth(), 1);
   let dataTerminoReal = new Date(dataAdmissao);
 
@@ -327,22 +343,29 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
           tipo = "introducao";
           label = "I";
           encontrosTeoria++;
+          encontrosIntrodutorio++;
         } else if (isMensal && encontrosTeoria < dTeoriaTarget) {
           tipo = "mensal";
           label = "M";
           encontrosTeoria++;
+          encontrosMensal++;
+          if (!primeiraDataMensal) primeiraDataMensal = new Date(date);
         } else if (isSemanal && encontrosTeoria < dTeoriaTarget) {
           tipo = "semanal";
           label = "T";
           encontrosTeoria++;
+          encontrosSemanal++;
+          if (!primeiraDataSemanal) primeiraDataSemanal = new Date(date);
         } else if (encontrosPratica < dPraticaTarget) {
           tipo = "pratica";
           label = "P";
           encontrosPratica++;
+          if (!primeiraDataEmpresa && !isIntro) primeiraDataEmpresa = new Date(date);
         } else if (encontrosTeoria < dTeoriaTarget) {
           tipo = "introducao";
           label = "I";
           encontrosTeoria++;
+          encontrosIntrodutorio++;
         } else {
           tipo = "inactive";
         }
@@ -389,6 +412,15 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
   const formatDate = (d: Date) =>
     `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
     
+  // Data de início na empresa: dia seguinte ao término introdutório (pula fim de semana)
+  let dataInicioEmpresaCalc = dataTerminoIntro ? new Date(dataTerminoIntro) : null;
+  if (dataInicioEmpresaCalc) {
+    dataInicioEmpresaCalc.setDate(dataInicioEmpresaCalc.getDate() + 1);
+    while (isFimDeSemana(dataInicioEmpresaCalc, input.folga)) {
+      dataInicioEmpresaCalc.setDate(dataInicioEmpresaCalc.getDate() + 1);
+    }
+  }
+
   return {
     meses,
     resumo: {
@@ -401,6 +433,15 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
       totalEncontros,
       totalHoras,
       inicioFormacao: formatDate(dataAdmissao),
+      encontrosIntrodutorio,
+      encontrosSemanal,
+      encontrosMensal,
+      dataTerminoContrato: formatDate(dataTerminoReal),
+      dataInicioEmpresa: dataInicioEmpresaCalc ? formatDate(dataInicioEmpresaCalc) : "",
+      dataInicioEncontroSemanal: primeiraDataSemanal ? formatDate(primeiraDataSemanal) : "",
+      dataInicioEncontroFinais: primeiraDataMensal ? formatDate(primeiraDataMensal) : "",
+      diasTeoria: dTeoriaTarget,
+      diasPratica: dPraticaTarget,
     },
     nomeAprendiz: input.nomeAprendiz,
     curso: input.curso,
