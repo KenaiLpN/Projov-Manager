@@ -13,7 +13,7 @@ const OPCOES_BOTOES = [
   { id: 3, label: "Ativos Por Cidade" },
   { id: 4, label: "Desligados No Período" },
   { id: 5, label: "Desligador Por Motivo" },
-  { id: 6, label: "Alocações No Período" },
+  { id: 6, label: "Alocações Por Parceiro" },
   { id: 7, label: "Ativos Por Unidade" },
   { id: 8, label: "Tipo de Pagamento" },
   { id: 9, label: "Como Conheceu ProJov" },
@@ -478,8 +478,6 @@ export default function ListaJovensCargaHorariaPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-white border-b border-gray-200">
-                      <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Cidade</th>
-                      <th className="p-3 text-sm font-bold text-gray-800">Quantidade</th>
 
                       <th className="p-3 text-sm font-bold text-gray-800">Nome</th>
                       <th className="p-3 text-sm font-bold text-gray-800">Turma</th>
@@ -498,9 +496,9 @@ export default function ListaJovensCargaHorariaPage() {
                   </thead>
                   <tbody>
                     {loading ? (
-                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Carregando dados...</td></tr>
+                      <tr><td colSpan={11} className="p-8 text-center text-gray-500 italic">Carregando dados...</td></tr>
                     ) : currentItems.length === 0 ? (
-                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado.</td></tr>
+                      <tr><td colSpan={11} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado.</td></tr>
                     ) : (
                       currentItems.map((item, idx) => (
                         <tr 
@@ -565,25 +563,479 @@ export default function ListaJovensCargaHorariaPage() {
             </div>
           </div>
         );
+      case 5:
+        return (
+          <div className="p-6 bg-white rounded-xl shadow-sm border border-green-100">
+            <h3 className="text-lg font-bold text-green-800 mb-4">Desligados Por Motivo</h3>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 font-medium">Procurar:</span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded p-1.5 text-sm outline-none w-64 focus:border-[#133c86]"
+                    placeholder="Filtrar por motivo..."
+                  />
+                </div>
+                
+                {/* Info de contagem */}
+                <span className="text-xs text-gray-500 font-medium">
+                  Mostrando {currentItems.length} de {filteredData.length} registros
+                </span>
+              </div>
 
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white border-b border-gray-200">
 
+                      <th className="p-3 text-sm font-bold text-gray-800">Motivo</th>
+                      <th className="p-3 text-sm font-bold text-gray-800">Quantidade</th>
 
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Carregando dados...</td></tr>
+                    ) : currentItems.length === 0 ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado.</td></tr>
+                    ) : (
+                      currentItems.map((item, idx) => (
+                        <tr 
+                          key={idx} 
+                          className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}
+                        >
+                          {/* Usei text-xs e reduzi o padding lateral (px-2) e vertical (py-2) */}
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.Motivo}</td>
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.Qtde}</td>
+                        </tr>                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
+              {/* --- CONTROLES DE PAGINAÇÃO --- */}
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Página <strong>{currentPage}</strong> de <strong>{totalPages || 1}</strong>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Anterior
+                  </button>
+                  
+                  {/* Números das páginas (Opcional - simplificado) */}
+                  <div className="flex gap-1">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`px-3 py-1 text-sm border rounded transition-all ${currentPage === i + 1 ? "bg-[#133c86] text-white border-[#133c86]" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                      >
+                        {i + 1}
+                      </button>
+                    )).slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))}
+                  </div>
 
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Próximo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
+      case 6:
+        return (
+          <div className="p-6 bg-white rounded-xl shadow-sm border border-green-100">
+            <h3 className="text-lg font-bold text-green-800 mb-4">Alocações Por Parceiro</h3>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 font-medium">Procurar:</span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded p-1.5 text-sm outline-none w-64 focus:border-[#133c86]"
+                    placeholder="Filtrar por parceiro..."
+                  />
+                </div>
+                
+                {/* Info de contagem */}
+                <span className="text-xs text-gray-500 font-medium">
+                  Mostrando {currentItems.length} de {filteredData.length} registros
+                </span>
+              </div>
 
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white border-b border-gray-200">
 
+                      <th className="p-3 text-sm font-bold text-gray-800">Parceiro</th>
+                      <th className="p-3 text-sm font-bold text-gray-800">Aprendizes Alocados</th>
 
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Carregando dados...</td></tr>
+                    ) : currentItems.length === 0 ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado.</td></tr>
+                    ) : (
+                      currentItems.map((item, idx) => (
+                        <tr 
+                          key={idx} 
+                          className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}
+                        >
+                          {/* Usei text-xs e reduzi o padding lateral (px-2) e vertical (py-2) */}
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.NomeFantasia}</td>
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.Qtde}</td>
+                        </tr>                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
+              {/* --- CONTROLES DE PAGINAÇÃO --- */}
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Página <strong>{currentPage}</strong> de <strong>{totalPages || 1}</strong>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Anterior
+                  </button>
+                  
+                  {/* Números das páginas (Opcional - simplificado) */}
+                  <div className="flex gap-1">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`px-3 py-1 text-sm border rounded transition-all ${currentPage === i + 1 ? "bg-[#133c86] text-white border-[#133c86]" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                      >
+                        {i + 1}
+                      </button>
+                    )).slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))}
+                  </div>
 
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Próximo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
+      case 7:
+        return (
+          <div className="p-6 bg-white rounded-xl shadow-sm border border-green-100">
+            <h3 className="text-lg font-bold text-green-800 mb-4">Ativos Por Unidade</h3>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 font-medium">Procurar:</span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded p-1.5 text-sm outline-none w-64 focus:border-[#133c86]"
+                    placeholder="Filtrar por unidade..."
+                  />
+                </div>
+                
+                {/* Info de contagem */}
+                <span className="text-xs text-gray-500 font-medium">
+                  Mostrando {currentItems.length} de {filteredData.length} registros
+                </span>
+              </div>
 
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white border-b border-gray-200">
 
+                      <th className="p-3 text-sm font-bold text-gray-800">Unidade</th>
+                      <th className="p-3 text-sm font-bold text-gray-800">Aprendizes Por Unidade</th>
 
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Carregando dados...</td></tr>
+                    ) : currentItems.length === 0 ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado.</td></tr>
+                    ) : (
+                      currentItems.map((item, idx) => (
+                        <tr 
+                          key={idx} 
+                          className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}
+                        >
+                          {/* Usei text-xs e reduzi o padding lateral (px-2) e vertical (py-2) */}
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.Unidade}</td>
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.Qtde}</td>
+                        </tr>                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
+              {/* --- CONTROLES DE PAGINAÇÃO --- */}
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Página <strong>{currentPage}</strong> de <strong>{totalPages || 1}</strong>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Anterior
+                  </button>
+                  
+                  {/* Números das páginas (Opcional - simplificado) */}
+                  <div className="flex gap-1">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`px-3 py-1 text-sm border rounded transition-all ${currentPage === i + 1 ? "bg-[#133c86] text-white border-[#133c86]" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                      >
+                        {i + 1}
+                      </button>
+                    )).slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))}
+                  </div>
 
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Próximo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
+      case 8:
+        return (
+          <div className="p-6 bg-white rounded-xl shadow-sm border border-green-100">
+            <h3 className="text-lg font-bold text-green-800 mb-4">Tipo De Pagamento</h3>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 font-medium">Procurar:</span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded p-1.5 text-sm outline-none w-64 focus:border-[#133c86]"
+                    placeholder="Filtrar por tipo de pagamento..."
+                  />
+                </div>
+                
+                {/* Info de contagem */}
+                <span className="text-xs text-gray-500 font-medium">
+                  Mostrando {currentItems.length} de {filteredData.length} registros
+                </span>
+              </div>
 
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white border-b border-gray-200">
+
+                      <th className="p-3 text-sm font-bold text-gray-800">Tipo de Pagamento</th>
+                      <th className="p-3 text-sm font-bold text-gray-800">Aprendizes Por Tipo</th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Carregando dados...</td></tr>
+                    ) : currentItems.length === 0 ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado.</td></tr>
+                    ) : (
+                      currentItems.map((item, idx) => (
+                        <tr 
+                          key={idx} 
+                          className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}
+                        >
+                          {/* Usei text-xs e reduzi o padding lateral (px-2) e vertical (py-2) */}
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.TipoPagamento}</td>
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.Qtde}</td>
+                        </tr>                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* --- CONTROLES DE PAGINAÇÃO --- */}
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Página <strong>{currentPage}</strong> de <strong>{totalPages || 1}</strong>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Anterior
+                  </button>
+                  
+                  {/* Números das páginas (Opcional - simplificado) */}
+                  <div className="flex gap-1">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`px-3 py-1 text-sm border rounded transition-all ${currentPage === i + 1 ? "bg-[#133c86] text-white border-[#133c86]" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                      >
+                        {i + 1}
+                      </button>
+                    )).slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Próximo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 9:
+        return (
+          <div className="p-6 bg-white rounded-xl shadow-sm border border-green-100">
+            <h3 className="text-lg font-bold text-green-800 mb-4">Como Conheceu A Instituição</h3>
+            
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 font-medium">Procurar:</span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded p-1.5 text-sm outline-none w-64 focus:border-[#133c86]"
+                    placeholder="Filtrar por como conheceu..."
+                  />
+                </div>
+                
+                {/* Info de contagem */}
+                <span className="text-xs text-gray-500 font-medium">
+                  Mostrando {currentItems.length} de {filteredData.length} registros
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white border-b border-gray-200">
+
+                      <th className="p-3 text-sm font-bold text-gray-800">Como Conheceu</th>
+                      <th className="p-3 text-sm font-bold text-gray-800">Aprendizes</th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Carregando dados...</td></tr>
+                    ) : currentItems.length === 0 ? (
+                      <tr><td colSpan={2} className="p-8 text-center text-gray-500 italic">Nenhum registro encontrado.</td></tr>
+                    ) : (
+                      currentItems.map((item, idx) => (
+                        <tr 
+                          key={idx} 
+                          className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50/50 transition-colors border-b border-gray-100`}
+                        >
+                          {/* Usei text-xs e reduzi o padding lateral (px-2) e vertical (py-2) */}
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.ComoConheceu}</td>
+                          <td className="p-2 text-xs text-gray-700 font-medium">{item.Qtde}</td>
+                        </tr>                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* --- CONTROLES DE PAGINAÇÃO --- */}
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Página <strong>{currentPage}</strong> de <strong>{totalPages || 1}</strong>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Anterior
+                  </button>
+                  
+                  {/* Números das páginas (Opcional - simplificado) */}
+                  <div className="flex gap-1">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`px-3 py-1 text-sm border rounded transition-all ${currentPage === i + 1 ? "bg-[#133c86] text-white border-[#133c86]" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+                      >
+                        {i + 1}
+                      </button>
+                    )).slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0 || loading}
+                    className="p-2 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Próximo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
 
 
