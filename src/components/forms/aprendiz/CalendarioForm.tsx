@@ -9,6 +9,7 @@ import {
   CalendarioInput,
 } from "@/utils/calendarioAprendizagem";
 import { toast } from "react-hot-toast";
+import api from "@/services/api";
 
 interface Props {
   formData: CA_Aprendiz;
@@ -33,11 +34,23 @@ interface TurmaCalendario {
   TurNome: string;
 }
 
+interface UnidadeParceiro {
+  ParUniCodigo: number;
+  ParUniCodigoParceiro: number;
+  ParUniDescricao: string;
+}
+
+interface AlocacaoResumo {
+  ALAAprendiz?: number;
+  ALATurma?: number;
+}
+
 type CalendarioDraftData = AprendizFormData & {
   CalTurma?: string;
   CalTurmaIntrodutorio?: string;
   CalTurmaEncontroSemanal?: string;
   CalTurmaEncontroMensal?: string;
+  CalUnidadeParceiro?: string;
 };
 
 export const CalendarioForm = React.memo(function CalendarioForm({
@@ -55,6 +68,10 @@ export const CalendarioForm = React.memo(function CalendarioForm({
 }: Props) {
   const [calendarioGerado, setCalendarioGerado] = useState<CalendarioGerado | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [turmaCounts, setTurmaCounts] = useState<Record<string, number>>({});
+  const [loadingTurmaCounts, setLoadingTurmaCounts] = useState(false);
+  const [unidadesParceiro, setUnidadesParceiro] = useState<UnidadeParceiro[]>([]);
+  const [enturmando, setEnturmando] = useState(false);
 
   const calendarioDraft = calFormData as CalendarioDraftData;
   const isTurmaMode = calendarMode === "turma";
@@ -70,6 +87,98 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     setCalendarioGerado(null);
     setShowPreview(false);
   }, [calendarMode, selectedTurma]);
+
+  useEffect(() => {
+    if (!isTurmaMode) return;
+
+    const addToCounts = (
+      counts: Record<string, Set<number | string>>,
+      alocacoes: AlocacaoResumo[],
+      fallbackAprendiz?: number | string,
+    ) => {
+      alocacoes.forEach((alocacao) => {
+        if (!alocacao.ALATurma) return;
+        const turmaKey = String(alocacao.ALATurma);
+        const aprendizKey = alocacao.ALAAprendiz ?? fallbackAprendiz ?? `${turmaKey}-${Math.random()}`;
+        if (!counts[turmaKey]) counts[turmaKey] = new Set();
+        counts[turmaKey].add(aprendizKey);
+      });
+    };
+
+    const loadCounts = async () => {
+      setLoadingTurmaCounts(true);
+      try {
+        const counts: Record<string, Set<number | string>> = {};
+        let loaded = false;
+
+        for (const endpoint of ["/ca-aprendiz/alocacoes?limit=10000", "/alocacoes?limit=10000"]) {
+          try {
+            const res = await api.get(endpoint);
+            const lista = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+            if (Array.isArray(lista)) {
+              addToCounts(counts, lista);
+              loaded = true;
+              break;
+            }
+          } catch {}
+        }
+
+        if (!loaded) {
+          const aprendizesRes = await api.get("/ca-aprendiz?limit=10000");
+          const aprendizes = Array.isArray(aprendizesRes.data)
+            ? aprendizesRes.data
+            : (aprendizesRes.data?.data ?? []);
+          const ids: number[] = aprendizes
+            .map((a: CA_Aprendiz) => a.Apr_Codigo)
+            .filter((id: number | null | undefined): id is number => id != null);
+
+          for (let i = 0; i < ids.length; i += 20) {
+            const chunk = ids.slice(i, i + 20);
+            const results = await Promise.allSettled(
+              chunk.map((id) => api.get(`/ca-aprendiz/${id}/alocacoes`).then((res) => ({ id, data: res.data }))),
+            );
+            results.forEach((result) => {
+              if (result.status !== "fulfilled") return;
+              const lista = Array.isArray(result.value.data) ? result.value.data : [];
+              addToCounts(counts, lista, result.value.id);
+            });
+          }
+        }
+
+        setTurmaCounts(
+          Object.fromEntries(
+            Object.entries(counts).map(([turmaId, aprendizes]) => [turmaId, aprendizes.size]),
+          ),
+        );
+      } catch {
+        setTurmaCounts({});
+      } finally {
+        setLoadingTurmaCounts(false);
+      }
+    };
+
+    loadCounts();
+  }, [isTurmaMode]);
+
+  useEffect(() => {
+    if (!isTurmaMode || !formData.Apr_InstParceira) {
+      setUnidadesParceiro([]);
+      return;
+    }
+
+    api
+      .get(`/unidades-parceiro?limit=1000&empresaId=${formData.Apr_InstParceira}`)
+      .then((res) => {
+        const lista: UnidadeParceiro[] = res.data?.data ?? [];
+        setUnidadesParceiro(lista);
+        if (!calendarioDraft.CalUnidadeParceiro && lista.length === 1) {
+          handleCalChange({
+            target: { name: "CalUnidadeParceiro", value: String(lista[0].ParUniCodigo) },
+          } as React.ChangeEvent<HTMLInputElement>);
+        }
+      })
+      .catch(() => setUnidadesParceiro([]));
+  }, [isTurmaMode, formData.Apr_InstParceira, calendarioDraft.CalUnidadeParceiro, handleCalChange]);
 
   useEffect(() => {
     const cursoId = formData.Apr_AreaAtuacao;
@@ -163,6 +272,118 @@ export const CalendarioForm = React.memo(function CalendarioForm({
       return;
     }
     setShowPreview(true);
+  };
+
+  const parseResumoDateToIso = (value?: string) => {
+    if (!value) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const [dia, mes, ano] = value.split("/");
+    if (!dia || !mes || !ano) return "";
+    return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+  };
+
+  const enturmarAprendiz = async () => {
+    if (!isTurmaMode) return;
+    if (!calendarioGerado) {
+      toast.error("Calcule o calendário antes de enturmar.");
+      return;
+    }
+    if (!formData.Apr_Codigo) {
+      toast.error("Salve o aprendiz antes de enturmar.");
+      return;
+    }
+    if (!calendarioDraft.CalTurmaIntrodutorio || !calendarioDraft.CalTurmaEncontroSemanal) {
+      toast.error("Selecione a turma do introdutório e a turma do encontro semanal.");
+      return;
+    }
+    if (!calendarioDraft.CalUnidadeParceiro) {
+      toast.error("Selecione a unidade parceira.");
+      return;
+    }
+
+    setEnturmando(true);
+    try {
+      const current = await api
+        .get(`/ca-aprendiz/${formData.Apr_Codigo}/alocacoes`)
+        .then((res) => (Array.isArray(res.data) ? res.data : []))
+        .catch(() => []);
+      const turmasJaAlocadas = new Set(current.map((a: AlocacaoResumo) => String(a.ALATurma)));
+      const observacao = `Enturmação gerada pelo calendário de turmas. Dias teoria: ${calFormData.CalDiasAprendizagemTeorica || calendarioGerado.resumo.diasTeoria}; dias prática: ${calFormData.CalDiasAprendizagemPratica || calendarioGerado.resumo.diasPratica}.`;
+      const basePayload = {
+        ALAUnidadeParceiro: calendarioDraft.CalUnidadeParceiro,
+        ALAStatus: "A",
+        ALATutor: "",
+        ALADataTermino: "",
+        ALAInicioExpediente: "",
+        ALATerminoExpediente: "",
+        ALAValorBolsa: 0,
+        ALAValorTaxa: 0,
+        ALAValorEncargos: 0,
+        ALAObservacao: observacao,
+        ALApagto: formData.Apr_TipoContrato || "E",
+        ALAOrientador: "",
+        ALAMotivoDesligamento: "",
+        ALAAreaAtuacao: formData.Apr_AreaAtuacao ? String(formData.Apr_AreaAtuacao) : "",
+      };
+      const alocacoes = [
+        {
+          nome: "introdutório",
+          payload: {
+            ...basePayload,
+            ALATurma: calendarioDraft.CalTurmaIntrodutorio,
+            ALADataInicio: formData.Apr_InicioAprendizagem || "",
+            ALADataPrevTermino:
+              calFormData.CalDataTerminoIntrodutorios ||
+              parseResumoDateToIso(calendarioGerado.resumo.inicioFormacao),
+          },
+        },
+        {
+          nome: "encontro semanal",
+          payload: {
+            ...basePayload,
+            ALATurma: calendarioDraft.CalTurmaEncontroSemanal,
+            ALADataInicio:
+              calFormData.CalDataInicioEncontroSemanal ||
+              parseResumoDateToIso(calendarioGerado.resumo.dataInicioEncontroSemanal),
+            ALADataPrevTermino:
+              formData.Apr_PrevFimAprendizagem ||
+              parseResumoDateToIso(calendarioGerado.resumo.dataTerminoContrato),
+          },
+        },
+      ].filter(({ payload }) => !turmasJaAlocadas.has(String(payload.ALATurma)));
+
+      if (alocacoes.length === 0) {
+        toast("As turmas selecionadas já estão alocadas para este aprendiz.", { icon: "ℹ️" });
+        return;
+      }
+
+      await Promise.all(
+        alocacoes.map(({ payload }) => api.post(`/ca-aprendiz/${formData.Apr_Codigo}/alocacoes`, payload)),
+      );
+      toast.success(
+        alocacoes.length === 1
+          ? `Alocação de ${alocacoes[0].nome} criada.`
+          : "Alocações do introdutório e encontro semanal criadas.",
+      );
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? "Erro ao enturmar aprendiz.";
+      toast.error(msg);
+    } finally {
+      setEnturmando(false);
+    }
+  };
+
+  const turmasOrdenadasPorLotacao = [...turmas].sort((a, b) => {
+    const countA = turmaCounts[String(a.TurCodigo)] ?? 0;
+    const countB = turmaCounts[String(b.TurCodigo)] ?? 0;
+    if (countA !== countB) return countA - countB;
+    return a.TurNome.localeCompare(b.TurNome, "pt-BR");
+  });
+
+  const turmaOptionLabel = (turma: TurmaCalendario) => {
+    const count = turmaCounts[String(turma.TurCodigo)] ?? 0;
+    const suffix = count === 1 ? "aprendiz" : "aprendizes";
+    return `${turma.TurNome} (${loadingTurmaCounts ? "..." : `${count} ${suffix}`})`;
   };
 
   const inputCls = "p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all";
@@ -268,8 +489,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Turma Introdutório</label>
                 <select name="CalTurmaIntrodutorio" value={calendarioDraft.CalTurmaIntrodutorio || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Selecione...</option>
-                  {turmas.map((t) => (
-                    <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
+                  {turmasOrdenadasPorLotacao.map((t) => (
+                    <option key={t.TurCodigo} value={t.TurCodigo}>{turmaOptionLabel(t)}</option>
                   ))}
                 </select>
               </div>
@@ -278,8 +499,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Turma Encontro Semanal</label>
                 <select name="CalTurmaEncontroSemanal" value={calendarioDraft.CalTurmaEncontroSemanal || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Selecione...</option>
-                  {turmas.map((t) => (
-                    <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
+                  {turmasOrdenadasPorLotacao.map((t) => (
+                    <option key={t.TurCodigo} value={t.TurCodigo}>{turmaOptionLabel(t)}</option>
                   ))}
                 </select>
               </div>
@@ -293,8 +514,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Turma Encontro Mensal</label>
                 <select name="CalTurmaEncontroMensal" value={calendarioDraft.CalTurmaEncontroMensal || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Não se aplica</option>
-                  {turmas.map((t) => (
-                    <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
+                  {turmasOrdenadasPorLotacao.map((t) => (
+                    <option key={t.TurCodigo} value={t.TurCodigo}>{turmaOptionLabel(t)}</option>
                   ))}
                 </select>
               </div>
@@ -336,6 +557,24 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                   <option value="">Selecione...</option>
                   {parceiros.map((p: any) => (
                     <option key={p.ParCodigo} value={p.ParCodigo}>{p.ParDescricao}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-4">
+                <label className={turmaLabelCls}>Unidade Parceira</label>
+                <select
+                  name="CalUnidadeParceiro"
+                  value={calendarioDraft.CalUnidadeParceiro || ""}
+                  onChange={handleCalChange}
+                  disabled={!formData.Apr_InstParceira}
+                  className={inputCls}
+                >
+                  <option value="">{formData.Apr_InstParceira ? "Selecione..." : "Selecione a empresa..."}</option>
+                  {unidadesParceiro.map((u) => (
+                    <option key={u.ParUniCodigo} value={u.ParUniCodigo}>
+                      {u.ParUniDescricao} - {u.ParUniCodigo}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -737,6 +976,17 @@ export const CalendarioForm = React.memo(function CalendarioForm({
               <Eye size={18} />
               Visualizar Calendário
             </button>
+            {isTurmaMode && (
+              <button
+                type="button"
+                onClick={enturmarAprendiz}
+                disabled={!calendarioGerado || enturmando}
+                className="flex items-center gap-2 px-6 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Users size={18} />
+                {enturmando ? "Enturmando..." : "Enturmar"}
+              </button>
+            )}
           </div>
 
           {/* ── Resumo do calendário gerado ── */}
