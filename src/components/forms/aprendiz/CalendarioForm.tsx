@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { CalendarDays, Calculator, Eye } from "lucide-react";
+import { CalendarDays, Calculator, Eye, Users } from "lucide-react";
 import { CA_Aprendiz } from "@/types";
 import { AprendizFormData } from "./types";
 import { CalendarioPreview } from "./CalendarioPreview";
@@ -23,7 +23,22 @@ interface Props {
   instituicoes: any[];
   parceiros: any[];
   cursos: any[];
+  turmas?: TurmaCalendario[];
+  calendarMode?: "aprendiz" | "turma";
+  onCalendarModeChange?: (mode: "aprendiz" | "turma") => void;
 }
+
+interface TurmaCalendario {
+  TurCodigo: number | string;
+  TurNome: string;
+}
+
+type CalendarioDraftData = AprendizFormData & {
+  CalTurma?: string;
+  CalTurmaIntrodutorio?: string;
+  CalTurmaEncontroSemanal?: string;
+  CalTurmaEncontroMensal?: string;
+};
 
 export const CalendarioForm = React.memo(function CalendarioForm({
   formData,
@@ -34,9 +49,27 @@ export const CalendarioForm = React.memo(function CalendarioForm({
   instituicoes,
   parceiros,
   cursos,
+  turmas = [],
+  calendarMode = "aprendiz",
+  onCalendarModeChange,
 }: Props) {
   const [calendarioGerado, setCalendarioGerado] = useState<CalendarioGerado | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+
+  const calendarioDraft = calFormData as CalendarioDraftData;
+  const isTurmaMode = calendarMode === "turma";
+  const selectedTurma =
+    calendarioDraft.CalTurmaEncontroSemanal ||
+    calendarioDraft.CalTurmaIntrodutorio ||
+    calendarioDraft.CalTurma ||
+    (formData.Apr_Turma ? String(formData.Apr_Turma) : "");
+  const selectedTurmaNome =
+    turmas.find((t) => String(t.TurCodigo) === String(selectedTurma))?.TurNome || "";
+
+  useEffect(() => {
+    setCalendarioGerado(null);
+    setShowPreview(false);
+  }, [calendarMode, selectedTurma]);
 
   useEffect(() => {
     const cursoId = formData.Apr_AreaAtuacao;
@@ -66,6 +99,10 @@ export const CalendarioForm = React.memo(function CalendarioForm({
   }, [formData.Apr_AreaAtuacao, formData.Apr_HorasDiarias]);
 
   const gerarCalendarioHandler = () => {
+    if (isTurmaMode && !selectedTurma) {
+      toast.error("Selecione a turma do encontro semanal.");
+      return;
+    }
     if (!formData.Apr_InicioAprendizagem) {
       toast.error("Preencha a Data de Admissão.");
       return;
@@ -86,7 +123,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
       )?.AreaDescricao || String(formData.Apr_AreaAtuacao || "");
 
     const input: CalendarioInput = {
-      nomeAprendiz:             formData.Apr_Nome || "",
+      nomeAprendiz:             isTurmaMode ? (selectedTurmaNome || "Calendário de Turma") : (formData.Apr_Nome || ""),
       curso:                    cursoNome,
       empresa:                  empresaNome,
       jornadaDiaria:            String(formData.Apr_HorasDiarias || "4"),
@@ -130,20 +167,241 @@ export const CalendarioForm = React.memo(function CalendarioForm({
 
   const inputCls = "p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all";
   const labelCls = "text-xs font-bold text-gray-500 uppercase";
+  const turmaLabelCls = "text-xs font-semibold text-gray-700 leading-tight min-h-8 flex items-end";
+  const modeOptions = [
+    { id: "aprendiz" as const, label: "Calendário", icon: CalendarDays },
+    { id: "turma" as const, label: "Calendário de Turmas", icon: Users },
+  ];
 
   return (
     <>
       <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-          <CalendarDays size={18} className="text-[#133c86]" />
-          <h2 className="font-bold text-gray-700 uppercase text-xs tracking-wider">
-            Calendário
-          </h2>
+        <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            {isTurmaMode ? (
+              <Users size={18} className="text-[#133c86]" />
+            ) : (
+              <CalendarDays size={18} className="text-[#133c86]" />
+            )}
+            <h2 className="font-bold text-gray-700 uppercase text-xs tracking-wider">
+              {isTurmaMode ? "Calendário de Turmas" : "Calendário"}
+            </h2>
+          </div>
+          <div className="inline-flex w-full rounded-xl bg-white border border-gray-200 p-1 shadow-sm sm:w-auto" role="tablist" aria-label="Tipo de calendario">
+            {modeOptions.map((option) => {
+              const Icon = option.icon;
+              const active = calendarMode === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => onCalendarModeChange?.(option.id)}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all whitespace-nowrap sm:flex-none ${
+                    active
+                      ? "bg-[#133c86] text-white shadow"
+                      : "text-gray-500 hover:bg-gray-50 hover:text-[#133c86]"
+                  }`}
+                >
+                  <Icon size={16} />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="p-8 space-y-8">
+          {isTurmaMode ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-x-6 gap-y-5">
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Código</label>
+                <input value={formData.Apr_Codigo ?? ""} readOnly className={`${inputCls} bg-gray-100`} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-10">
+                <label className={turmaLabelCls}>Aprendiz</label>
+                <input value={formData.Apr_Nome ?? ""} readOnly className={`${inputCls} bg-gray-100`} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Curso</label>
+                <select name="Apr_AreaAtuacao" value={formData.Apr_AreaAtuacao ?? ""} onChange={handleChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  {cursos.map((c: any) => (
+                    <option key={c.AreaCodigo} value={c.AreaCodigo}>{c.AreaDescricao}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Jornada Diária</label>
+                <select name="Apr_HorasDiarias" value={formData.Apr_HorasDiarias ?? ""} onChange={handleChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  <option value="4">4 horas</option>
+                  <option value="6">6 horas</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Dias de Aprendizagem Teórica</label>
+                <input name="CalDiasAprendizagemTeorica" type="number" value={calFormData.CalDiasAprendizagemTeorica || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Dias de Aprendizagem Prática</label>
+                <input name="CalDiasAprendizagemPratica" type="number" value={calFormData.CalDiasAprendizagemPratica || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Data admissão</label>
+                <input type="date" name="Apr_InicioAprendizagem" value={formData.Apr_InicioAprendizagem ?? ""} onChange={handleChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Data de Término Introdutórios</label>
+                <input type="date" name="CalDataTerminoIntrodutorios" value={calFormData.CalDataTerminoIntrodutorios || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-3">
+                <label className={turmaLabelCls}>Turma Introdutório</label>
+                <select name="CalTurmaIntrodutorio" value={calendarioDraft.CalTurmaIntrodutorio || ""} onChange={handleCalChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  {turmas.map((t) => (
+                    <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-3">
+                <label className={turmaLabelCls}>Turma Encontro Semanal</label>
+                <select name="CalTurmaEncontroSemanal" value={calendarioDraft.CalTurmaEncontroSemanal || ""} onChange={handleCalChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  {turmas.map((t) => (
+                    <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Data Início Encontro Semanal</label>
+                <input type="date" name="CalDataInicioEncontroSemanal" value={calFormData.CalDataInicioEncontroSemanal || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Turma Encontro Mensal</label>
+                <select name="CalTurmaEncontroMensal" value={calendarioDraft.CalTurmaEncontroMensal || ""} onChange={handleCalChange} className={inputCls}>
+                  <option value="">Não se aplica</option>
+                  {turmas.map((t) => (
+                    <option key={t.TurCodigo} value={t.TurCodigo}>{t.TurNome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Folga</label>
+                <select name="CalFolga" value={calFormData.CalFolga || ""} onChange={handleCalChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  <option value="Normal">Normal</option>
+                  <option value="Sábado">Sábado</option>
+                  <option value="Domingo">Domingo</option>
+                  <option value="Sábado e Domingo">Sábado e Domingo</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Unidade Feriado Teoria</label>
+                <select name="CalUnidadeFeriadoTeoria" value={calFormData.CalUnidadeFeriadoTeoria || ""} onChange={handleCalChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  {unidades.map((u: any) => (
+                    <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Unidade Feriado Prática</label>
+                <select name="CalUnidadeFeriadoPratica" value={calFormData.CalUnidadeFeriadoPratica || ""} onChange={handleCalChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  {unidades.map((u: any) => (
+                    <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-4">
+                <label className={turmaLabelCls}>Empresa</label>
+                <select name="Apr_InstParceira" value={formData.Apr_InstParceira ?? ""} onChange={handleChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  {parceiros.map((p: any) => (
+                    <option key={p.ParCodigo} value={p.ParCodigo}>{p.ParDescricao}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Período férias de</label>
+                <input type="date" name="Apr_DataInicioFerias" value={formData.Apr_DataInicioFerias ?? ""} onChange={handleChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Período férias até</label>
+                <input type="date" name="Apr_DataTerminoFerias" value={formData.Apr_DataTerminoFerias ?? ""} onChange={handleChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-3">
+                <label className={turmaLabelCls}>Período Férias 2 De</label>
+                <input type="date" name="CalPeriodoFerias2De" value={calFormData.CalPeriodoFerias2De || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-3">
+                <label className={turmaLabelCls}>Período Férias 2 Até</label>
+                <input type="date" name="CalPeriodoFerias2Ate" value={calFormData.CalPeriodoFerias2Ate || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Período Suspensão de</label>
+                <input type="date" name="CalPeriodoSuspensaoDe" value={calFormData.CalPeriodoSuspensaoDe || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Período Suspensão até</label>
+                <input type="date" name="CalPeriodoSuspensaoAte" value={calFormData.CalPeriodoSuspensaoAte || ""} onChange={handleCalChange} className={inputCls} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 xl:col-span-2">
+                <label className={turmaLabelCls}>Tipo de Pagamento</label>
+                <select name="Apr_TipoContrato" value={formData.Apr_TipoContrato ?? ""} onChange={handleChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  <option value="C">Projov</option>
+                  <option value="E">Empresa</option>
+                </select>
+              </div>
+            </div>
+          ) : (
+            <>
           {/* ── Parâmetros básicos (persistidos em CA_Aprendiz) ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {isTurmaMode && (
+              <div className="flex flex-col gap-1.5">
+                <label className={labelCls}>Turma</label>
+                <select
+                  name="CalTurma"
+                  value={selectedTurma}
+                  onChange={handleCalChange}
+                  className={inputCls}
+                >
+                  <option value="">Selecione...</option>
+                  {turmas.map((t) => (
+                    <option key={t.TurCodigo} value={t.TurCodigo}>
+                      {t.TurNome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Curso → Apr_AreaAtuacao */}
             <div className="flex flex-col gap-1.5">
               <label className={labelCls}>Curso</label>
@@ -456,6 +714,9 @@ export const CalendarioForm = React.memo(function CalendarioForm({
               </div>
             </div>
           </div>
+
+            </>
+          )}
 
           {/* ── Botões ── */}
           <div className="border-t border-gray-100 pt-6 flex flex-wrap gap-4">

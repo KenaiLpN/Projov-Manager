@@ -862,6 +862,7 @@ function CadastroForm() {
   const [formData, setFormData] = useState<CA_Aprendiz>({});
   const [calFormData, setCalFormData] = useState<AprendizFormData>({ NomeJovem: "" });
   const [rascunhoSalvoEm, setRascunhoSalvoEm] = useState<Date | null>(null);
+  const [calendarMode, setCalendarMode] = useState<"aprendiz" | "turma">("aprendiz");
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextDraftSave = useRef(false);
 
@@ -879,8 +880,21 @@ function CadastroForm() {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
+    if (tab === "calendario-turma") {
+      setActiveTab("calendario");
+      setCalendarMode("turma");
+      return;
+    }
+    if (tab === "calendario") setCalendarMode("aprendiz");
     if (tab && tabs.some(t => t.id === tab)) setActiveTab(tab);
   }, [searchParams]);
+
+  const handleCalendarModeChange = useCallback((mode: "aprendiz" | "turma") => {
+    setCalendarMode(mode);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", mode === "turma" ? "calendario-turma" : "calendario");
+    router.replace(`/aprendizes/cadaprendizes?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
 
   useEffect(() => {
     const userStr = localStorage.getItem("projov_user");
@@ -1159,7 +1173,7 @@ function CadastroForm() {
           </div>
         </header>
 
-        <div className="p-6 max-w-7xl mx-auto w-full">
+        <div className={`p-6 mx-auto w-full ${activeTab === "calendario" ? "max-w-[1560px]" : "max-w-7xl"}`}>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 p-1 flex gap-1 overflow-x-auto">
             {tabs.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -1181,7 +1195,7 @@ function CadastroForm() {
             {activeTab === "familiares"   && <TabFamiliares f={formData} hc={handleChange} />}
             {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
             {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
-            {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} parceiros={parceiros} cursos={areasAtuacao} />}
+            {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} parceiros={parceiros} cursos={areasAtuacao} turmas={turmas} calendarMode={calendarMode} onCalendarModeChange={handleCalendarModeChange} />}
             {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} aprendizNome={formData.Apr_Nome || ""} turmas={turmas} motivos={motivos} />}
             {activeTab === "capacitacoes" && editingId && <TabCapacitacao aprendizId={Number(editingId)} turmas={TURMAS_ENC} unidades={unidades} />}
           </div>
