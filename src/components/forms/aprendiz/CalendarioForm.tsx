@@ -32,6 +32,15 @@ interface Props {
 interface TurmaCalendario {
   TurCodigo: number | string;
   TurNome: string;
+  TurCurso?: string | null;
+  TurDiaSemana?: string | null;
+  TurDiaSemana02?: string | null;
+  TurSemanaEncontro?: string | null;
+}
+
+interface CursoTurma {
+  CurCodigo: string;
+  CurDescricao: string | null;
 }
 
 interface UnidadeParceiro {
@@ -71,6 +80,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
   const [turmaCounts, setTurmaCounts] = useState<Record<string, number>>({});
   const [loadingTurmaCounts, setLoadingTurmaCounts] = useState(false);
   const [unidadesParceiro, setUnidadesParceiro] = useState<UnidadeParceiro[]>([]);
+  const [cursosTurma, setCursosTurma] = useState<CursoTurma[]>([]);
   const [enturmando, setEnturmando] = useState(false);
 
   const calendarioDraft = calFormData as CalendarioDraftData;
@@ -82,11 +92,78 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     (formData.Apr_Turma ? String(formData.Apr_Turma) : "");
   const selectedTurmaNome =
     turmas.find((t) => String(t.TurCodigo) === String(selectedTurma))?.TurNome || "";
+  const selectedTurmaEncontroSemanal = turmas.find(
+    (t) => String(t.TurCodigo) === String(calendarioDraft.CalTurmaEncontroSemanal || ""),
+  );
 
   useEffect(() => {
     setCalendarioGerado(null);
     setShowPreview(false);
   }, [calendarMode, selectedTurma]);
+
+  useEffect(() => {
+    if (!isTurmaMode || !selectedTurmaEncontroSemanal) return;
+
+    const diaSemanaMap: Record<string, string> = {
+      "1": "Domingo",
+      "2": "Segunda-Feira",
+      "3": "Terça-Feira",
+      "4": "Quarta-Feira",
+      "5": "Quinta-Feira",
+      "6": "Sexta-Feira",
+      "7": "Sábado",
+    };
+    const diaMensalMap: Record<string, string> = {
+      "2": "Segunda-Feira",
+      "3": "Terça-Feira",
+      "4": "Quarta-Feira",
+      "5": "Quinta-Feira",
+      "6": "Sexta-Feira",
+    };
+    const semanaMap: Record<string, string> = {
+      "1": "Primeira Semana",
+      "2": "Segunda Semana",
+      "3": "Terceira Semana",
+      "4": "Quarta Semana",
+    };
+
+    const updates: Partial<Record<keyof AprendizFormData, string>> = {};
+    const diaSemanal = diaSemanaMap[String(selectedTurmaEncontroSemanal.TurDiaSemana02 || "")];
+    const diaMensal = diaMensalMap[String(selectedTurmaEncontroSemanal.TurDiaSemana || "")];
+    const semanaMensal = semanaMap[String(selectedTurmaEncontroSemanal.TurSemanaEncontro || "")];
+
+    if (diaSemanal && calFormData.CalDiaEncontroSemanal !== diaSemanal) {
+      updates.CalDiaEncontroSemanal = diaSemanal;
+    }
+    if (diaMensal && calFormData.CalDiaEncontroMensal !== diaMensal) {
+      updates.CalDiaEncontroMensal = diaMensal;
+    }
+    if (semanaMensal && calFormData.CalSemanaEncontroMensal !== semanaMensal) {
+      updates.CalSemanaEncontroMensal = semanaMensal;
+    }
+
+    Object.entries(updates).forEach(([name, value]) => {
+      handleCalChange({
+        target: { name, value },
+      } as React.ChangeEvent<HTMLInputElement>);
+    });
+  }, [
+    isTurmaMode,
+    selectedTurmaEncontroSemanal,
+    calFormData.CalDiaEncontroSemanal,
+    calFormData.CalDiaEncontroMensal,
+    calFormData.CalSemanaEncontroMensal,
+    handleCalChange,
+  ]);
+
+  useEffect(() => {
+    if (!isTurmaMode) return;
+
+    api
+      .get("/cursos?limit=1000")
+      .then((res) => setCursosTurma(res.data?.data ?? []))
+      .catch(() => setCursosTurma([]));
+  }, [isTurmaMode]);
 
   useEffect(() => {
     if (!isTurmaMode) return;
@@ -380,6 +457,21 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     return a.TurNome.localeCompare(b.TurNome, "pt-BR");
   });
 
+  const normalizeText = (value: string) =>
+    value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const cursosPrimeiroIntrodutorio = cursosTurma
+    .filter((curso) => {
+      const descricao = normalizeText(curso.CurDescricao || "");
+      return descricao.includes("primeiro") && descricao.includes("introdutorio");
+    })
+    .map((curso) => String(curso.CurCodigo));
+  const turmasIntrodutorioOrdenadas = turmasOrdenadasPorLotacao.filter((turma) => {
+    if (cursosPrimeiroIntrodutorio.length > 0) {
+      return cursosPrimeiroIntrodutorio.includes(String(turma.TurCurso ?? ""));
+    }
+    return normalizeText(turma.TurNome || "").includes("introdutorio");
+  });
+
   const turmaOptionLabel = (turma: TurmaCalendario) => {
     const count = turmaCounts[String(turma.TurCodigo)] ?? 0;
     const suffix = count === 1 ? "aprendiz" : "aprendizes";
@@ -489,7 +581,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Turma Introdutório</label>
                 <select name="CalTurmaIntrodutorio" value={calendarioDraft.CalTurmaIntrodutorio || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Selecione...</option>
-                  {turmasOrdenadasPorLotacao.map((t) => (
+                  {turmasIntrodutorioOrdenadas.map((t) => (
                     <option key={t.TurCodigo} value={t.TurCodigo}>{turmaOptionLabel(t)}</option>
                   ))}
                 </select>

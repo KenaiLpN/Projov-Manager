@@ -313,7 +313,7 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
         if (isFimDeSemana(date, input.folga)) {
           tipo = "finaldesemana";
         } else {
-          tipo = jaConcluiuTudo ? "inactive" : "vazio";
+          tipo = "inactive";
         }
       } else if (isFimDeSemana(date, input.folga)) {
         tipo = "finaldesemana";
