@@ -395,7 +395,7 @@ export default function CadRegistroGIPage() {
           </div>
         </div>
 
-        <Modal isOpen={isModalOpen} onClose={closeModal}>
+        <Modal isOpen={isModalOpen} onClose={closeModal} maxWidth="max-w-7xl">
           <h2 className="text-2xl font-bold m-4 text-gray-800 border-b pb-2">
             {editingId ? "Editar Registro GI" : "Novo Registro GI"}
           </h2>
