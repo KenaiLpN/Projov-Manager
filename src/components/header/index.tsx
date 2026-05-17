@@ -56,6 +56,7 @@ const navItems: NavItemWithSub[] = [
       { name: "Empresas", href: "/empresa/cadempresas" },
       { name: "Unidades de Parceiro", href: "/empresa/cadunidadeparceiro" },
       { name: "Orientadores", href: "/empresa/cadoriantadores" },
+      { name: "Registro GI", href: "/empresa/cadregistrogi" },
     ],
   },
   {
