@@ -6,6 +6,7 @@ const BACKEND_URL = (
     ? "http://127.0.0.1:3333"
     : process.env.NEXT_PUBLIC_API_URL || "https://bot-api-ff.vercel.app"
 ).trim();
+const LOGIN_PROXY_SECRET = process.env.LOGIN_PROXY_SECRET?.trim();
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -17,9 +18,16 @@ export async function POST(request: NextRequest) {
 
   let backendRes: Response;
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (LOGIN_PROXY_SECRET) {
+      headers["x-prosis-login-secret"] = LOGIN_PROXY_SECRET;
+    }
+
     backendRes = await fetch(`${BACKEND_URL}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
     });
   } catch {
