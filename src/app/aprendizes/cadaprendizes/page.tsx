@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Save, User, Briefcase, GraduationCap,
@@ -870,16 +870,16 @@ function CadastroForm() {
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextDraftSave = useRef(false);
 
-  const tabs = [
+  const tabs = useMemo(() => [
     { id: "jovem",        label: "Jovem",           icon: <User size={16} /> },
     { id: "socio",        label: "Sócio-Econômico", icon: <DollarSign size={16} /> },
     { id: "documentacao", label: "Documentação",    icon: <FileText size={16} /> },
     { id: "endereco",     label: "Endereço",        icon: <MapPin size={16} /> },
     { id: "saude",        label: "Saúde",           icon: <HeartPulse size={16} /> },
-    { id: "calendario",   label: "Calendário",      icon: <CalendarDays size={16} /> },
-    ...(editingId ? [{ id: "alocacoes",    label: "Alocações",    icon: <MapPin size={16} /> }] : []),
-    ...(editingId ? [{ id: "capacitacoes", label: "Capacitações", icon: <GraduationCap size={16} /> }] : []),
-  ];
+    ...(isAdmin ? [{ id: "calendario", label: "Calendário", icon: <CalendarDays size={16} /> }] : []),
+    ...(editingId && isAdmin ? [{ id: "alocacoes",    label: "Alocações",    icon: <MapPin size={16} /> }] : []),
+    ...(editingId && isAdmin ? [{ id: "capacitacoes", label: "Capacitações", icon: <GraduationCap size={16} /> }] : []),
+  ], [editingId, isAdmin]);
   const [activeTab, setActiveTab] = useState("jovem");
 
   useEffect(() => {
@@ -891,7 +891,13 @@ function CadastroForm() {
     }
     if (tab === "calendario") setCalendarMode("aprendiz");
     if (tab && tabs.some(t => t.id === tab)) setActiveTab(tab);
-  }, [searchParams]);
+  }, [searchParams, tabs]);
+
+  useEffect(() => {
+    if (!isAdmin && !tabs.some(t => t.id === activeTab)) {
+      setActiveTab("jovem");
+    }
+  }, [activeTab, isAdmin, tabs]);
 
   const handleCalendarModeChange = useCallback((mode: "aprendiz" | "turma") => {
     setCalendarMode(mode);

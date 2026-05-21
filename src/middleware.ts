@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+type JwtClaims = {
+  exp?: number;
+  sub?: string | number;
+  role?: string;
+  tokenTipo?: string;
+  tipoAcesso?: string;
+};
+
 // ---------------------------------------------------------------------------
 // JWT helpers (Edge Runtime — sem Node.js crypto)
 // ---------------------------------------------------------------------------
-function parseJwt(token: string) {
+function parseJwt(token: string): JwtClaims | null {
   try {
     const base64Url = token.split(".")[1];
     if (!base64Url) return null;
@@ -20,7 +28,7 @@ function parseJwt(token: string) {
         .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
         .join(""),
     );
-    return JSON.parse(jsonPayload);
+    return JSON.parse(jsonPayload) as JwtClaims;
   } catch {
     return null;
   }
@@ -31,6 +39,14 @@ function isTokenValid(token: string | undefined): boolean {
   const decoded = parseJwt(token);
   if (!decoded || !decoded.exp) return false;
   return decoded.exp * 1000 > Date.now();
+}
+
+function isAprendizToken(decoded: JwtClaims | null): boolean {
+  return (
+    decoded?.role === "APRENDIZ" ||
+    decoded?.tokenTipo === "APRENDIZ" ||
+    decoded?.tipoAcesso === "APRENDIZ"
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -89,16 +105,33 @@ export function middleware(request: NextRequest) {
 
   // --- Lógica de autenticação ---
   const token = request.cookies.get("token")?.value;
+  const decodedToken = token ? parseJwt(token) : null;
   const isValidToken = isTokenValid(token);
   const isAuthRoute = pathname === "/login";
   const isPublicRoute = pathname.startsWith("/reset-password");
   const isNextInternal =
     pathname.startsWith("/_next") || pathname.startsWith("/favicon");
+  const aprendizProfilePath = "/aprendizes/cadaprendizes";
+  const aprendizCodigo = decodedToken?.sub ? String(decodedToken.sub) : "";
+  const isOwnAprendizProfile =
+    pathname === aprendizProfilePath &&
+    request.nextUrl.searchParams.get("id") === aprendizCodigo;
 
   let response: NextResponse;
 
   if (!isValidToken && !isAuthRoute && !isPublicRoute && !isNextInternal) {
     response = NextResponse.redirect(new URL("/login", request.url));
+  } else if (
+    isValidToken &&
+    isAprendizToken(decodedToken) &&
+    !isAuthRoute &&
+    !isPublicRoute &&
+    !isNextInternal &&
+    !isOwnAprendizProfile
+  ) {
+    const profileUrl = new URL(aprendizProfilePath, request.url);
+    profileUrl.searchParams.set("id", aprendizCodigo);
+    response = NextResponse.redirect(profileUrl);
   } else {
     // Passa o nonce para Server Components via cabeçalho de requisição
     // (lido no layout.tsx através de next/headers)

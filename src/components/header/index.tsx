@@ -316,8 +316,9 @@ export function Header() {
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
         </p>
       </div>
-      <div className="flex h-20" ref={menuRef}>
-        {navItems.map((item) => {
+      {user.role !== "APRENDIZ" && (
+        <div className="flex h-20" ref={menuRef}>
+          {navItems.map((item) => {
           const hasSub = item.subMenu && item.subMenu.length > 0;
           const isMenuOpen = openedMenu === item.name;
 
@@ -365,10 +366,11 @@ export function Header() {
               )}
             </div>
           );
-        })}
-      </div>
+          })}
+        </div>
+      )}
       <div className="items-center gap-6 pr-5 hidden lg:flex">
-        <NotificationsMenu />
+        {user.role !== "APRENDIZ" && <NotificationsMenu />}
         <UserMenu nome={user.nome} role={getRoleLabel(user.role)} />
       </div>
     </header>
