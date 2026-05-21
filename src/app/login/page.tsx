@@ -1,11 +1,27 @@
 "use client";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+
+type LoginAccessType = "USUARIO" | "APRENDIZ" | "EDUCADOR" | "EMPRESA";
+
+const LOGIN_ACCESS_OPTIONS: {
+  value: LoginAccessType;
+  label: string;
+  disabled?: boolean;
+}[] = [
+  { value: "USUARIO", label: "Usuário" },
+  { value: "APRENDIZ", label: "Aprendiz" },
+  { value: "EDUCADOR", label: "Educador", disabled: true },
+  { value: "EMPRESA", label: "Empresa", disabled: true },
+];
+
 export default function LoginPage() {
   const [UsuCodigo, setUsuCodigo] = useState("");
   const [senha, setSenha] = useState("");
+  const [tipoAcesso, setTipoAcesso] = useState<LoginAccessType>("USUARIO");
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const [loginErrorMessage, setLoginErrorMessage] = useState("");
   const [needsPassword, setNeedsPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,16 +32,29 @@ export default function LoginPage() {
   const [showSenha, setShowSenha] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const identifierPlaceholder = tipoAcesso === "APRENDIZ"
+    ? "Código ou CPF do Aprendiz"
+    : "Código do Usuário";
+
+  function handleAccessTypeChange(nextAccessType: LoginAccessType) {
+    setTipoAcesso(nextAccessType);
+    setUsuCodigo("");
+    setSenha("");
+    setLoginError(false);
+    setLoginErrorMessage("");
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
     setLoginError(false);
+    setLoginErrorMessage("");
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ UsuCodigo, senha }),
+        body: JSON.stringify({ UsuCodigo, senha, tipoAcesso }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -36,6 +65,7 @@ export default function LoginPage() {
         }
         console.error("[Login] Motivo:", data?.message);
         setLoginError(true);
+        setLoginErrorMessage(data?.message || "Credenciais inválidas. Verifique seu usuário e senha.");
         setLoading(false);
         return;
       }
@@ -46,9 +76,10 @@ export default function LoginPage() {
       } else {
         window.location.href = "/home";
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[Login] Erro inesperado:", error);
       setLoginError(true);
+      setLoginErrorMessage("Erro inesperado. Tente novamente.");
       setLoading(false);
     }
   }
@@ -86,7 +117,7 @@ export default function LoginPage() {
       const loginRes = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ UsuCodigo, senha: newPassword }),
+        body: JSON.stringify({ UsuCodigo, senha: newPassword, tipoAcesso }),
       });
       const loginData = await loginRes.json();
       if (!loginRes.ok) {
@@ -101,7 +132,7 @@ export default function LoginPage() {
       } else {
         window.location.href = "/home";
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[PrimeiroAcesso] Erro inesperado:", error);
       setCreateError("Erro inesperado. Tente novamente.");
       setLoading(false);
@@ -127,7 +158,7 @@ export default function LoginPage() {
       toast.success(data.message || "Um e-mail para troca da senha será enviado para você.");
       setForgotPasswordMode(false);
       setForgotEmail("");
-    } catch (error: any) {
+    } catch {
       setForgotError("Erro ao solicitar recuperação de senha.");
     } finally {
       setLoading(false);
@@ -325,16 +356,43 @@ export default function LoginPage() {
             Gestão do Programa Jovem Aprendiz
           </p>
         </div>
+        <div
+          aria-label="Tipo de acesso"
+          className="grid grid-cols-2 gap-2 rounded-xl bg-[#253442] p-1"
+        >
+          {LOGIN_ACCESS_OPTIONS.map((option) => {
+            const selected = tipoAcesso === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={selected}
+                disabled={loading || option.disabled}
+                onClick={() => handleAccessTypeChange(option.value)}
+                className={`h-11 rounded-lg px-3 text-sm font-semibold transition-colors ${
+                  selected
+                    ? "bg-[#F3F4F6] text-[#253442]"
+                    : option.disabled
+                      ? "cursor-not-allowed bg-[#34495E] text-slate-400"
+                      : "bg-[#34495E] text-white hover:bg-[#42627d]"
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
         <div>
           <input
             type="text"
-            placeholder="Código do Usuário, CPF ou Matrícula"
+            placeholder={identifierPlaceholder}
             value={UsuCodigo}
             disabled={loading}
             onKeyDown={(e) => { if (loading) e.preventDefault(); }}
             onChange={(e) => {
               setUsuCodigo(e.target.value);
               setLoginError(false);
+              setLoginErrorMessage("");
             }}
             className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
               loading
@@ -355,6 +413,7 @@ export default function LoginPage() {
             onChange={(e) => {
               setSenha(e.target.value);
               setLoginError(false);
+              setLoginErrorMessage("");
             }}
             className={`w-full p-3 pr-11 rounded-xl bg-[#F3F4F6] border-2 outline-none transition-all ${
               loading
@@ -384,7 +443,7 @@ export default function LoginPage() {
         </div>
         {loginError && (
           <div className="text-red-500 text-sm text-center rounded">
-            Credenciais inválidas. Verifique seu usuário e senha.
+            {loginErrorMessage || "Credenciais inválidas. Verifique seu usuário e senha."}
           </div>
         )}
         <button
@@ -423,19 +482,22 @@ export default function LoginPage() {
             "Entrar"
           )}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            setForgotPasswordMode(true);
-            setLoginError(false);
-            setUsuCodigo("");
-            setSenha("");
-          }}
-          className="flex justify-center transition-all text-[#FFFF] hover:text-blue-500"
-          id="lostpassword"
-        >
-          Esqueci minha senha
-        </button>
+        {tipoAcesso === "USUARIO" && (
+          <button
+            type="button"
+            onClick={() => {
+              setForgotPasswordMode(true);
+              setLoginError(false);
+              setLoginErrorMessage("");
+              setUsuCodigo("");
+              setSenha("");
+            }}
+            className="flex justify-center transition-all text-[#FFFF] hover:text-blue-500"
+            id="lostpassword"
+          >
+            Esqueci minha senha
+          </button>
+        )}
       </form>
     </div>
   );

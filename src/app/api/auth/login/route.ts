@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const isDev = process.env.NODE_ENV !== "production";
 const BACKEND_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "https://bot-api-ff.vercel.app"
+  isDev
+    ? "http://127.0.0.1:3333"
+    : process.env.NEXT_PUBLIC_API_URL || "https://bot-api-ff.vercel.app"
 ).trim();
 
 export async function POST(request: NextRequest) {

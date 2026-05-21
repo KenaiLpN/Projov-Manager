@@ -434,7 +434,7 @@ function UFSelect({ name, value, onChange, label = "UF" }: {
 
 function TabJovem({
   f, hc, unidades, instituicoes, escolas, turmas, situacoes, areasAtuacao, planos, motivos,
-  onEscolaChange, escolaEndereco, cidades, onUFNatChange,
+  onEscolaChange, escolaEndereco, cidades, onUFNatChange, confirmAprSenha, onConfirmAprSenhaChange,
 }: {
   f: CA_Aprendiz; hc: React.ChangeEventHandler<any>;
   unidades: any[]; instituicoes: any[]; escolas: any[]; turmas: any[];
@@ -443,6 +443,8 @@ function TabJovem({
   escolaEndereco: string;
   cidades: { MunICodigo: string; MunIDescricao: string }[];
   onUFNatChange: React.ChangeEventHandler<HTMLSelectElement>;
+  confirmAprSenha: string;
+  onConfirmAprSenhaChange: React.ChangeEventHandler<HTMLInputElement>;
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -626,6 +628,7 @@ function TabJovem({
       <Field label="Usuário de Cadastro" name="Apr_UsuarioCadastro" value={f.Apr_UsuarioCadastro} onChange={hc} disabled />
       <Field label="Data de Cadastro" name="Apr_DataCadastro" value={f.Apr_DataCadastro} onChange={hc} type="date" disabled />
       <Field label="Senha de Acesso" name="Apr_senha" value={f.Apr_senha ?? ""} onChange={hc} type="password" />
+      <Field label="Confirme a Senha de Acesso" name="confirmAprSenha" value={confirmAprSenha} onChange={onConfirmAprSenhaChange} type="password" />
 
       <div className="col-span-full flex flex-col gap-1">
         <label className="text-xs font-medium text-gray-600">Observações</label>
@@ -860,6 +863,7 @@ function CadastroForm() {
   const [cidades, setCidades] = useState<{ MunICodigo: string; MunIDescricao: string }[]>([]);
   const [escolaEndereco, setEscolaEndereco] = useState("");
   const [formData, setFormData] = useState<CA_Aprendiz>({});
+  const [confirmAprSenha, setConfirmAprSenha] = useState("");
   const [calFormData, setCalFormData] = useState<AprendizFormData>({ NomeJovem: "" });
   const [rascunhoSalvoEm, setRascunhoSalvoEm] = useState<Date | null>(null);
   const [calendarMode, setCalendarMode] = useState<"aprendiz" | "turma">("aprendiz");
@@ -916,6 +920,7 @@ function CadastroForm() {
         DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f]); });
         formatted.Apr_senha = "";
         setFormData(formatted);
+        setConfirmAprSenha("");
         setRascunhoSalvoEm(new Date(res.data.data.updatedAt));
         toast("Rascunho restaurado automaticamente.", { icon: "📋" });
       }).catch(() => {});
@@ -988,6 +993,7 @@ function CadastroForm() {
       DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f]); });
       formatted.Apr_senha = "";
       setFormData(formatted);
+      setConfirmAprSenha("");
       // calFormData guarda apenas campos de cálculo sem coluna em CA_Aprendiz.
       // Os campos Apr_* (curso, jornada, datas, empresa, férias) são lidos
       // diretamente de formData no CalendarioForm.
@@ -1026,6 +1032,12 @@ function CadastroForm() {
     }));
   }, []);
 
+  const handleConfirmAprSenhaChange = useCallback((
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setConfirmAprSenha(e.target.value);
+  }, []);
+
   useEffect(() => {
     const uf = formData.Apr_UF_Nat;
     if (!uf) { setCidades([]); return; }
@@ -1053,7 +1065,9 @@ function CadastroForm() {
     if (draftTimer.current) clearTimeout(draftTimer.current);
     draftTimer.current = setTimeout(async () => {
       try {
-        await api.put("/aprendiz/rascunho", { dados: formData });
+        const draftData = { ...formData };
+        delete draftData.Apr_senha;
+        await api.put("/aprendiz/rascunho", { dados: draftData });
         setRascunhoSalvoEm(new Date());
       } catch {}
     }, 2000);
@@ -1064,6 +1078,7 @@ function CadastroForm() {
     try {
       await api.delete("/aprendiz/rascunho");
       setFormData({});
+      setConfirmAprSenha("");
       setRascunhoSalvoEm(null);
       toast.success("Rascunho descartado.");
     } catch {
@@ -1082,6 +1097,18 @@ function CadastroForm() {
   };
 
   const handleSave = async () => {
+    const aprSenha = formData.Apr_senha?.trim() ?? "";
+    const confirmSenha = confirmAprSenha.trim();
+    if (aprSenha || confirmSenha) {
+      if (aprSenha.length < 6) {
+        toast.error("A senha do aprendiz deve ter no minimo 6 caracteres.");
+        return;
+      }
+      if (aprSenha !== confirmSenha) {
+        toast.error("As senhas do aprendiz nao coincidem.");
+        return;
+      }
+    }
     if (!formData.Apr_Nome) {
       toast.error("O nome completo é obrigatório.");
       return;
@@ -1096,6 +1123,8 @@ function CadastroForm() {
         toast.success("Aprendiz cadastrado com sucesso!");
         api.delete("/aprendiz/rascunho").catch(() => {});
       }
+      setFormData(prev => ({ ...prev, Apr_senha: "" }));
+      setConfirmAprSenha("");
       if (isAdmin && !editingId) router.push("/aprendizes");
     } catch (err: any) {
       console.error(err);
@@ -1188,7 +1217,7 @@ function CadastroForm() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-24">
-            {activeTab === "jovem"        && <TabJovem f={formData} hc={handleChange} unidades={unidades} instituicoes={instituicoes} escolas={escolas} turmas={turmas} situacoes={situacoes} areasAtuacao={areasAtuacao} planos={planos} motivos={motivos} onEscolaChange={onEscolaChange} escolaEndereco={escolaEndereco} cidades={cidades} onUFNatChange={onUFNatChange} />}
+            {activeTab === "jovem"        && <TabJovem f={formData} hc={handleChange} unidades={unidades} instituicoes={instituicoes} escolas={escolas} turmas={turmas} situacoes={situacoes} areasAtuacao={areasAtuacao} planos={planos} motivos={motivos} onEscolaChange={onEscolaChange} escolaEndereco={escolaEndereco} cidades={cidades} onUFNatChange={onUFNatChange} confirmAprSenha={confirmAprSenha} onConfirmAprSenhaChange={handleConfirmAprSenhaChange} />}
             {/* {activeTab === "escolaridade" && <TabEscolaridade f={formData} hc={handleChange} />} */}
             {activeTab === "documentacao" && <TabDocumentacao f={formData} hc={handleChange} />}
             {activeTab === "endereco"     && <TabEndereco f={formData} hc={handleChange} buscaCEP={buscaCEP} />}
