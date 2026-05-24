@@ -12,6 +12,7 @@ export interface InstituicaoParceira {
   IpaEmail: string | null;
   IpaTelefone: string | null;
   IpaCelular: string | null;
+  IpaSenha?: string | null;
   IpaNomeContato: string | null;
   IpaDataCadastro: string | null;
 }
@@ -55,16 +56,13 @@ const TabelaInstituicoesParceiras: React.FC<TabelaProps> = ({
               ID
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Nome Fantasia
+              Instituição Parceira
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Razão Social
+              Endereço
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Cidade/UF
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Bairro
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tr-lg">
               Ações
@@ -81,13 +79,10 @@ const TabelaInstituicoesParceiras: React.FC<TabelaProps> = ({
                 {item.IpaDescricao || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.IpaNomeContato || "-"}
+                {item.IpaEndereco}, {item.IpaNumeroEndereco}, {item.IpaComplemento}, {item.IpaBairro || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {item.IpaCidade} / {item.IpaEstado}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.IpaBairro || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
@@ -110,4 +105,4 @@ const TabelaInstituicoesParceiras: React.FC<TabelaProps> = ({
     </div>
   );
 };
-export default TabelaInstituicoesParceiras;
+export default TabelaInstituicoesParceiras;

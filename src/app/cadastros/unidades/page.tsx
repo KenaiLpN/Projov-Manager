@@ -61,9 +61,7 @@ export default function Unidades() {
     const cepLimpo = cep.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
       try {
-        const response = await fetch(
-          `https://viacep.com.br/ws/${cepLimpo}/json/`,
-        );
+        const response = await fetch(`/api/cep/${cepLimpo}`);
         const data = await response.json();
         if (!data.erro) {
           setFormData((prev) => ({
@@ -75,7 +73,7 @@ export default function Unidades() {
           }));
         }
       } catch (err) {
-        console.error("Erro ao buscar CEP");
+        console.error("Erro ao buscar CEP", err);
       }
     }
   };
@@ -349,7 +347,7 @@ export default function Unidades() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Representante Legal
+                Responsável Legal
               </label>
               <input
                 name="UniRepresentanteLegal"
@@ -363,7 +361,7 @@ export default function Unidades() {
             {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Cargo do Representante
+                Cargo do Responsável
               </label>
               <input
                 name="UniRepresentanteCargo"
@@ -376,7 +374,7 @@ export default function Unidades() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Email Padrão de Envio
+                E-Mail do Responsável
               </label>
               <input
                 name="UniEmailPadraoEnvio"

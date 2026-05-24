@@ -9,7 +9,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: "Usuários", href: "/cadastros/usuarios" },
   { name: "Unidades", href: "/cadastros/unidades" },
-  { name: "Instituições de Ensino", href: "/cadastros/instituicoes" },
+  { name: "Instituições de Ensino", href: "/cadastros/instituicoes-parceiras" },
   { name: "Situações do Participante", href: "/cadastros/situacoes-participante" },
   { name: "Ocorrências", href: "/cadastros/ocorrencias" },
   { name: "Profissões", href: "/cadastros/profissoes" },
@@ -17,7 +17,7 @@ const navItems: NavItem[] = [
   { name: "Graus de Escolaridade", href: "/cadastros/graus-escolaridade" },
   { name: "Feriados", href: "/cadastros/feriados" },
   { name: "Motivos de Desligamento", href: "/cadastros/motivos-desligamento" },
-  { name: "Instituições Parceiras", href: "/cadastros/instituicoes-parceiras" },
+  { name: "Instituições Parceiras", href: "/cadastros/instituicoes" },
   { name: "Status Encaminhamento", href: "/cadastros/status-encaminhamento" },
   { name: "Regiões", href: "/cadastros/regioes" },
 ];

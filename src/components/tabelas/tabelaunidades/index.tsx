@@ -44,10 +44,10 @@ const TabelaUnidades: React.FC<TabelaUnidadesProps> = ({
         <thead className="bg-[#bacce6]">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tl-lg">
-              ID
+              Código
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Nome da Unidade
+              Campus
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Endereço
@@ -108,4 +108,4 @@ const TabelaUnidades: React.FC<TabelaUnidadesProps> = ({
     </div>
   );
 };
-export default TabelaUnidades;
+export default TabelaUnidades;

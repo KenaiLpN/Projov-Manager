@@ -22,6 +22,9 @@ interface ParceiroFormData {
   IpaEmail: string;
   IpaTelefone: string;
   IpaCelular: string;
+  IpaSenha: string;
+  confirmacao_senha: string;
+
 }
 export default function InstituicoesParceirasPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -49,6 +52,8 @@ export default function InstituicoesParceirasPage() {
     IpaEmail: "",
     IpaTelefone: "",
     IpaCelular: "",
+    IpaSenha: "",
+    confirmacao_senha: "",
   });
   const buscaCEP = async (cep: string) => {
     const cepLimpo = cep.replace(/\D/g, "");
@@ -67,7 +72,7 @@ export default function InstituicoesParceirasPage() {
             IpaEstado: data.uf,
           }));
         }
-      } catch (err) {
+      } catch {
         console.error("Erro ao buscar CEP");
       }
     }
@@ -87,6 +92,8 @@ export default function InstituicoesParceirasPage() {
       IpaEmail: "",
       IpaTelefone: "",
       IpaCelular: "",
+      IpaSenha: "",
+      confirmacao_senha: "",
     });
     setIsModalOpen(true);
   };
@@ -105,6 +112,8 @@ export default function InstituicoesParceirasPage() {
       IpaEmail: item.IpaEmail || "",
       IpaTelefone: item.IpaTelefone || "",
       IpaCelular: item.IpaCelular || "",
+      IpaSenha: "",
+      confirmacao_senha: "",
     });
     setIsModalOpen(true);
   };
@@ -170,7 +179,7 @@ export default function InstituicoesParceirasPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir.");
     } finally {
       setDeleting(false);
@@ -194,7 +203,17 @@ export default function InstituicoesParceirasPage() {
         setSaving(false);
         return;
       }
-      const payload = {
+      if (formData.IpaSenha !== formData.confirmacao_senha) {
+        toast.error("As senhas nao coincidem. Por favor, verifique.");
+        setSaving(false);
+        return;
+      }
+      if (!editingId && formData.IpaSenha.length < 8) {
+        toast.error("Para novas instituicoes parceiras, a senha deve ter pelo menos 8 caracteres.");
+        setSaving(false);
+        return;
+      }
+      const payload: Record<string, string> = {
         IpaDescricao: formData.IpaDescricao,
         IpaEndereco: formData.IpaEndereco,
         IpaNumeroEndereco: formData.IpaNumeroEndereco,
@@ -208,6 +227,9 @@ export default function InstituicoesParceirasPage() {
         IpaCelular: formData.IpaCelular,
         IpaNomeContato: formData.IpaNomeContato,
       };
+      if (formData.IpaSenha.trim() !== "") {
+        payload.IpaSenha = formData.IpaSenha;
+      }
       if (editingId) {
         await api.put(`/instituicoes-parceiras/${editingId}`, payload);
         toast.success("Atualizado com sucesso!");
@@ -217,7 +239,7 @@ export default function InstituicoesParceirasPage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.error("Erro ao salvar.");
     } finally {
@@ -314,6 +336,41 @@ export default function InstituicoesParceirasPage() {
                 placeholder="Nome da Instituição"
                 className="p-2 w-full rounded border border-gray-300"
               />
+            </div>
+            <hr className="my-2" />
+            <p className="text-sm font-bold text-gray-500">Acesso</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-600">
+                  Senha{" "}
+                  {editingId && (
+                    <span className="text-xs font-normal text-gray-500">
+                      (Deixe em branco para manter)
+                    </span>
+                  )}
+                </label>
+                <input
+                  name="IpaSenha"
+                  value={formData.IpaSenha}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder={editingId ? "Nova senha (opcional)" : "Senha"}
+                  className="p-2 w-full rounded border border-gray-300"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-600">
+                  Confirmar senha
+                </label>
+                <input
+                  name="confirmacao_senha"
+                  value={formData.confirmacao_senha}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Confirme a senha"
+                  className="p-2 w-full rounded border border-gray-300"
+                />
+              </div>
             </div>
             <hr className="my-2" />
             <p className="text-sm font-bold text-gray-500">Endereço</p>
@@ -507,4 +564,4 @@ export default function InstituicoesParceirasPage() {
       </div>
     </div>
   );
-}
+}

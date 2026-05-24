@@ -88,7 +88,7 @@ const navItems: NavItemWithSub[] = [
         ],
       },
       {
-        name: "Lista Jovens Carga Horár...",
+        name: "Lista Carga Horária Final",
         href: "/pedagogico/lista-jovens",
       },
       { name: "Lista de Monitores/Funcionário", href: "/pedagogico/monitores" },

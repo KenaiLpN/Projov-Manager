@@ -54,16 +54,13 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
         <thead className="bg-[#bacce6]">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tl-lg">
-              ID
+              Código
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Instituição
+              Instituição Parceira
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Diretor
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Email
+              Endereço
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
               Cidade/UF
@@ -83,10 +80,7 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
                 {inst.EscNome || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {inst.EscDiretor || "-"}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {inst.EscEmail}
+                {inst.EscEndereco}, {inst.EscNumeroEndereco || "-"}, {inst.EscBairro || "-"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {inst.EscCidade} / {inst.EscEstado}
@@ -112,4 +106,4 @@ const TabelaInstituicoes: React.FC<TabelaInstituicoesProps> = ({
     </div>
   );
 };
-export default TabelaInstituicoes;
+export default TabelaInstituicoes;

@@ -312,11 +312,23 @@ export default function Instituicoes() {
             {}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-gray-600">
-                Nome da Instituição <span className="text-red-500">*</span>
+                Descrição da Instituição Parceira <span className="text-red-500">*</span>
               </label>
               <input
                 name="EscNome"
                 value={formData.EscNome}
+                onChange={handleChange}
+                type="text"
+                className="p-2 w-full rounded border border-gray-300"
+              />
+            </div>
+                <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-600">
+                Telefone da Instituição
+              </label>
+              <input
+                name="EscTelefone"
+                value={formData.EscTelefone}
                 onChange={handleChange}
                 type="text"
                 className="p-2 w-full rounded border border-gray-300"
@@ -347,18 +359,7 @@ export default function Instituicoes() {
                 className="p-2 w-full rounded border border-gray-300"
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-600">
-                Telefone da Instituição
-              </label>
-              <input
-                name="EscTelefone"
-                value={formData.EscTelefone}
-                onChange={handleChange}
-                type="text"
-                className="p-2 w-full rounded border border-gray-300"
-              />
-            </div>
+        
             <hr className="md:col-span-2 my-2" />
             <p className="md:col-span-2 text-sm font-bold text-gray-500">
               Endereço
@@ -492,4 +493,4 @@ export default function Instituicoes() {
       </div>
     </div>
   );
-}
+}
