@@ -1,14 +1,50 @@
 import { useState, useRef, useEffect } from "react";
-import { LogOut, User, Settings, ChevronDown } from "lucide-react";
+import { User, Settings, ChevronDown, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { BotaoSair } from "../LogoutButton";
+
+type Theme = "light" | "dark";
+
+const THEME_STORAGE_KEY = "prosis-theme";
+
+function getPreferredTheme(): Theme {
+  if (typeof window === "undefined") return "light";
+
+  try {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme === "dark" || storedTheme === "light") {
+      return storedTheme;
+    }
+  } catch {
+    return "light";
+  }
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function applyTheme(theme: Theme) {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  document.documentElement.style.colorScheme = theme;
+
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // Tema continua aplicado na sessao atual mesmo sem persistencia local.
+  }
+}
+
 interface UserMenuProps {
   nome: string;
   role: string;
 }
 export function UserMenu({ nome, role }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>("light");
   const menuRef = useRef<HTMLDivElement>(null);
+  const isDark = theme === "dark";
+
   const getInitials = (fullName: string) => {
     if (!fullName) return "U";
     const names = fullName.trim().split(" ").filter(Boolean);
@@ -26,6 +62,19 @@ export function UserMenu({ nome, role }: UserMenuProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const preferredTheme = getPreferredTheme();
+    setTheme(preferredTheme);
+    applyTheme(preferredTheme);
+  }, []);
+
+  const handleThemeToggle = () => {
+    const nextTheme: Theme = isDark ? "light" : "dark";
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       {}
@@ -61,6 +110,32 @@ export function UserMenu({ nome, role }: UserMenuProps) {
           </div>
           {}
           <div className="py-1">
+            <button
+              type="button"
+              onClick={handleThemeToggle}
+              className="flex w-full items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+              aria-pressed={isDark}
+            >
+              <span className="flex items-center">
+                {isDark ? (
+                  <Sun size={16} className="mr-3" />
+                ) : (
+                  <Moon size={16} className="mr-3" />
+                )}
+                Modo escuro
+              </span>
+              <span
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  isDark ? "bg-[#52E8FB]" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`theme-toggle-thumb inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                    isDark ? "translate-x-4" : "translate-x-1"
+                  }`}
+                />
+              </span>
+            </button>
             <Link
               href="/perfil"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600"

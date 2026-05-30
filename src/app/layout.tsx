@@ -27,11 +27,30 @@ export default async function RootLayout({
   const nonce = (await headers()).get("x-nonce") ?? "";
 
   return (
-    <html lang="pt-br">
+    <html lang="pt-br" suppressHydrationWarning>
       <head>
         {/* Informa ao Next.js o nonce atual para que ele o injete nos
             scripts inline gerados pelo framework (hydration, lazy chunks etc.) */}
         {nonce && <meta property="csp-nonce" content={nonce} />}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                try {
+                  const storedTheme = localStorage.getItem("prosis-theme");
+                  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                  const theme = storedTheme || (prefersDark ? "dark" : "light");
+                  document.documentElement.classList.toggle("dark", theme === "dark");
+                  document.documentElement.style.colorScheme = theme;
+                } catch {
+                  document.documentElement.classList.remove("dark");
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body className={inter.className} suppressHydrationWarning={true}>
         <PrimeReactProvider>

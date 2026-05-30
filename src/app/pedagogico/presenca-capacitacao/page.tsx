@@ -60,8 +60,6 @@ export default function ListaPresencaCapacitacaoPage() {
     }
   };
 
-  const handlePrint = () => window.print();
-
   const dataFormatada = selectedData
     ? format(new Date(selectedData + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })
     : "";

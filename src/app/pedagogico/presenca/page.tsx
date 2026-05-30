@@ -91,8 +91,6 @@ export default function ListaPresencaPage() {
     }
   };
 
-  const handlePrint = () => window.print();
-
   const dataFormatada = selectedData
     ? format(new Date(selectedData.substring(0, 10) + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })
     : "";

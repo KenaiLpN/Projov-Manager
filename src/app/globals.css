@@ -1,4 +1,212 @@
 @import "tailwindcss";
+
+:root {
+  --prosis-bg: #f3f4f6;
+  --prosis-surface: #ffffff;
+  --prosis-surface-soft: #f9fafb;
+  --prosis-border: #e5e7eb;
+  --prosis-text: #111827;
+  --prosis-muted: #6b7280;
+  --prosis-brand: #133c86;
+}
+
+html.dark {
+  --prosis-bg: #0b1220;
+  --prosis-surface: #172033;
+  --prosis-surface-soft: #111a2c;
+  --prosis-border: #2b3a55;
+  --prosis-text: #e8eef8;
+  --prosis-muted: #a8b3c7;
+  --prosis-brand: #8ab4ff;
+}
+
+html,
+body {
+  background: var(--prosis-bg);
+  color: var(--prosis-text);
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+html.dark [class~="bg-gray-100"],
+html.dark [class~="bg-gray-50"],
+html.dark [class~="bg-gray-50/80"],
+html.dark [class~="bg-gray-50/50"],
+html.dark [class~="bg-gray-50/30"],
+html.dark [class~="bg-[#F8FAFC]"],
+html.dark [class~="bg-[#f8fafc]"] {
+  background-color: var(--prosis-bg) !important;
+}
+
+html.dark [class~="bg-white"],
+html.dark [class~="bg-white/90"],
+html.dark [class~="bg-slate-50"],
+html.dark [class~="bg-slate-50/50"],
+html.dark [class~="bg-slate-100"],
+html.dark [class~="bg-slate-200"],
+html.dark [class~="bg-slate-300"] {
+  background-color: var(--prosis-surface) !important;
+}
+
+html.dark .theme-toggle-thumb {
+  background-color: #ffffff !important;
+}
+
+html.dark [class~="bg-[#0f306d]"],
+html.dark [class~="bg-[#0F306D]"] {
+  background-color: #162338 !important;
+}
+
+html.dark [class~="bg-[#123a83]"],
+html.dark [class~="bg-[#123A83]"],
+html.dark [class~="bg-[#133c86]"],
+html.dark [class~="bg-[#0f2e6b]"] {
+  background-color: #223a5c !important;
+}
+
+html.dark [class~="bg-[#0096da]"],
+html.dark [class~="bg-[#0088cc]"],
+html.dark [class~="bg-[#2563eb]"] {
+  background-color: #1d4f91 !important;
+}
+
+html.dark [class~="bg-[#bacce6]"],
+html.dark [class~="bg-blue-50"],
+html.dark [class~="bg-blue-50/50"],
+html.dark [class~="bg-blue-50/30"],
+html.dark [class~="bg-indigo-50/30"],
+html.dark [class~="bg-amber-50/30"] {
+  background-color: #22324a !important;
+}
+
+html.dark [class~="border-gray-100"],
+html.dark [class~="border-gray-200"],
+html.dark [class~="border-gray-300"],
+html.dark [class~="border-slate-100"],
+html.dark [class~="border-slate-200"],
+html.dark [class~="border-slate-300"],
+html.dark [class~="border-slate-400"],
+html.dark [class~="divide-gray-50"] > :not([hidden]) ~ :not([hidden]),
+html.dark [class~="divide-gray-100"] > :not([hidden]) ~ :not([hidden]),
+html.dark [class~="divide-gray-200"] > :not([hidden]) ~ :not([hidden]),
+html.dark [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]),
+html.dark [class~="divide-slate-200"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--prosis-border) !important;
+}
+
+html.dark [class~="text-gray-900"],
+html.dark [class~="text-gray-800"],
+html.dark [class~="text-gray-700"],
+html.dark [class~="text-gray-600"],
+html.dark [class~="text-slate-900"],
+html.dark [class~="text-slate-800"],
+html.dark [class~="text-slate-700"],
+html.dark [class~="text-slate-600"] {
+  color: var(--prosis-text) !important;
+}
+
+html.dark [class~="text-gray-500"],
+html.dark [class~="text-gray-400"],
+html.dark [class~="text-slate-500"],
+html.dark [class~="text-slate-400"],
+html.dark [class~="text-slate-300"] {
+  color: var(--prosis-muted) !important;
+}
+
+html.dark [class~="text-[#133c86]"] {
+  color: var(--prosis-brand) !important;
+}
+
+html.dark [class~="hover:bg-gray-50"]:hover,
+html.dark [class~="hover:bg-gray-100"]:hover,
+html.dark [class~="hover:bg-slate-50"]:hover,
+html.dark [class~="hover:bg-slate-50/50"]:hover,
+html.dark [class~="hover:bg-slate-100"]:hover,
+html.dark [class~="hover:bg-blue-50/50"]:hover,
+html.dark [class~="hover:bg-blue-50/30"]:hover {
+  background-color: #22324a !important;
+}
+
+html.dark [class~="hover:text-blue-600"]:hover,
+html.dark [class~="hover:text-indigo-900"]:hover {
+  color: #93c5fd !important;
+}
+
+html.dark table {
+  color: var(--prosis-text);
+}
+
+html.dark thead,
+html.dark thead[class~="bg-gray-50"],
+html.dark thead[class~="bg-[#bacce6]"] {
+  background-color: #22324a !important;
+}
+
+html.dark tr[class~="bg-white"],
+html.dark tbody[class~="bg-white"] {
+  background-color: var(--prosis-surface) !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #101b2d !important;
+  border-color: var(--prosis-border) !important;
+  color: var(--prosis-text) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #7f8aa3;
+}
+
+html.dark .p-component,
+html.dark .p-dropdown,
+html.dark .p-inputtext,
+html.dark .p-calendar,
+html.dark .p-multiselect {
+  background-color: #101b2d;
+  border-color: var(--prosis-border);
+  color: var(--prosis-text);
+}
+
+html.dark .p-dropdown-panel,
+html.dark .p-multiselect-panel,
+html.dark .p-datepicker,
+html.dark .p-menu,
+html.dark .p-overlaypanel {
+  background-color: var(--prosis-surface);
+  border-color: var(--prosis-border);
+  color: var(--prosis-text);
+}
+
+html.dark .p-dropdown-item,
+html.dark .p-multiselect-item,
+html.dark .p-datepicker table td > span,
+html.dark .p-datepicker .p-datepicker-header {
+  color: var(--prosis-text);
+}
+
+html.dark .p-dropdown-item:not(.p-highlight):not(.p-disabled):hover,
+html.dark .p-multiselect-item:not(.p-highlight):not(.p-disabled):hover,
+html.dark .p-datepicker table td > span:not(.p-highlight):not(.p-disabled):hover {
+  background-color: #22324a;
+}
+
+html.dark .p-highlight {
+  background-color: #2d5fbd;
+  color: #ffffff;
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;

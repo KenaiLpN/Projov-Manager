@@ -124,4 +124,4 @@ export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOpti
     handleSalvar,
     resetFormAndLoad,
   };
-}
+}

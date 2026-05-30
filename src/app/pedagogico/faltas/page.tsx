@@ -166,6 +166,11 @@ export default function LancarFaltasPage() {
 
         {/* Header com filtros */}
         <div className="bg-white border-b border-slate-200 px-8 py-5 shadow-sm">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-[#133c86] tracking-tight uppercase">LanÃ§ar Faltas</h1>
+            <p className="text-slate-500 text-sm mt-1">LanÃ§amento de presenÃ§as e faltas por turma, data, perÃ­odo e disciplina.</p>
+          </div>
+
           <div className="flex flex-wrap items-end gap-4 mb-4">
             {/* Turma */}
             <div className="flex flex-col gap-1 min-w-[200px] flex-1">

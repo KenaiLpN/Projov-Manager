@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { X, Check } from "lucide-react";
 import api from "@/services/api";
+import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 
 // Mapeamento TurDiaSemana: convenção MySQL DAYOFWEEK (1=Dom, 2=Seg, ..., 7=Sáb)
 // → JS Date.getDay() (0=Dom, 1=Seg, ..., 6=Sáb)
@@ -334,6 +335,7 @@ export default function FaltasCapacitacaoPage() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
+      <PedagogicoSidebar />
       <main className="flex-1 flex flex-col p-6 overflow-auto bg-gray-100">
 
         {/* Cabeçalho */}

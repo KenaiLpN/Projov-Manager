@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
+import { downloadElementAsPdf } from "@/utils/downloadElementAsPdf";
 
 interface RelatorioData {
   CodAprendiz: number;
@@ -25,9 +26,12 @@ export default function ListaJovensCargaHorariaPage() {
   const [endDate, setEndDate] = useState(lastDayOfMonth);
   const [data, setData] = useState<RelatorioData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const listaJovensPdfRef = useRef<HTMLDivElement>(null);
+  const initialFetchDone = useRef(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get("/relatorio/carga_horaria_final", {
@@ -40,11 +44,13 @@ export default function ListaJovensCargaHorariaPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [endDate, startDate]);
 
   useEffect(() => {
+    if (initialFetchDone.current) return;
+    initialFetchDone.current = true;
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
@@ -60,6 +66,26 @@ export default function ListaJovensCargaHorariaPage() {
       item.CodAprendiz.toString().includes(term)
     );
   });
+
+  const handleDownloadPdf = async () => {
+    if (!listaJovensPdfRef.current || filteredData.length === 0) {
+      toast.error("Nao ha dados para gerar o PDF.");
+      return;
+    }
+
+    setPdfLoading(true);
+    try {
+      await downloadElementAsPdf(listaJovensPdfRef.current, {
+        filename: `lista-jovens-carga-horaria-${startDate}-${endDate}.pdf`,
+        orientation: "landscape",
+      });
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast.error("Erro ao gerar PDF.");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-row h-screen w-screen overflow-hidden bg-gray-50">
@@ -98,15 +124,16 @@ export default function ListaJovensCargaHorariaPage() {
               <button
                 onClick={fetchData}
                 disabled={loading}
-                className="px-6 py-2 bg-[#0096da] hover:bg-[#007cb5] text-white font-bold rounded transition-colors"
+                className="px-6 py-2 bg-[#0096da] hover:bg-[#007cb5] text-white font-bold rounded transition-colors disabled:cursor-not-allowed disabled:bg-gray-300"
               >
                 {loading ? "Processando..." : "Pesquisar"}
               </button>
               <button 
-                onClick={() => window.print()} 
-                className="px-6 py-2 bg-[#0096da] hover:bg-[#007cb5] text-white font-bold rounded transition-colors"
+                onClick={handleDownloadPdf}
+                disabled={loading || pdfLoading || filteredData.length === 0}
+                className="px-6 py-2 bg-[#0096da] hover:bg-[#007cb5] text-white font-bold rounded transition-colors disabled:cursor-not-allowed disabled:bg-gray-300"
               >
-                Relatório
+                {pdfLoading ? "Gerando PDF..." : "Baixar PDF"}
               </button>
             </div>
           </div>
@@ -134,8 +161,15 @@ export default function ListaJovensCargaHorariaPage() {
                </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div ref={listaJovensPdfRef} className="bg-white">
+              <div className="px-4 py-3 text-center">
+                <h2 className="text-base font-bold text-[#133c86]">Lista Jovens Carga Horaria Final</h2>
+                <p className="text-xs text-gray-500">
+                  Periodo: {formatDate(startDate)} a {formatDate(endDate)} - {filteredData.length} registro(s)
+                </p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-white border-b border-gray-200">
                     <th className="p-3 text-sm font-bold text-gray-800 border-r border-gray-100">Cod. Aprendiz</th>
@@ -174,7 +208,8 @@ export default function ListaJovensCargaHorariaPage() {
                     ))
                   )}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           </div>
         </div>
