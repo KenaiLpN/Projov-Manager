@@ -126,7 +126,7 @@ export function UserMenu({ nome, role }: UserMenuProps) {
               </span>
               <span
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                  isDark ? "bg-[#52E8FB]" : "bg-gray-300"
+                  isDark ? "bg-[#184cac]" : "bg-gray-300"
                 }`}
               >
                 <span
@@ -152,7 +152,7 @@ export function UserMenu({ nome, role }: UserMenuProps) {
             </Link>
           </div>
           <BotaoSair />
-          <div className="border-t border-gray-100 py-1"></div>
+          <div className="border-tpy-1"></div>
         </div>
       )}
     </div>

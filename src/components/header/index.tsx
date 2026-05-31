@@ -191,7 +191,7 @@ function SubMenuItem({
           isSubActive
             ? "bg-[#123a83] text-[#F6F6E2] font-bold"
             : item.isBlue
-            ? "text-[#52E8FB] font-black hover:bg-[#123a83]"
+            ? "text-[123a83] font-black hover:bg-[#123a83]"
             : "text-gray-100 hover:bg-[#123a83] hover:text-[#F6F6E2]"
         }`}
         onClick={() => onToggle()}
@@ -307,7 +307,7 @@ export function Header() {
   };
 
   return (
-    <header className="flex bg-[#0f306d] border-b border-[#e4e9f0] justify-between items-center">
+    <header className="flex bg-[#0f306d] justify-between items-center">
       <div className="ml-5">
         <h1 className="ml-15 m-2 flex text-[#F6F6F6] text-2xl font-bold cursor-pointer hover:bg-[#123a83] rounded-lg justify-center items-center w-50 h-10">
           <Link className="flex" href="/">PROSIS <p className="text-[#F6F6F6] text-xs m-2">home</p></Link>
