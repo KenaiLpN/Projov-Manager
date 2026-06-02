@@ -36,9 +36,11 @@ type PeriodMatrixColumn = {
 };
 
 type PeriodMatrixStudent = {
+  key?: string;
   IdAluno: number;
   NomeJovem: string;
   UnidadeParceiro: string;
+  Turma?: string;
   presencas: Record<string, string>;
 };
 
@@ -46,6 +48,24 @@ type PeriodMatrixResult = {
   kind: "period-matrix";
   columns: PeriodMatrixColumn[];
   students: PeriodMatrixStudent[];
+};
+
+type TotalPeriodoTurmaColumn = {
+  key: string;
+  label: string;
+};
+
+type TotalPeriodoTurmaStudent = {
+  IdAluno: number;
+  NomeJovem: string;
+  UnidadeParceiro?: string;
+  totais: Record<string, { aulas: number; presencas: number; faltas: number }>;
+};
+
+type TotalPeriodoTurmaResult = {
+  kind: "total-periodo-turma";
+  columns: TotalPeriodoTurmaColumn[];
+  students: TotalPeriodoTurmaStudent[];
 };
 
 type DataTurmaSession = {
@@ -400,7 +420,8 @@ export default function ControlePresencaPage() {
       params.set("endDate", endDate);
 
       if (tab === "turma-periodo") return `/presenca/turma-periodo?${params}`;
-      if (tab === "total-aulas-turma" || tab === "total-aulas-turma-capacitacao") return `/presenca/total-aulas-turma?${params}`;
+      if (tab === "total-aulas-turma") return `/presenca/total-aulas-turma?${params}`;
+      if (tab === "total-aulas-turma-capacitacao") return `/presenca/total-aulas-turma-capacitacao?${params}`;
       if (tab === "conteudos-lecionados") return `/presenca/conteudos?${params}`;
     }
 
@@ -567,17 +588,21 @@ export default function ControlePresencaPage() {
     };
   }, [endDate, selTurma, startDate]);
 
-  function exportPeriodMatrixCsv(matrix: PeriodMatrixResult, includeUnidade = true) {
+  function exportPeriodMatrixCsv(matrix: PeriodMatrixResult, options: { includeUnidade?: boolean; includeTurma?: boolean; slug?: string } = {}) {
+    const includeUnidade = options.includeUnidade ?? true;
+    const includeTurma = options.includeTurma ?? false;
     const headers = [
       "Matricula",
       "Nome",
-      ...(includeUnidade ? ["Parceiro/Unidade"] : []),
+      ...(includeUnidade ? ["Unidade"] : []),
+      ...(includeTurma ? ["Turma"] : []),
       ...matrix.columns.map(c => c.label),
     ];
     const rows = matrix.students.map(student => [
       student.IdAluno,
       student.NomeJovem,
       ...(includeUnidade ? [student.UnidadeParceiro] : []),
+      ...(includeTurma ? [student.Turma ?? ""] : []),
       ...matrix.columns.map(column => student.presencas[column.key] ?? ""),
     ]);
     const csv = [headers, ...rows].map(row => row.map(csvCell).join(";")).join("\r\n");
@@ -585,7 +610,40 @@ export default function ControlePresencaPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `controle-presenca-${includeUnidade ? "turma-periodo" : "turma-periodo-capacitacao"}-${selTurma || "turma"}.csv`;
+    link.download = `controle-presenca-${options.slug ?? "turma-periodo"}-${selParceiro || selTurma || "periodo"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportTotalPeriodoTurmaCsv(data: TotalPeriodoTurmaResult, options: { includeUnidade?: boolean; slug?: string } = {}) {
+    const includeUnidade = options.includeUnidade ?? true;
+    const headers = [
+      "Matricula",
+      "Nome",
+      ...(includeUnidade ? ["Parceiro/Unidade"] : []),
+      ...data.columns.flatMap(column => [
+        `${column.label} Aulas`,
+        `${column.label} Presencas`,
+        `${column.label} Faltas`,
+      ]),
+    ];
+    const rows = data.students.map(student => [
+      student.IdAluno,
+      student.NomeJovem,
+      ...(includeUnidade ? [student.UnidadeParceiro ?? ""] : []),
+      ...data.columns.flatMap(column => {
+        const total = student.totais[column.key];
+        return [total?.aulas ?? "", total?.presencas ?? "", total?.faltas ?? ""];
+      }),
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(csvCell).join(";")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `controle-presenca-${options.slug ?? "total-periodo-turma"}-${selTurma || "turma"}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -767,8 +825,8 @@ export default function ControlePresencaPage() {
     { id: "turma-periodo", label: "Por Período/Turma" },
     { id: "turma-periodo-capacitacao", label: "Por Turma/Período Capacitação" },
     { id: "parceiro-periodo", label: "Por Parceiro/Período" },
-    { id: "total-aulas-turma", label: "Total Aulas por Turma" },
-    { id: "total-aulas-turma-capacitacao", label: "Total Aulas Capacitação" },
+    { id: "total-aulas-turma", label: "Total Período/Turma" },
+    { id: "total-aulas-turma-capacitacao", label: "Total Período/Turma Capacitação" },
     { id: "total-aulas-parceiro", label: "Total Aulas por Parceiro" },
     { id: "faltas-parceiro", label: "Faltas por Parceiro" },
     { id: "conteudos-lecionados", label: "Conteúdos Lecionados" },
@@ -974,9 +1032,13 @@ export default function ControlePresencaPage() {
     if (loading) return <Spinner />;
     if (!result) return null;
 
-    if ((tab === "turma-periodo" || tab === "turma-periodo-capacitacao") && (result as PeriodMatrixResult).kind === "period-matrix") {
+    if (
+      (tab === "turma-periodo" || tab === "turma-periodo-capacitacao" || tab === "parceiro-periodo") &&
+      (result as PeriodMatrixResult).kind === "period-matrix"
+    ) {
       const matrix = result as PeriodMatrixResult;
       const isCapacitacaoPeriod = tab === "turma-periodo-capacitacao";
+      const isParceiroPeriod = tab === "parceiro-periodo";
       const term = gridSearch.trim().toLowerCase();
       const filteredStudents = matrix.students.filter(student => {
         if (!term) return true;
@@ -984,6 +1046,7 @@ export default function ControlePresencaPage() {
           student.IdAluno,
           student.NomeJovem,
           ...(isCapacitacaoPeriod ? [] : [student.UnidadeParceiro]),
+          ...(isParceiroPeriod ? [student.Turma] : []),
           ...matrix.columns.map(column => student.presencas[column.key] ?? ""),
         ].some(value => String(value).toLowerCase().includes(term));
       });
@@ -1035,7 +1098,10 @@ export default function ControlePresencaPage() {
                   <th className="min-w-[90px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Matricula</th>
                   <th className="min-w-[220px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Nome</th>
                   {!isCapacitacaoPeriod && (
-                    <th className="min-w-[180px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Parceiro/Unidade</th>
+                    <th className="min-w-[180px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Unidade</th>
+                  )}
+                  {isParceiroPeriod && (
+                    <th className="min-w-[110px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Turma</th>
                   )}
                   {matrix.columns.map(column => (
                     <th key={column.key} className="min-w-[58px] border border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">
@@ -1046,11 +1112,14 @@ export default function ControlePresencaPage() {
               </thead>
               <tbody>
                 {pageStudents.map((student, index) => (
-                  <tr key={student.IdAluno} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
+                  <tr key={student.key ?? `${student.IdAluno}-${student.Turma ?? ""}-${index}`} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
                     <td className="border border-gray-200 px-3 py-2 font-medium text-gray-900">{student.IdAluno}</td>
                     <td className="border border-gray-200 px-3 py-2">{student.NomeJovem}</td>
                     {!isCapacitacaoPeriod && (
                       <td className="border border-gray-200 px-3 py-2">{student.UnidadeParceiro}</td>
+                    )}
+                    {isParceiroPeriod && (
+                      <td className="border border-gray-200 px-3 py-2">{student.Turma}</td>
                     )}
                     {matrix.columns.map(column => (
                       <td key={column.key} className="border border-gray-200 px-3 py-2 text-center">
@@ -1104,7 +1173,15 @@ export default function ControlePresencaPage() {
           <div className="mt-4 flex justify-center">
             <button
               type="button"
-              onClick={() => exportPeriodMatrixCsv(matrix, !isCapacitacaoPeriod)}
+              onClick={() => exportPeriodMatrixCsv(matrix, {
+                includeUnidade: !isCapacitacaoPeriod,
+                includeTurma: isParceiroPeriod,
+                slug: isParceiroPeriod
+                  ? "parceiro-periodo"
+                  : isCapacitacaoPeriod
+                    ? "turma-periodo-capacitacao"
+                    : "turma-periodo",
+              })}
               className="rounded bg-[#133c86] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0f2e6b]"
             >
               Exportar Excel
@@ -1393,6 +1470,198 @@ export default function ControlePresencaPage() {
 
     // 3. Total Aulas Turma por Período
     if (tab === "total-aulas-turma" || tab === "total-aulas-turma-capacitacao") {
+      if ((result as TotalPeriodoTurmaResult).kind === "total-periodo-turma") {
+        const data = result as TotalPeriodoTurmaResult;
+        const isTotalCapacitacao = tab === "total-aulas-turma-capacitacao";
+        const term = gridSearch.trim().toLowerCase();
+        const filteredStudents = data.students.filter(student => {
+          if (!term) return true;
+          return [
+            student.IdAluno,
+            student.NomeJovem,
+            ...(isTotalCapacitacao ? [] : [student.UnidadeParceiro]),
+            ...data.columns.flatMap(column => {
+              const total = student.totais[column.key];
+              return [total?.aulas, total?.presencas, total?.faltas];
+            }),
+          ].some(value => String(value ?? "").toLowerCase().includes(term));
+        });
+        const totalPages = Math.max(1, Math.ceil(filteredStudents.length / gridPageSize));
+        const currentPage = Math.min(gridPage, totalPages);
+        const start = filteredStudents.length ? (currentPage - 1) * gridPageSize : 0;
+        const end = Math.min(start + gridPageSize, filteredStudents.length);
+        const pageStudents = filteredStudents.slice(start, end);
+        const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+        if (!data.students.length || !data.columns.length) return <Empty />;
+
+        return (
+          <div className="text-sm text-gray-700">
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => exportTotalPeriodoTurmaCsv(data, {
+                    includeUnidade: !isTotalCapacitacao,
+                    slug: isTotalCapacitacao ? "total-periodo-turma-capacitacao" : "total-periodo-turma",
+                  })}
+                  className="w-fit rounded bg-[#133c86] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0f2e6b]"
+                >
+                  Exportar Excel
+                </button>
+                <div className="text-xs font-bold text-gray-700">
+                  Legenda:
+                  <div className="mt-1 font-semibold">
+                    <span className="text-blue-700">Aulas</span>
+                    <span className="mx-1 text-gray-400">|</span>
+                    <span className="text-green-700">Presenças</span>
+                    <span className="mx-1 text-gray-400">|</span>
+                    <span className="text-red-600">Faltas</span>
+                  </div>
+                </div>
+              </div>
+              <label className="flex items-center gap-2">
+                <span>Procurar:</span>
+                <input
+                  type="search"
+                  value={gridSearch}
+                  onChange={e => {
+                    setGridSearch(e.target.value);
+                    setGridPage(1);
+                  }}
+                  placeholder="Search"
+                  className="h-9 w-48 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-700 shadow-sm outline-none focus:border-[#133c86] focus:ring-2 focus:ring-[#133c86]/20"
+                />
+              </label>
+            </div>
+
+            <div className="mb-3">
+              <label className="flex w-fit items-center gap-2">
+                <span>Mostrar</span>
+                <select
+                  value={gridPageSize}
+                  onChange={e => {
+                    setGridPageSize(Number(e.target.value));
+                    setGridPage(1);
+                  }}
+                  className="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-700 shadow-sm outline-none focus:border-[#133c86] focus:ring-2 focus:ring-[#133c86]/20"
+                >
+                  {[10, 25, 50, 100].map(size => <option key={size} value={size}>{size}</option>)}
+                </select>
+                <span>registros</span>
+              </label>
+            </div>
+
+            <div className="max-w-full overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-max w-full border-collapse text-sm text-gray-700">
+                <thead>
+                  <tr>
+                    <th className="min-w-[90px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Matricula</th>
+                    <th className="min-w-[280px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Nome</th>
+                    {!isTotalCapacitacao && (
+                      <th className="min-w-[300px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Parceiro/Unidade</th>
+                    )}
+                    {data.columns.map(column => (
+                      <th key={column.key} className="min-w-[86px] border border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">
+                        <div>{column.label}</div>
+                        <div className="mt-1 normal-case tracking-normal">
+                          <span className="text-blue-700">A</span>
+                          <span className="mx-1 text-gray-400">|</span>
+                          <span className="text-green-700">P</span>
+                          <span className="mx-1 text-gray-400">|</span>
+                          <span className="text-red-600">F</span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageStudents.map((student, index) => (
+                    <tr key={student.IdAluno} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
+                      <td className="border border-gray-200 px-3 py-2 font-medium text-gray-900">{student.IdAluno}</td>
+                      <td className="border border-gray-200 px-3 py-2">{student.NomeJovem}</td>
+                      {!isTotalCapacitacao && (
+                        <td className="border border-gray-200 px-3 py-2">{student.UnidadeParceiro}</td>
+                      )}
+                      {data.columns.map(column => {
+                        const total = student.totais[column.key];
+                        return (
+                          <td key={column.key} className="border border-gray-200 px-3 py-2 text-center whitespace-nowrap">
+                            {total ? (
+                              <>
+                                <span className="font-semibold text-blue-700">{total.aulas}</span>
+                                <span className="mx-1 text-gray-400">|</span>
+                                <span className="font-semibold text-green-700">{total.presencas}</span>
+                                <span className="mx-1 text-gray-400">|</span>
+                                <span className="font-semibold text-red-600">{total.faltas}</span>
+                              </>
+                            ) : (
+                              <span className="text-gray-300">&nbsp;</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                {filteredStudents.length
+                  ? `Mostrando de ${start + 1} até ${end} de ${filteredStudents.length} registros`
+                  : "Mostrando de 0 até 0 de 0 registros"}
+              </div>
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setGridPage(currentPage - 1)}
+                  className="rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
+                >
+                  Anterior
+                </button>
+                {pages.slice(0, 7).map(page => (
+                  <button
+                    type="button"
+                    key={page}
+                    onClick={() => setGridPage(page)}
+                    className={`border-y border-r border-gray-300 px-3 py-1.5 ${
+                      currentPage === page ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                {totalPages > 7 && (
+                  <span className="border-y border-r border-gray-300 bg-white px-3 py-1.5 text-gray-500">...</span>
+                )}
+                {totalPages > 7 && (
+                  <button
+                    type="button"
+                    onClick={() => setGridPage(totalPages)}
+                    className={`border-y border-r border-gray-300 px-3 py-1.5 ${
+                      currentPage === totalPages ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
+                    }`}
+                  >
+                    {totalPages}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setGridPage(currentPage + 1)}
+                  className="rounded-r-lg border-y border-r border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
+                >
+                  Seguinte
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       const data = result as { disciplina: string; totalDias: number; totalSessoes: number }[];
       if (!data?.length) return <Empty />;
       return (
@@ -1567,8 +1836,8 @@ export default function ControlePresencaPage() {
     "turma-periodo": "Controle de Presença de Turma por Período",
     "turma-periodo-capacitacao": "Controle de Presença por Turma/Período Capacitação",
     "parceiro-periodo": "Controle de Presença por Parceiro/Período",
-    "total-aulas-turma": "Total de Aulas por Turma no Período",
-    "total-aulas-turma-capacitacao": "Total de Aulas de Capacitação no Período",
+    "total-aulas-turma": "Total Período/Turma",
+    "total-aulas-turma-capacitacao": "Total Período/Turma Capacitação",
     "total-aulas-parceiro": "Total de Aulas por Parceiro no Período",
     "faltas-parceiro": "Faltas por Parceiro",
     "conteudos-lecionados": "Conteúdos Lecionados no Período",
