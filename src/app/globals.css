@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --prosis-bg: #f3f4f6;
   --prosis-surface: #ffffff;

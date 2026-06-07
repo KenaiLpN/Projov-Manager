@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
@@ -11,6 +11,37 @@ import { downloadElementAsPdf } from "@/utils/downloadElementAsPdf";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Turma { TurCodigo: number; TurNome: string; }
 interface Parceiro { ParCodigo: number; ParDescricao: string; }
+interface SituacaoAprendiz { StaCodigo: number; StaDescricao: string | null; }
+interface UnidadeParceiro { ParUniCodigo: number; ParUniDescricao: string; }
+
+const offscreenReportStyle = (width: number): CSSProperties => ({
+  position: "fixed",
+  left: 0,
+  top: 0,
+  width: `${width}px`,
+  backgroundColor: "#fff",
+  opacity: 0,
+  pointerEvents: "none",
+  zIndex: -1,
+});
+
+type PaginationItem = number | "ellipsis-start" | "ellipsis-end";
+
+function getPaginationItems(currentPage: number, totalPages: number): PaginationItem[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "ellipsis-end", totalPages];
+  }
+
+  if (currentPage >= totalPages - 3) {
+    return [1, "ellipsis-start", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [1, "ellipsis-start", currentPage - 1, currentPage, currentPage + 1, "ellipsis-end", totalPages];
+}
 
 type TabId =
   | "comunicado-faltas"
@@ -23,6 +54,7 @@ type TabId =
   | "total-aulas-turma-capacitacao"
   | "total-aulas-parceiro"
   | "faltas-parceiro"
+  | "contagem-faltas-periodo"
   | "conteudos-lecionados"
   | "aulas-dadas"
   | "controle-faltas"
@@ -59,13 +91,41 @@ type TotalPeriodoTurmaStudent = {
   IdAluno: number;
   NomeJovem: string;
   UnidadeParceiro?: string;
-  totais: Record<string, { aulas: number; presencas: number; faltas: number }>;
+  totais: Record<string, { aulas: number; presencas: number; justificadas?: number; faltas: number }>;
 };
 
 type TotalPeriodoTurmaResult = {
   kind: "total-periodo-turma";
   columns: TotalPeriodoTurmaColumn[];
   students: TotalPeriodoTurmaStudent[];
+};
+
+type ContagemFaltasPeriodoRow = {
+  parceiro: string;
+  cnpj: string;
+  codAprendiz: number;
+  numSistExt: string;
+  nome: string;
+  tipoPagamento?: string;
+  faltaDias: number;
+  horasFalta: number;
+  aulasPeriodo: number;
+};
+
+type EstatisticaPresencaJovemRow = {
+  codigo: number;
+  nome: string;
+  unidadeParceiro: string;
+  status: string;
+  inicioAprendizagem: string | null;
+  previsaoFimAprendizagem: string | null;
+  faltas: number;
+  faltasJustificadas: number;
+  aCursar: number;
+  total: number;
+  presenca: number;
+  aulasCursadas: number;
+  percentual: number;
 };
 
 type DataTurmaSession = {
@@ -330,6 +390,8 @@ export default function ControlePresencaPage() {
   // filter states
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [parceiros, setParceiros] = useState<Parceiro[]>([]);
+  const [situacoesAprendiz, setSituacoesAprendiz] = useState<SituacaoAprendiz[]>([]);
+  const [unidadesParceiro, setUnidadesParceiro] = useState<UnidadeParceiro[]>([]);
   const [datas, setDatas] = useState<string[]>([]);
 
   const [selTurma, setSelTurma] = useState("");
@@ -341,7 +403,9 @@ export default function ControlePresencaPage() {
   const [recursosUsados, setRecursosUsados] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [minFaltas, setMinFaltas] = useState("8");
-  const [tipoPagamento, setTipoPagamento] = useState("Todos");
+  const [tipoPagamento, setTipoPagamento] = useState("T");
+  const [selSituacaoAprendiz, setSelSituacaoAprendiz] = useState("");
+  const [selUnidadeParceiro, setSelUnidadeParceiro] = useState("");
 
   // results
   const [result, setResult] = useState<unknown>(null);
@@ -350,7 +414,7 @@ export default function ControlePresencaPage() {
   const [gridPageSize, setGridPageSize] = useState(10);
   const [gridPage, setGridPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const dataTurmaPdfRef = useRef<HTMLDivElement>(null);
+  const reportPdfRef = useRef<HTMLDivElement>(null);
   const [dataTurmaSort, setDataTurmaSort] = useState<{
     key: DataTurmaSortKey;
     direction: SortDirection;
@@ -360,6 +424,10 @@ export default function ControlePresencaPage() {
   useEffect(() => {
     api.get("/turmas?limit=1000").then(r => setTurmas(Array.isArray(r.data?.data) ? r.data.data : [])).catch(() => {});
     api.get("/parceiros?page=1&limit=1000").then(r => setParceiros(Array.isArray(r.data?.data) ? r.data.data : [])).catch(() => {});
+    api.get("/presenca/estatisticas-jovem/filtros").then(r => {
+      setSituacoesAprendiz(Array.isArray(r.data?.situacoes) ? r.data.situacoes : []);
+      setUnidadesParceiro(Array.isArray(r.data?.unidades) ? r.data.unidades : []);
+    }).catch(() => {});
   }, []);
 
   // load available dates when turma changes (for "Por Data" tab)
@@ -436,12 +504,18 @@ export default function ControlePresencaPage() {
       if (tab === "total-aulas-parceiro") return `/presenca/total-aulas-parceiro?${params}`;
     }
 
-    if (tab === "estatisticas-presenca-jovem" || tab === "aulas-dadas" || tab === "controle-faltas") {
+    if (tab === "estatisticas-presenca-jovem") {
+      if (selSituacaoAprendiz) params.set("statusId", selSituacaoAprendiz);
+      if (selUnidadeParceiro) params.set("unidadeParceiroId", selUnidadeParceiro);
+      return `/presenca/estatisticas-jovem?${params}`;
+    }
+
+    if (tab === "contagem-faltas-periodo" || tab === "aulas-dadas" || tab === "controle-faltas") {
       if (!startDate || !endDate) return null;
       params.set("startDate", startDate);
       params.set("endDate", endDate);
-      if (tab === "estatisticas-presenca-jovem") {
-        if (tipoPagamento !== "Todos") params.set("tipoPagamento", tipoPagamento);
+      if (tab === "contagem-faltas-periodo") {
+        if (tipoPagamento !== "T") params.set("tipoPagamento", tipoPagamento);
         return `/presenca/contagem-faltas?${params}`;
       }
       if (tab === "aulas-dadas") return `/presenca/aulas-dadas?${params}`;
@@ -453,7 +527,7 @@ export default function ControlePresencaPage() {
       }
     }
     return null;
-  }, [tab, selTurma, selData, selParceiro, startDate, endDate, minFaltas, tipoPagamento]);
+  }, [tab, selTurma, selData, selParceiro, startDate, endDate, minFaltas, tipoPagamento, selSituacaoAprendiz, selUnidadeParceiro]);
 
   const buildPeriodMatrix = useCallback(async (): Promise<PeriodMatrixResult | null> => {
     if (!selTurma || !startDate || !endDate) return null;
@@ -617,6 +691,33 @@ export default function ControlePresencaPage() {
     URL.revokeObjectURL(url);
   }
 
+  function exportFaltasPeriodoCsv(matrix: PeriodMatrixResult) {
+    const headers = [
+      "Unidade",
+      "Matricula",
+      "Nome",
+      "Turma",
+      ...matrix.columns.map(c => c.label),
+    ];
+    const rows = matrix.students.map(student => [
+      student.UnidadeParceiro,
+      student.IdAluno,
+      student.NomeJovem,
+      student.Turma ?? "",
+      ...matrix.columns.map(column => student.presencas[column.key] ?? ""),
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(csvCell).join(";")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `controle-presenca-total-periodo-faltas-${startDate || "inicio"}-${endDate || "fim"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function exportTotalPeriodoTurmaCsv(data: TotalPeriodoTurmaResult, options: { includeUnidade?: boolean; slug?: string } = {}) {
     const includeUnidade = options.includeUnidade ?? true;
     const headers = [
@@ -626,6 +727,7 @@ export default function ControlePresencaPage() {
       ...data.columns.flatMap(column => [
         `${column.label} Aulas`,
         `${column.label} Presencas`,
+        `${column.label} Justificadas`,
         `${column.label} Faltas`,
       ]),
     ];
@@ -635,7 +737,7 @@ export default function ControlePresencaPage() {
       ...(includeUnidade ? [student.UnidadeParceiro ?? ""] : []),
       ...data.columns.flatMap(column => {
         const total = student.totais[column.key];
-        return [total?.aulas ?? "", total?.presencas ?? "", total?.faltas ?? ""];
+        return [total?.aulas ?? "", total?.presencas ?? "", total?.justificadas ?? 0, total?.faltas ?? ""];
       }),
     ]);
     const csv = [headers, ...rows].map(row => row.map(csvCell).join(";")).join("\r\n");
@@ -643,7 +745,98 @@ export default function ControlePresencaPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `controle-presenca-${options.slug ?? "total-periodo-turma"}-${selTurma || "turma"}.csv`;
+    link.download = `controle-presenca-${options.slug ?? "total-periodo-turma"}-${selParceiro || selTurma || "periodo"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportDataTurmaCsv(rows: DataTurmaRow[], columns: { key: DataTurmaSortKey; label: string }[], slug: string) {
+    const headers = columns.map(column => column.label);
+    const dataRows = rows.map(row => columns.map(column => row[column.key]));
+    const csv = [headers, ...dataRows].map(row => row.map(csvCell).join(";")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `controle-presenca-${slug}-${selTurma || "turma"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportContagemFaltasPeriodoCsv(rows: ContagemFaltasPeriodoRow[]) {
+    const headers = [
+      "Parceiro",
+      "CNPJ",
+      "Cod Aprendiz",
+      "Num. Sist. Ext.",
+      "Nome",
+      "Falta Dias",
+      "Horas Falta",
+      "Aulas Periodo",
+    ];
+    const dataRows = rows.map(row => [
+      row.parceiro,
+      row.cnpj,
+      row.codAprendiz,
+      row.numSistExt,
+      row.nome,
+      row.faltaDias,
+      row.horasFalta,
+      row.aulasPeriodo,
+    ]);
+    const csv = [headers, ...dataRows].map(row => row.map(csvCell).join(";")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `controle-presenca-contagem-faltas-periodo-${tipoPagamento}-${startDate || "inicio"}-${endDate || "fim"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportEstatisticasPresencaJovemCsv(rows: EstatisticaPresencaJovemRow[]) {
+    const headers = [
+      "Codigo",
+      "Nome",
+      "Unidade Parceiro",
+      "Status",
+      "Inicio Aprendizagem",
+      "Previsao Fim Aprendizagem",
+      "Faltas",
+      "Faltas Justificadas",
+      "A Cursar",
+      "Total",
+      "Presenca",
+      "Aulas Cursadas",
+      "Percentual",
+    ];
+    const dataRows = rows.map(row => [
+      row.codigo,
+      row.nome,
+      row.unidadeParceiro,
+      row.status,
+      formatIsoToBrDate(row.inicioAprendizagem || ""),
+      formatIsoToBrDate(row.previsaoFimAprendizagem || ""),
+      row.faltas,
+      row.faltasJustificadas,
+      row.aCursar,
+      row.total,
+      row.presenca,
+      row.aulasCursadas,
+      row.percentual.toFixed(2).replace(".", ","),
+    ]);
+    const csv = [headers, ...dataRows].map(row => row.map(csvCell).join(";")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "estatisticas-presenca-por-jovem.csv";
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -675,17 +868,16 @@ export default function ControlePresencaPage() {
     toast("O lançamento de conteúdo ainda depende do endpoint de gravação.");
   };
 
-  const handleDownloadDataTurmaPdf = async () => {
-    if (!dataTurmaPdfRef.current) {
+  const handleDownloadReportPdf = async (filenameBase: string) => {
+    if (!reportPdfRef.current) {
       toast.error("Gere um relatorio antes de baixar o PDF.");
       return;
     }
 
     setPdfLoading(true);
     try {
-      const datePart = normalizeDateParam(selData) || "relatorio";
-      await downloadElementAsPdf(dataTurmaPdfRef.current, {
-        filename: `controle-presenca-${tab}-${datePart}.pdf`,
+      await downloadElementAsPdf(reportPdfRef.current, {
+        filename: `${filenameBase}.pdf`,
         orientation: "landscape",
       });
     } catch (error) {
@@ -695,6 +887,75 @@ export default function ControlePresencaPage() {
       setPdfLoading(false);
     }
   };
+
+  function renderExportButtons(options: { onExcel: () => void; filenameBase: string }) {
+    return (
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        <button
+          type="button"
+          onClick={() => handleDownloadReportPdf(options.filenameBase)}
+          disabled={pdfLoading}
+          className="rounded-lg bg-[#133c86] px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-[#0f2e6b] disabled:cursor-not-allowed disabled:bg-gray-300"
+        >
+          {pdfLoading ? "Gerando PDF..." : "Baixar PDF"}
+        </button>
+        <button
+          type="button"
+          onClick={options.onExcel}
+          className="rounded-lg bg-[#133c86] px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-[#0f2e6b]"
+        >
+          Exportar Excel
+        </button>
+      </div>
+    );
+  }
+
+  function renderPagination(currentPage: number, totalPages: number) {
+    const paginationItems = getPaginationItems(currentPage, totalPages);
+
+    return (
+      <div className="flex items-center">
+        <button
+          type="button"
+          disabled={currentPage === 1}
+          onClick={() => setGridPage(currentPage - 1)}
+          className="rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          Anterior
+        </button>
+        {paginationItems.map(item => {
+          if (typeof item !== "number") {
+            return (
+              <span key={item} className="border-y border-r border-gray-300 bg-white px-3 py-1.5 text-gray-500">
+                ...
+              </span>
+            );
+          }
+
+          return (
+            <button
+              type="button"
+              key={item}
+              onClick={() => setGridPage(item)}
+              className={`border-y border-r border-gray-300 px-3 py-1.5 ${
+                currentPage === item ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
+              }`}
+            >
+              {item}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          disabled={currentPage === totalPages}
+          onClick={() => setGridPage(currentPage + 1)}
+          className="rounded-r-lg border-y border-r border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          Seguinte
+        </button>
+      </div>
+    );
+  }
 
   const handleSearch = async () => {
     if (tab === "comunicado-faltas") {
@@ -827,8 +1088,9 @@ export default function ControlePresencaPage() {
     { id: "parceiro-periodo", label: "Por Parceiro/Período" },
     { id: "total-aulas-turma", label: "Total Período/Turma" },
     { id: "total-aulas-turma-capacitacao", label: "Total Período/Turma Capacitação" },
-    { id: "total-aulas-parceiro", label: "Total Aulas por Parceiro" },
-    { id: "faltas-parceiro", label: "Faltas por Parceiro" },
+    { id: "total-aulas-parceiro", label: "Total Período/Parceiros" },
+    { id: "faltas-parceiro", label: "Total Período/Faltas" },
+    { id: "contagem-faltas-periodo", label: "Contagem Faltas Período" },
     { id: "conteudos-lecionados", label: "Conteúdos Lecionados" },
     { id: "aulas-dadas", label: "Aulas Dadas no Período" },
     { id: "controle-faltas", label: "Controle de Faltas (8 faltas)" },
@@ -996,16 +1258,41 @@ export default function ControlePresencaPage() {
       </div>
     );
 
-    if (tab === "estatisticas-presenca-jovem" || tab === "aulas-dadas" || tab === "controle-faltas") {
+    if (tab === "estatisticas-presenca-jovem") {
       return (
         <div className="flex flex-wrap gap-4 items-end">
-          {tab === "estatisticas-presenca-jovem" && (
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>Status do Jovem</label>
+            <select value={selSituacaoAprendiz} onChange={e => setSelSituacaoAprendiz(e.target.value)} className={`${selectClass} min-w-[240px]`}>
+              <option value="">Todos</option>
+              {situacoesAprendiz.map(situacao => (
+                <option key={situacao.StaCodigo} value={situacao.StaCodigo}>{situacao.StaDescricao}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>Unidade Parceiro</label>
+            <select value={selUnidadeParceiro} onChange={e => setSelUnidadeParceiro(e.target.value)} className={`${selectClass} min-w-[360px] max-w-full`}>
+              <option value="">Todas</option>
+              {unidadesParceiro.map(unidade => (
+                <option key={unidade.ParUniCodigo} value={unidade.ParUniCodigo}>{unidade.ParUniDescricao}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      );
+    }
+
+    if (tab === "contagem-faltas-periodo" || tab === "aulas-dadas" || tab === "controle-faltas") {
+      return (
+        <div className="flex flex-wrap gap-4 items-end">
+          {tab === "contagem-faltas-periodo" && (
             <div className="flex flex-col gap-1">
               <label className={labelClass}>Tipo Pagamento</label>
               <select value={tipoPagamento} onChange={e => setTipoPagamento(e.target.value)} className={`${selectClass} min-w-[180px]`}>
-                <option>Todos</option>
-                <option>Mensalidade</option>
-                <option>Bolsa</option>
+                <option value="T">Todos</option>
+                <option value="E">Empresa</option>
+                <option value="C">Projov</option>
               </select>
             </div>
           )}
@@ -1033,12 +1320,13 @@ export default function ControlePresencaPage() {
     if (!result) return null;
 
     if (
-      (tab === "turma-periodo" || tab === "turma-periodo-capacitacao" || tab === "parceiro-periodo") &&
+      (tab === "turma-periodo" || tab === "turma-periodo-capacitacao" || tab === "parceiro-periodo" || tab === "faltas-parceiro") &&
       (result as PeriodMatrixResult).kind === "period-matrix"
     ) {
       const matrix = result as PeriodMatrixResult;
       const isCapacitacaoPeriod = tab === "turma-periodo-capacitacao";
       const isParceiroPeriod = tab === "parceiro-periodo";
+      const isFaltasPeriod = tab === "faltas-parceiro";
       const term = gridSearch.trim().toLowerCase();
       const filteredStudents = matrix.students.filter(student => {
         if (!term) return true;
@@ -1046,7 +1334,7 @@ export default function ControlePresencaPage() {
           student.IdAluno,
           student.NomeJovem,
           ...(isCapacitacaoPeriod ? [] : [student.UnidadeParceiro]),
-          ...(isParceiroPeriod ? [student.Turma] : []),
+          ...(isParceiroPeriod || isFaltasPeriod ? [student.Turma] : []),
           ...matrix.columns.map(column => student.presencas[column.key] ?? ""),
         ].some(value => String(value).toLowerCase().includes(term));
       });
@@ -1055,12 +1343,11 @@ export default function ControlePresencaPage() {
       const start = filteredStudents.length ? (currentPage - 1) * gridPageSize : 0;
       const end = Math.min(start + gridPageSize, filteredStudents.length);
       const pageStudents = filteredStudents.slice(start, end);
-      const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
       if (!matrix.columns.length || !matrix.students.length) return <Empty />;
 
       return (
-        <div className="text-sm text-gray-600">
+        <div className="max-w-full overflow-hidden text-sm text-gray-600">
           <div className="flex flex-wrap justify-between gap-3 mb-3">
             <label className="flex items-center gap-2">
               <span>Mostrar</span>
@@ -1091,17 +1378,28 @@ export default function ControlePresencaPage() {
             </label>
           </div>
 
-          <div className="max-w-full overflow-x-auto rounded-lg border border-gray-200">
-            <table className="min-w-max w-full border-collapse text-sm text-gray-700">
+          <div className="relative max-w-full overflow-auto rounded-lg border border-gray-200 bg-white">
+            <table className="w-max min-w-full border-collapse bg-white text-sm text-gray-700">
               <thead>
                 <tr>
-                  <th className="min-w-[90px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Matricula</th>
-                  <th className="min-w-[220px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Nome</th>
-                  {!isCapacitacaoPeriod && (
-                    <th className="min-w-[180px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Unidade</th>
-                  )}
-                  {isParceiroPeriod && (
-                    <th className="min-w-[110px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Turma</th>
+                  {isFaltasPeriod ? (
+                    <>
+                      <th className="min-w-[180px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Unidade</th>
+                      <th className="min-w-[90px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Matricula</th>
+                      <th className="min-w-[220px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Nome</th>
+                      <th className="min-w-[110px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Turma</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="min-w-[90px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Matricula</th>
+                      <th className="min-w-[220px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Nome</th>
+                      {!isCapacitacaoPeriod && (
+                        <th className="min-w-[180px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Unidade</th>
+                      )}
+                      {isParceiroPeriod && (
+                        <th className="min-w-[110px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Turma</th>
+                      )}
+                    </>
                   )}
                   {matrix.columns.map(column => (
                     <th key={column.key} className="min-w-[58px] border border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">
@@ -1113,13 +1411,24 @@ export default function ControlePresencaPage() {
               <tbody>
                 {pageStudents.map((student, index) => (
                   <tr key={student.key ?? `${student.IdAluno}-${student.Turma ?? ""}-${index}`} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
-                    <td className="border border-gray-200 px-3 py-2 font-medium text-gray-900">{student.IdAluno}</td>
-                    <td className="border border-gray-200 px-3 py-2">{student.NomeJovem}</td>
-                    {!isCapacitacaoPeriod && (
-                      <td className="border border-gray-200 px-3 py-2">{student.UnidadeParceiro}</td>
-                    )}
-                    {isParceiroPeriod && (
-                      <td className="border border-gray-200 px-3 py-2">{student.Turma}</td>
+                    {isFaltasPeriod ? (
+                      <>
+                        <td className="border border-gray-200 px-3 py-2">{student.UnidadeParceiro}</td>
+                        <td className="border border-gray-200 px-3 py-2 font-medium text-gray-900">{student.IdAluno}</td>
+                        <td className="border border-gray-200 px-3 py-2">{student.NomeJovem}</td>
+                        <td className="border border-gray-200 px-3 py-2">{student.Turma}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="border border-gray-200 px-3 py-2 font-medium text-gray-900">{student.IdAluno}</td>
+                        <td className="border border-gray-200 px-3 py-2">{student.NomeJovem}</td>
+                        {!isCapacitacaoPeriod && (
+                          <td className="border border-gray-200 px-3 py-2">{student.UnidadeParceiro}</td>
+                        )}
+                        {isParceiroPeriod && (
+                          <td className="border border-gray-200 px-3 py-2">{student.Turma}</td>
+                        )}
+                      </>
                     )}
                     {matrix.columns.map(column => (
                       <td key={column.key} className="border border-gray-200 px-3 py-2 text-center">
@@ -1138,42 +1447,25 @@ export default function ControlePresencaPage() {
                 ? `Mostrando de ${start + 1} até ${end} de ${filteredStudents.length} registros`
                 : "Mostrando de 0 até 0 de 0 registros"}
             </div>
-            <div className="flex items-center">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setGridPage(currentPage - 1)}
-                className="rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
-              >
-                Anterior
-              </button>
-              {pages.map(page => (
-                <button
-                  type="button"
-                  key={page}
-                  onClick={() => setGridPage(page)}
-                  className={`border-y border-r border-gray-300 px-3 py-1.5 ${
-                    currentPage === page ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() => setGridPage(currentPage + 1)}
-                className="rounded-r-lg border-y border-r border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
-              >
-                Seguinte
-              </button>
-            </div>
+            {renderPagination(currentPage, totalPages)}
           </div>
 
-          <div className="mt-4 flex justify-center">
-            <button
-              type="button"
-              onClick={() => exportPeriodMatrixCsv(matrix, {
+          {renderExportButtons({
+            filenameBase: `controle-presenca-${
+              isFaltasPeriod
+                ? "total-periodo-faltas"
+                : isParceiroPeriod
+                ? "parceiro-periodo"
+                : isCapacitacaoPeriod
+                  ? "turma-periodo-capacitacao"
+                  : "turma-periodo"
+            }-${selParceiro || selTurma || "periodo"}`,
+            onExcel: () => {
+              if (isFaltasPeriod) {
+                exportFaltasPeriodoCsv(matrix);
+                return;
+              }
+              exportPeriodMatrixCsv(matrix, {
                 includeUnidade: !isCapacitacaoPeriod,
                 includeTurma: isParceiroPeriod,
                 slug: isParceiroPeriod
@@ -1181,11 +1473,85 @@ export default function ControlePresencaPage() {
                   : isCapacitacaoPeriod
                     ? "turma-periodo-capacitacao"
                     : "turma-periodo",
-              })}
-              className="rounded bg-[#133c86] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0f2e6b]"
-            >
-              Exportar Excel
-            </button>
+              });
+            },
+          })}
+
+          <div ref={reportPdfRef} className="p-4 text-xs text-gray-700" style={offscreenReportStyle(1400)}>
+            <div className="mb-4 text-center">
+              <h3 className="text-base font-bold text-[#133c86]">
+                {isParceiroPeriod
+                  ? "Controle de Presenca por Parceiro/Periodo"
+                  : isFaltasPeriod
+                    ? "Total Periodo/Faltas"
+                  : isCapacitacaoPeriod
+                    ? "Controle de Presenca por Turma/Periodo Capacitacao"
+                    : "Controle de Presenca de Turma por Periodo"}
+              </h3>
+              <p className="text-gray-500">
+                {formatIsoToBrDate(startDate)} a {formatIsoToBrDate(endDate)} - {filteredStudents.length} registro(s)
+              </p>
+            </div>
+            <table className="w-full border-collapse border border-gray-200">
+              <thead>
+                <tr>
+                  {isFaltasPeriod ? (
+                    <>
+                      <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Unidade</th>
+                      <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Matricula</th>
+                      <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Nome</th>
+                      <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Turma</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Matricula</th>
+                      <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Nome</th>
+                      {!isCapacitacaoPeriod && (
+                        <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Unidade</th>
+                      )}
+                      {isParceiroPeriod && (
+                        <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Turma</th>
+                      )}
+                    </>
+                  )}
+                  {matrix.columns.map(column => (
+                    <th key={column.key} className="border border-gray-200 bg-gray-50 px-2 py-2 text-center text-[#133c86]">
+                      {column.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.map((student, index) => (
+                  <tr key={student.key ?? `${student.IdAluno}-${student.Turma ?? ""}-${index}`}>
+                    {isFaltasPeriod ? (
+                      <>
+                        <td className="border border-gray-200 px-2 py-1">{student.UnidadeParceiro}</td>
+                        <td className="border border-gray-200 px-2 py-1">{student.IdAluno}</td>
+                        <td className="border border-gray-200 px-2 py-1">{student.NomeJovem}</td>
+                        <td className="border border-gray-200 px-2 py-1">{student.Turma}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="border border-gray-200 px-2 py-1">{student.IdAluno}</td>
+                        <td className="border border-gray-200 px-2 py-1">{student.NomeJovem}</td>
+                        {!isCapacitacaoPeriod && (
+                          <td className="border border-gray-200 px-2 py-1">{student.UnidadeParceiro}</td>
+                        )}
+                        {isParceiroPeriod && (
+                          <td className="border border-gray-200 px-2 py-1">{student.Turma}</td>
+                        )}
+                      </>
+                    )}
+                    {matrix.columns.map(column => (
+                      <td key={column.key} className="border border-gray-200 px-2 py-1 text-center">
+                        {student.presencas[column.key] || ""}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       );
@@ -1217,7 +1583,6 @@ export default function ControlePresencaPage() {
       const start = sortedRows.length ? (currentPage - 1) * gridPageSize : 0;
       const end = Math.min(start + gridPageSize, sortedRows.length);
       const pageRows = sortedRows.slice(start, end);
-      const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
       if (!rows.length) return <Empty />;
 
@@ -1254,7 +1619,7 @@ export default function ControlePresencaPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <div ref={dataTurmaPdfRef} className="min-w-full bg-white p-4">
+            <div className="min-w-full bg-white p-4">
               <div className="mb-4 text-center">
                 <h3 className="text-base font-bold text-[#133c86]">
                   {tab === "data-turma-capacitacao"
@@ -1326,61 +1691,51 @@ export default function ControlePresencaPage() {
                 ? `Mostrando de ${start + 1} até ${end} de ${filteredRows.length} registros`
                 : "Mostrando de 0 até 0 de 0 registros"}
             </div>
-            <div className="flex items-center">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setGridPage(currentPage - 1)}
-                className="rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
-              >
-                Anterior
-              </button>
-              {pages.slice(0, 7).map(page => (
-                <button
-                  type="button"
-                  key={page}
-                  onClick={() => setGridPage(page)}
-                  className={`border-y border-r border-gray-300 px-3 py-1.5 ${
-                    currentPage === page ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              {totalPages > 7 && (
-                <span className="border-y border-r border-gray-300 bg-white px-3 py-1.5 text-gray-500">...</span>
-              )}
-              {totalPages > 7 && (
-                <button
-                  type="button"
-                  onClick={() => setGridPage(totalPages)}
-                  className={`border-y border-r border-gray-300 px-3 py-1.5 ${
-                    currentPage === totalPages ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
-                  }`}
-                >
-                  {totalPages}
-                </button>
-              )}
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() => setGridPage(currentPage + 1)}
-                className="rounded-r-lg border-y border-r border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
-              >
-                Seguinte
-              </button>
-            </div>
+            {renderPagination(currentPage, totalPages)}
           </div>
 
-          <div className="mt-4 flex justify-center">
-            <button
-              type="button"
-              onClick={handleDownloadDataTurmaPdf}
-              disabled={pdfLoading}
-              className="rounded-lg bg-[#133c86] px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-[#0f2e6b] disabled:cursor-not-allowed disabled:bg-gray-300"
-            >
-              {pdfLoading ? "Gerando PDF..." : "Baixar PDF"}
-            </button>
+          {renderExportButtons({
+            filenameBase: `controle-presenca-${tab}-${normalizeDateParam(selData) || "relatorio"}`,
+            onExcel: () => exportDataTurmaCsv(
+              sortedRows,
+              activeColumns,
+              tab === "data-turma-capacitacao" ? "data-turma-capacitacao" : "data-turma"
+            ),
+          })}
+
+          <div ref={reportPdfRef} className="p-4 text-xs text-gray-700" style={offscreenReportStyle(1200)}>
+            <div className="mb-4 text-center">
+              <h3 className="text-base font-bold text-[#133c86]">
+                {tab === "data-turma-capacitacao"
+                  ? "Controle de Presenca por Data/Turma Capacitacao"
+                  : "Controle de Presenca por Data/Turma"}
+              </h3>
+              <p className="text-gray-500">
+                {formatIsoToBrDate(selData)} - {sortedRows.length} registro(s)
+              </p>
+            </div>
+            <table className="w-full border-collapse border border-gray-200">
+              <thead>
+                <tr>
+                  {activeColumns.map(column => (
+                    <th key={column.key} className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">
+                      {column.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRows.map(row => (
+                  <tr key={row.key}>
+                    {activeColumns.map(column => (
+                      <td key={column.key} className="border border-gray-200 px-2 py-1">
+                        {row[column.key]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       );
@@ -1469,10 +1824,11 @@ export default function ControlePresencaPage() {
     }
 
     // 3. Total Aulas Turma por Período
-    if (tab === "total-aulas-turma" || tab === "total-aulas-turma-capacitacao") {
+    if (tab === "total-aulas-turma" || tab === "total-aulas-turma-capacitacao" || tab === "total-aulas-parceiro") {
       if ((result as TotalPeriodoTurmaResult).kind === "total-periodo-turma") {
         const data = result as TotalPeriodoTurmaResult;
         const isTotalCapacitacao = tab === "total-aulas-turma-capacitacao";
+        const isTotalParceiro = tab === "total-aulas-parceiro";
         const term = gridSearch.trim().toLowerCase();
         const filteredStudents = data.students.filter(student => {
           if (!term) return true;
@@ -1482,7 +1838,7 @@ export default function ControlePresencaPage() {
             ...(isTotalCapacitacao ? [] : [student.UnidadeParceiro]),
             ...data.columns.flatMap(column => {
               const total = student.totais[column.key];
-              return [total?.aulas, total?.presencas, total?.faltas];
+              return [total?.aulas, total?.presencas, total?.justificadas, total?.faltas];
             }),
           ].some(value => String(value ?? "").toLowerCase().includes(term));
         });
@@ -1491,7 +1847,6 @@ export default function ControlePresencaPage() {
         const start = filteredStudents.length ? (currentPage - 1) * gridPageSize : 0;
         const end = Math.min(start + gridPageSize, filteredStudents.length);
         const pageStudents = filteredStudents.slice(start, end);
-        const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
         if (!data.students.length || !data.columns.length) return <Empty />;
 
@@ -1499,22 +1854,14 @@ export default function ControlePresencaPage() {
           <div className="text-sm text-gray-700">
             <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => exportTotalPeriodoTurmaCsv(data, {
-                    includeUnidade: !isTotalCapacitacao,
-                    slug: isTotalCapacitacao ? "total-periodo-turma-capacitacao" : "total-periodo-turma",
-                  })}
-                  className="w-fit rounded bg-[#133c86] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0f2e6b]"
-                >
-                  Exportar Excel
-                </button>
                 <div className="text-xs font-bold text-gray-700">
                   Legenda:
                   <div className="mt-1 font-semibold">
                     <span className="text-blue-700">Aulas</span>
                     <span className="mx-1 text-gray-400">|</span>
                     <span className="text-green-700">Presenças</span>
+                    <span className="mx-1 text-gray-400">|</span>
+                    <span className="text-gray-500">Justificadas</span>
                     <span className="mx-1 text-gray-400">|</span>
                     <span className="text-red-600">Faltas</span>
                   </div>
@@ -1569,6 +1916,8 @@ export default function ControlePresencaPage() {
                           <span className="mx-1 text-gray-400">|</span>
                           <span className="text-green-700">P</span>
                           <span className="mx-1 text-gray-400">|</span>
+                          <span className="text-gray-500">J</span>
+                          <span className="mx-1 text-gray-400">|</span>
                           <span className="text-red-600">F</span>
                         </div>
                       </th>
@@ -1577,7 +1926,7 @@ export default function ControlePresencaPage() {
                 </thead>
                 <tbody>
                   {pageStudents.map((student, index) => (
-                    <tr key={student.IdAluno} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
+                    <tr key={`${student.IdAluno}-${student.UnidadeParceiro ?? ""}`} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
                       <td className="border border-gray-200 px-3 py-2 font-medium text-gray-900">{student.IdAluno}</td>
                       <td className="border border-gray-200 px-3 py-2">{student.NomeJovem}</td>
                       {!isTotalCapacitacao && (
@@ -1592,6 +1941,8 @@ export default function ControlePresencaPage() {
                                 <span className="font-semibold text-blue-700">{total.aulas}</span>
                                 <span className="mx-1 text-gray-400">|</span>
                                 <span className="font-semibold text-green-700">{total.presencas}</span>
+                                <span className="mx-1 text-gray-400">|</span>
+                                <span className="font-semibold text-gray-500">{total.justificadas ?? 0}</span>
                                 <span className="mx-1 text-gray-400">|</span>
                                 <span className="font-semibold text-red-600">{total.faltas}</span>
                               </>
@@ -1613,50 +1964,75 @@ export default function ControlePresencaPage() {
                   ? `Mostrando de ${start + 1} até ${end} de ${filteredStudents.length} registros`
                   : "Mostrando de 0 até 0 de 0 registros"}
               </div>
-              <div className="flex items-center">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setGridPage(currentPage - 1)}
-                  className="rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
-                >
-                  Anterior
-                </button>
-                {pages.slice(0, 7).map(page => (
-                  <button
-                    type="button"
-                    key={page}
-                    onClick={() => setGridPage(page)}
-                    className={`border-y border-r border-gray-300 px-3 py-1.5 ${
-                      currentPage === page ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                {totalPages > 7 && (
-                  <span className="border-y border-r border-gray-300 bg-white px-3 py-1.5 text-gray-500">...</span>
-                )}
-                {totalPages > 7 && (
-                  <button
-                    type="button"
-                    onClick={() => setGridPage(totalPages)}
-                    className={`border-y border-r border-gray-300 px-3 py-1.5 ${
-                      currentPage === totalPages ? "bg-[#133c86] text-white" : "bg-white text-[#133c86] hover:bg-gray-50"
-                    }`}
-                  >
-                    {totalPages}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setGridPage(currentPage + 1)}
-                  className="rounded-r-lg border-y border-r border-gray-300 bg-white px-3 py-1.5 text-[#133c86] disabled:cursor-not-allowed disabled:text-gray-400"
-                >
-                  Seguinte
-                </button>
+              {renderPagination(currentPage, totalPages)}
+            </div>
+
+            {renderExportButtons({
+              filenameBase: `controle-presenca-${
+                isTotalParceiro
+                  ? "total-periodo-parceiros"
+                  : isTotalCapacitacao
+                    ? "total-periodo-turma-capacitacao"
+                    : "total-periodo-turma"
+              }-${selParceiro || selTurma || "periodo"}`,
+              onExcel: () => exportTotalPeriodoTurmaCsv(data, {
+                includeUnidade: !isTotalCapacitacao,
+                slug: isTotalParceiro
+                  ? "total-periodo-parceiros"
+                  : isTotalCapacitacao
+                    ? "total-periodo-turma-capacitacao"
+                    : "total-periodo-turma",
+              }),
+            })}
+
+            <div ref={reportPdfRef} className="p-4 text-xs text-gray-700" style={offscreenReportStyle(1400)}>
+              <div className="mb-4 text-center">
+                <h3 className="text-base font-bold text-[#133c86]">
+                  {isTotalParceiro
+                    ? "Total Periodo/Parceiros"
+                    : isTotalCapacitacao
+                      ? "Total Periodo/Turma Capacitacao"
+                      : "Total Periodo/Turma"}
+                </h3>
+                <p className="text-gray-500">
+                  {formatIsoToBrDate(startDate)} a {formatIsoToBrDate(endDate)} - {filteredStudents.length} registro(s)
+                </p>
               </div>
+              <table className="w-full border-collapse border border-gray-200">
+                <thead>
+                  <tr>
+                    <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Matricula</th>
+                    <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Nome</th>
+                    {!isTotalCapacitacao && (
+                      <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Parceiro/Unidade</th>
+                    )}
+                    {data.columns.map(column => (
+                      <th key={column.key} className="border border-gray-200 bg-gray-50 px-2 py-2 text-center text-[#133c86]">
+                        {column.label}<br />A | P | J | F
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStudents.map(student => (
+                    <tr key={`${student.IdAluno}-${student.UnidadeParceiro ?? ""}`}>
+                      <td className="border border-gray-200 px-2 py-1">{student.IdAluno}</td>
+                      <td className="border border-gray-200 px-2 py-1">{student.NomeJovem}</td>
+                      {!isTotalCapacitacao && (
+                        <td className="border border-gray-200 px-2 py-1">{student.UnidadeParceiro}</td>
+                      )}
+                      {data.columns.map(column => {
+                        const total = student.totais[column.key];
+                        return (
+                          <td key={column.key} className="border border-gray-200 px-2 py-1 text-center">
+                            {total ? `${total.aulas} | ${total.presencas} | ${total.justificadas ?? 0} | ${total.faltas}` : ""}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         );
@@ -1722,64 +2098,213 @@ export default function ControlePresencaPage() {
       );
     }
 
-    // 6. Total Aulas Parceiro
-    if (tab === "total-aulas-parceiro") {
-      const data = result as { turma: string; totalAulas: number }[];
-      if (!data?.length) return <Empty />;
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead><tr><TH>Turma</TH><TH>Total Aulas</TH></tr></thead>
-            <tbody>
-              {data.map((r, i) => (
-                <tr key={i} className="hover:bg-blue-50/50"><TD>{r.turma}</TD><TD center>{r.totalAulas}</TD></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    }
-
-    // 7. Faltas por Parceiro
-    if (tab === "faltas-parceiro") {
-      const data = result as { parceiro: string; unidade: string; faltas: number }[];
-      if (!data?.length) return <Empty />;
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead><tr><TH>Parceiro</TH><TH>Unidade</TH><TH>Total Faltas</TH></tr></thead>
-            <tbody>
-              {data.map((r, i) => (
-                <tr key={i} className="hover:bg-blue-50/50">
-                  <TD>{r.parceiro}</TD><TD>{r.unidade}</TD>
-                  <TD center><span className="font-bold text-red-600">{r.faltas}</span></TD>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    }
-
-    // 8. Contagem de Faltas
     if (tab === "estatisticas-presenca-jovem") {
-      const data = result as { IdAluno: number; NomeJovem: string; tipoPagamento: string; presencas: number; faltas: number; total: number }[];
+      const data = result as EstatisticaPresencaJovemRow[];
       if (!data?.length) return <Empty />;
+      const term = gridSearch.trim().toLocaleLowerCase("pt-BR");
+      const filteredRows = data.filter(row => !term || [
+        row.codigo,
+        row.nome,
+        row.unidadeParceiro,
+        row.status,
+        row.inicioAprendizagem,
+        row.previsaoFimAprendizagem,
+      ].some(value => String(value ?? "").toLocaleLowerCase("pt-BR").includes(term)));
+      const totalPages = Math.max(1, Math.ceil(filteredRows.length / gridPageSize));
+      const currentPage = Math.min(gridPage, totalPages);
+      const start = filteredRows.length ? (currentPage - 1) * gridPageSize : 0;
+      const end = Math.min(start + gridPageSize, filteredRows.length);
+      const pageRows = filteredRows.slice(start, end);
+
       return (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead><tr><TH>Matrícula</TH><TH>Nome</TH><TH>Tipo Pagamento</TH><TH>Presenças</TH><TH>Faltas</TH><TH>Total Reg.</TH></tr></thead>
-            <tbody>
-              {data.map(r => (
-                <tr key={r.IdAluno} className="hover:bg-blue-50/50">
-                  <TD>{r.IdAluno}</TD><TD>{r.NomeJovem}</TD><TD>{r.tipoPagamento || "—"}</TD>
-                  <TD center>{r.presencas}</TD>
-                  <TD center><span className={r.faltas > 0 ? "font-bold text-red-600" : ""}>{r.faltas}</span></TD>
-                  <TD center>{r.total}</TD>
+        <div className="max-w-full overflow-hidden text-sm text-gray-600">
+          <div className="mb-3 flex flex-wrap justify-between gap-3">
+            <label className="flex items-center gap-2">
+              <span>Mostrar</span>
+              <select value={gridPageSize} onChange={e => { setGridPageSize(Number(e.target.value)); setGridPage(1); }} className="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-700">
+                {[10, 25, 50, 100].map(size => <option key={size} value={size}>{size}</option>)}
+              </select>
+              <span>registros</span>
+            </label>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2">
+                <span>Procurar:</span>
+                <input type="search" value={gridSearch} onChange={e => { setGridSearch(e.target.value); setGridPage(1); }} placeholder="Buscar na lista" className="h-9 w-52 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-700" />
+              </label>
+              <button type="button" onClick={() => exportEstatisticasPresencaJovemCsv(filteredRows)} className="rounded-lg bg-[#133c86] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0f2e6b]">
+                Exportar Excel
+              </button>
+            </div>
+          </div>
+
+          <div className="relative max-w-full overflow-auto rounded-lg border border-gray-200 bg-white">
+            <table className="min-w-[1700px] w-full border-collapse">
+              <thead><tr>
+                <TH>Código</TH><TH>Nome</TH><TH>Descrição</TH><TH>Status</TH>
+                <TH>Início Aprendizagem</TH><TH>Previsão Fim Aprendizagem</TH>
+                <TH>Faltas</TH><TH>Faltas Justificadas</TH><TH>A Cursar</TH>
+                <TH>Total</TH><TH>Presença</TH><TH>Aulas Cursadas</TH><TH>Percentual</TH>
+              </tr></thead>
+              <tbody>
+                {pageRows.map((row, index) => (
+                  <tr key={row.codigo} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
+                    <TD>{row.codigo}</TD><TD>{row.nome}</TD><TD>{row.unidadeParceiro}</TD><TD>{row.status}</TD>
+                    <TD>{formatIsoToBrDate(row.inicioAprendizagem || "")}</TD>
+                    <TD>{formatIsoToBrDate(row.previsaoFimAprendizagem || "")}</TD>
+                    <TD center>{row.faltas}</TD><TD center>{row.faltasJustificadas}</TD><TD center>{row.aCursar}</TD>
+                    <TD center>{row.total}</TD><TD center>{row.presenca}</TD><TD center>{row.aulasCursadas}</TD>
+                    <TD center>{row.percentual.toFixed(2).replace(".", ",")}%</TD>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div>{filteredRows.length ? `Mostrando de ${start + 1} até ${end} de ${filteredRows.length} registros` : "Mostrando de 0 até 0 de 0 registros"}</div>
+            {renderPagination(currentPage, totalPages)}
+          </div>
+        </div>
+      );
+    }
+
+    // 8. Contagem de Faltas por Periodo
+    if (tab === "contagem-faltas-periodo") {
+      const data = result as ContagemFaltasPeriodoRow[];
+      if (!data?.length) return <Empty />;
+      const term = gridSearch.trim().toLowerCase();
+      const filteredRows = data.filter(row => {
+        if (!term) return true;
+        return [
+          row.parceiro,
+          row.cnpj,
+          row.codAprendiz,
+          row.numSistExt,
+          row.nome,
+          row.faltaDias,
+          row.horasFalta,
+          row.aulasPeriodo,
+        ].some(value => String(value).toLowerCase().includes(term));
+      });
+      const totalPages = Math.max(1, Math.ceil(filteredRows.length / gridPageSize));
+      const currentPage = Math.min(gridPage, totalPages);
+      const start = filteredRows.length ? (currentPage - 1) * gridPageSize : 0;
+      const end = Math.min(start + gridPageSize, filteredRows.length);
+      const pageRows = filteredRows.slice(start, end);
+
+      return (
+        <div className="max-w-full overflow-hidden text-sm text-gray-600">
+          <div className="mb-3 flex flex-wrap justify-between gap-3">
+            <label className="flex items-center gap-2">
+              <span>Mostrar</span>
+              <select
+                value={gridPageSize}
+                onChange={e => {
+                  setGridPageSize(Number(e.target.value));
+                  setGridPage(1);
+                }}
+                className="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-700 shadow-sm outline-none focus:border-[#133c86] focus:ring-2 focus:ring-[#133c86]/20"
+              >
+                {[10, 25, 50, 100].map(size => <option key={size} value={size}>{size}</option>)}
+              </select>
+              <span>registros</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <span>Procurar:</span>
+              <input
+                type="search"
+                value={gridSearch}
+                onChange={e => {
+                  setGridSearch(e.target.value);
+                  setGridPage(1);
+                }}
+                placeholder="Search"
+                className="h-9 w-48 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-700 shadow-sm outline-none focus:border-[#133c86] focus:ring-2 focus:ring-[#133c86]/20"
+              />
+            </label>
+          </div>
+
+          <div className="relative max-w-full overflow-auto rounded-lg border border-gray-200 bg-white">
+            <table className="min-w-full border-collapse bg-white text-sm text-gray-700">
+              <thead>
+                <tr>
+                  <th className="min-w-[300px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Parceiro</th>
+                  <th className="min-w-[120px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">CNPJ</th>
+                  <th className="min-w-[100px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Cod Aprendiz</th>
+                  <th className="min-w-[120px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Num. Sist. Ext.</th>
+                  <th className="min-w-[260px] border border-gray-200 bg-gray-50 px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Nome</th>
+                  <th className="min-w-[90px] border border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Falta Dias</th>
+                  <th className="min-w-[90px] border border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Horas Falta</th>
+                  <th className="min-w-[100px] border border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-[#133c86] whitespace-nowrap">Aulas Periodo</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pageRows.map((row, index) => (
+                  <tr key={`${row.codAprendiz}-${row.cnpj}-${index}`} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50/50`}>
+                    <td className="border border-gray-200 px-3 py-2">{row.parceiro}</td>
+                    <td className="border border-gray-200 px-3 py-2">{row.cnpj}</td>
+                    <td className="border border-gray-200 px-3 py-2 font-medium text-gray-900">{row.codAprendiz}</td>
+                    <td className="border border-gray-200 px-3 py-2">{row.numSistExt || "\u00a0"}</td>
+                    <td className="border border-gray-200 px-3 py-2">{row.nome}</td>
+                    <td className="border border-gray-200 px-3 py-2 text-center">{row.faltaDias}</td>
+                    <td className="border border-gray-200 px-3 py-2 text-center">{row.horasFalta}</td>
+                    <td className="border border-gray-200 px-3 py-2 text-center">{row.aulasPeriodo}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              {filteredRows.length
+                ? `Mostrando de ${start + 1} até ${end} de ${filteredRows.length} registros`
+                : "Mostrando de 0 até 0 de 0 registros"}
+            </div>
+            {renderPagination(currentPage, totalPages)}
+          </div>
+
+          {renderExportButtons({
+            filenameBase: `controle-presenca-contagem-faltas-periodo-${tipoPagamento}-${startDate || "inicio"}-${endDate || "fim"}`,
+            onExcel: () => exportContagemFaltasPeriodoCsv(filteredRows),
+          })}
+
+          <div ref={reportPdfRef} className="p-4 text-xs text-gray-700" style={offscreenReportStyle(1400)}>
+            <div className="mb-4 text-center">
+              <h3 className="text-base font-bold text-[#133c86]">Contagem Faltas Periodo</h3>
+              <p className="text-gray-500">
+                {formatIsoToBrDate(startDate)} a {formatIsoToBrDate(endDate)} - {filteredRows.length} registro(s)
+              </p>
+            </div>
+            <table className="w-full border-collapse border border-gray-200">
+              <thead>
+                <tr>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Parceiro</th>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">CNPJ</th>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Cod Aprendiz</th>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Num. Sist. Ext.</th>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-left text-[#133c86]">Nome</th>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-center text-[#133c86]">Falta Dias</th>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-center text-[#133c86]">Horas Falta</th>
+                  <th className="border border-gray-200 bg-gray-50 px-2 py-2 text-center text-[#133c86]">Aulas Periodo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRows.map((row, index) => (
+                  <tr key={`${row.codAprendiz}-${row.cnpj}-pdf-${index}`}>
+                    <td className="border border-gray-200 px-2 py-1">{row.parceiro}</td>
+                    <td className="border border-gray-200 px-2 py-1">{row.cnpj}</td>
+                    <td className="border border-gray-200 px-2 py-1">{row.codAprendiz}</td>
+                    <td className="border border-gray-200 px-2 py-1">{row.numSistExt}</td>
+                    <td className="border border-gray-200 px-2 py-1">{row.nome}</td>
+                    <td className="border border-gray-200 px-2 py-1 text-center">{row.faltaDias}</td>
+                    <td className="border border-gray-200 px-2 py-1 text-center">{row.horasFalta}</td>
+                    <td className="border border-gray-200 px-2 py-1 text-center">{row.aulasPeriodo}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
@@ -1838,8 +2363,9 @@ export default function ControlePresencaPage() {
     "parceiro-periodo": "Controle de Presença por Parceiro/Período",
     "total-aulas-turma": "Total Período/Turma",
     "total-aulas-turma-capacitacao": "Total Período/Turma Capacitação",
-    "total-aulas-parceiro": "Total de Aulas por Parceiro no Período",
-    "faltas-parceiro": "Faltas por Parceiro",
+    "total-aulas-parceiro": "Total Período/Parceiros",
+    "faltas-parceiro": "Total Período/Faltas",
+    "contagem-faltas-periodo": "Contagem Faltas Período",
     "conteudos-lecionados": "Conteúdos Lecionados no Período",
     "aulas-dadas": "Aulas Dadas no Período",
     "controle-faltas": "Controle de Faltas (8 faltas)",

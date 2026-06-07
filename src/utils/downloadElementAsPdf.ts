@@ -17,6 +17,14 @@ export async function downloadElementAsPdf(
     useCORS: true,
     backgroundColor: "#ffffff",
     windowWidth: element.scrollWidth,
+    onclone: (_documentClone, clonedElement) => {
+      clonedElement.style.opacity = "1";
+      clonedElement.style.position = "static";
+      clonedElement.style.left = "0";
+      clonedElement.style.top = "0";
+      clonedElement.style.zIndex = "auto";
+      clonedElement.style.pointerEvents = "auto";
+    },
   });
 
   const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
