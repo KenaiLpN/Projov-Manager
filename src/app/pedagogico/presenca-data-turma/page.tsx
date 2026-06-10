@@ -385,7 +385,7 @@ function Spinner() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ControlePresencaPage() {
-  const [tab, setTab] = useState<TabId>("comunicado-faltas");
+  const [tab, setTab] = useState<TabId>("data-turma");
 
   // filter states
   const [turmas, setTurmas] = useState<Turma[]>([]);
@@ -1080,7 +1080,6 @@ export default function ControlePresencaPage() {
   }
 
   const tabs: { id: TabId; label: string }[] = [
-    { id: "comunicado-faltas", label: "Comunicado Faltas" },
     { id: "data-turma", label: "Por Data/Turma" },
     { id: "data-turma-capacitacao", label: "Por Data/Turma Capacitação" },
     { id: "turma-periodo", label: "Por Período/Turma" },
@@ -1091,10 +1090,6 @@ export default function ControlePresencaPage() {
     { id: "total-aulas-parceiro", label: "Total Período/Parceiros" },
     { id: "faltas-parceiro", label: "Total Período/Faltas" },
     { id: "contagem-faltas-periodo", label: "Contagem Faltas Período" },
-    { id: "conteudos-lecionados", label: "Conteúdos Lecionados" },
-    { id: "aulas-dadas", label: "Aulas Dadas no Período" },
-    { id: "controle-faltas", label: "Controle de Faltas (8 faltas)" },
-    { id: "estatisticas-presenca-jovem", label: "Estatísticas Presença por Jovem" },
   ];
 
   // ─── Filters per tab ────────────────────────────────────────────────────

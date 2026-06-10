@@ -44,8 +44,7 @@ const menuItems: MenuItem[] = [
     subMenu: [
       { name: "Cronogramas", href: "/pedagogico/cronogramas" },
       { name: "Geração de Cronograma", href: "/pedagogico/gerar-cronograma" },
-      { name: "Gerar Cronograma Semanal", href: "/pedagogico/gerar-cronograma-semanal" },
-      { name: "Datas encontros", href: "/pedagogico/datas-encontros" },
+      { name: "Gerar Cronograma Turma/Semestre", href: "/pedagogico/gerar-cronograma-semanal" },
     ],
   },
   {

@@ -49,6 +49,33 @@ function isAprendizToken(decoded: JwtClaims | null): boolean {
   );
 }
 
+function isEducadorToken(decoded: JwtClaims | null): boolean {
+  return (
+    decoded?.role === "EDUCADOR" ||
+    decoded?.tokenTipo === "EDUCADOR" ||
+    decoded?.tipoAcesso === "EDUCADOR"
+  );
+}
+
+function isEmpresaToken(decoded: JwtClaims | null): boolean {
+  return (
+    decoded?.role === "EMPRESA" ||
+    decoded?.tokenTipo === "EMPRESA" ||
+    decoded?.tipoAcesso === "EMPRESA"
+  );
+}
+
+const EMPRESA_ALLOWED_PATHS = new Set([
+  "/empresa/perfil",
+  "/empresa/aprendizes-alocados",
+  "/empresa/controle-presenca/por-periodo",
+  "/empresa/controle-presenca/total-periodo",
+  "/empresa/cadastro-vagas",
+  "/empresa/avaliacao-desempenho",
+  "/empresa/contagem-faltas",
+  "/empresa/avaliacoes-realizadas",
+]);
+
 // ---------------------------------------------------------------------------
 // CSP builder — nonce é gerado a cada requisição (Edge Runtime suporta WebCrypto)
 // ---------------------------------------------------------------------------
@@ -112,6 +139,8 @@ export function middleware(request: NextRequest) {
   const isNextInternal =
     pathname.startsWith("/_next") || pathname.startsWith("/favicon");
   const aprendizProfilePath = "/aprendizes/cadaprendizes";
+  const educadorProfilePath = "/educador/perfil";
+  const empresaProfilePath = "/empresa/perfil";
   const aprendizCodigo = decodedToken?.sub ? String(decodedToken.sub) : "";
   const isOwnAprendizProfile =
     pathname === aprendizProfilePath &&
@@ -132,6 +161,30 @@ export function middleware(request: NextRequest) {
     const profileUrl = new URL(aprendizProfilePath, request.url);
     profileUrl.searchParams.set("id", aprendizCodigo);
     response = NextResponse.redirect(profileUrl);
+  } else if (
+    isValidToken &&
+    isEducadorToken(decodedToken) &&
+    !isAuthRoute &&
+    !isPublicRoute &&
+    !isNextInternal &&
+    pathname !== educadorProfilePath
+  ) {
+    response = NextResponse.redirect(new URL(educadorProfilePath, request.url));
+  } else if (
+    isValidToken &&
+    EMPRESA_ALLOWED_PATHS.has(pathname) &&
+    !isEmpresaToken(decodedToken)
+  ) {
+    response = NextResponse.redirect(new URL("/home", request.url));
+  } else if (
+    isValidToken &&
+    isEmpresaToken(decodedToken) &&
+    !isAuthRoute &&
+    !isPublicRoute &&
+    !isNextInternal &&
+    !EMPRESA_ALLOWED_PATHS.has(pathname)
+  ) {
+    response = NextResponse.redirect(new URL(empresaProfilePath, request.url));
   } else {
     // Passa o nonce para Server Components via cabeçalho de requisição
     // (lido no layout.tsx através de next/headers)

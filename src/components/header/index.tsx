@@ -122,7 +122,6 @@ const navItems: NavItemWithSub[] = [
             name: "Gerar Cronograma Turma/Sem...",
             href: "/pedagogico/gerar-cronograma-semanal",
           },
-          { name: "Datas encontros", href: "/pedagogico/datas-encontros" },
         ],
       },
       {
@@ -314,9 +313,9 @@ export function Header() {
         </h1>
         <p className="text-[#F6F6F6] text-xs m-2">
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
-        </p>
+        </p>``
       </div>
-      {user.role !== "APRENDIZ" && (
+      {!["APRENDIZ", "EDUCADOR", "EMPRESA"].includes(user.role) && (
         <div className="flex h-20" ref={menuRef}>
           {navItems.map((item) => {
           const hasSub = item.subMenu && item.subMenu.length > 0;
@@ -370,7 +369,7 @@ export function Header() {
         </div>
       )}
       <div className="items-center gap-6 pr-5 hidden lg:flex">
-        {user.role !== "APRENDIZ" && <NotificationsMenu />}
+        {!["APRENDIZ", "EDUCADOR", "EMPRESA"].includes(user.role) && <NotificationsMenu />}
         <UserMenu nome={user.nome} role={getRoleLabel(user.role)} />
       </div>
     </header>

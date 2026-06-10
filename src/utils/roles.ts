@@ -8,6 +8,8 @@ export const ROLE_MAP: Record<string, string> = {
   T: "Técnico",
   DEV: "Desenvolvedor",
   APRENDIZ: "Aprendiz",
+  EDUCADOR: "Educador",
+  EMPRESA: "Empresa Parceira",
 };
 export const getRoleLabel = (code: string | null | undefined): string => {
   if (!code) return "Não definido";
@@ -23,4 +25,4 @@ export const ROLE_OPTIONS = [
   { value: "T", label: "Técnico" },
   { value: "D", label: "Desligado" },
   { value: "APRENDIZ", label: "Aprendiz" },
-];
+];

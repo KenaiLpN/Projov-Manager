@@ -11,8 +11,8 @@ const LOGIN_ACCESS_OPTIONS: {
 }[] = [
   { value: "USUARIO", label: "Usuário" },
   { value: "APRENDIZ", label: "Aprendiz" },
-  { value: "EDUCADOR", label: "Educador", disabled: true },
-  { value: "EMPRESA", label: "Empresa", disabled: true },
+  { value: "EDUCADOR", label: "Educador" },
+  { value: "EMPRESA", label: "Empresa" },
 ];
 
 export default function LoginPage() {
@@ -34,12 +34,17 @@ export default function LoginPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const identifierPlaceholder = tipoAcesso === "APRENDIZ"
     ? "Código ou CPF do Aprendiz"
-    : "Código do Usuário";
+    : tipoAcesso === "EDUCADOR"
+      ? "Código ou CPF do Educador"
+      : tipoAcesso === "EMPRESA"
+        ? "CNPJ da Empresa"
+        : "Código do Usuário";
 
   function handleAccessTypeChange(nextAccessType: LoginAccessType) {
     setTipoAcesso(nextAccessType);
     setUsuCodigo("");
     setSenha("");
+    setNeedsPassword(false);
     setLoginError(false);
     setLoginErrorMessage("");
   }
@@ -73,6 +78,10 @@ export default function LoginPage() {
       localStorage.setItem("projov_user", JSON.stringify(user));
       if (user.UsuTipo === "APRENDIZ") {
         window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
+      } else if (user.UsuTipo === "EDUCADOR") {
+        window.location.href = "/educador/perfil";
+      } else if (user.UsuTipo === "EMPRESA") {
+        window.location.href = "/empresa/perfil";
       } else {
         window.location.href = "/home";
       }
@@ -102,7 +111,7 @@ export default function LoginPage() {
       const createRes = await fetch("/api/proxy/primeiro-acesso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ UsuCodigo, senha: newPassword }),
+        body: JSON.stringify({ UsuCodigo, senha: newPassword, tipoAcesso }),
       });
       const createData = await createRes.json();
       if (!createRes.ok) {
@@ -129,6 +138,10 @@ export default function LoginPage() {
       localStorage.setItem("projov_user", JSON.stringify(user));
       if (user.UsuTipo === "APRENDIZ") {
         window.location.href = `/aprendizes/cadaprendizes?id=${user.UsuCodigo}`;
+      } else if (user.UsuTipo === "EDUCADOR") {
+        window.location.href = "/educador/perfil";
+      } else if (user.UsuTipo === "EMPRESA") {
+        window.location.href = "/empresa/perfil";
       } else {
         window.location.href = "/home";
       }
@@ -176,7 +189,7 @@ export default function LoginPage() {
               Primeiro Acesso
             </h1>
             <p className="flex text-center justify-center text-[#FFFF] mt-2">
-              Olá, Aprendiz! Crie sua nova senha para acessar o sistema.
+              Olá, {tipoAcesso === "EDUCADOR" ? "Educador" : tipoAcesso === "EMPRESA" ? "Empresa Parceira" : "Aprendiz"}! Crie sua nova senha para acessar o sistema.
             </p>
           </div>
           <div className="flex flex-col gap-4">

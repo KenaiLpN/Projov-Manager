@@ -1,11 +1,22 @@
-"use client"; 
-import { usePathname, useRouter } from "next/navigation"; 
-import { useEffect } from "react"; 
+"use client";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Header } from "../header";
 
+const EMPRESA_ALLOWED_PATHS = new Set([
+  "/empresa/perfil",
+  "/empresa/aprendizes-alocados",
+  "/empresa/controle-presenca/por-periodo",
+  "/empresa/controle-presenca/total-periodo",
+  "/empresa/cadastro-vagas",
+  "/empresa/avaliacao-desempenho",
+  "/empresa/contagem-faltas",
+  "/empresa/avaliacoes-realizadas",
+]);
+
 /**
- * PrivateLayout — responsável apenas por redirecionar usuários APRENDIZ
- * para a página correta. A autenticação (JWT) é gerenciada exclusivamente
+ * PrivateLayout — redireciona acessos restritos para o cadastro correto.
+ * A autenticação (JWT) é gerenciada exclusivamente
  * pelo middleware em src/middleware.ts.
  */
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +40,10 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
         if (!pathname.startsWith(expectedPath)) {
           router.push(`${expectedPath}?id=${userObj.UsuCodigo}`);
         }
+      } else if (userObj.UsuTipo === "EDUCADOR" && pathname !== "/educador/perfil") {
+        router.push("/educador/perfil");
+      } else if (userObj.UsuTipo === "EMPRESA" && !EMPRESA_ALLOWED_PATHS.has(pathname)) {
+        router.push("/empresa/perfil");
       }
     } catch (e) {
       // Dado corrompido — limpa o cache local; o middleware redirecionará se o cookie também expirou
@@ -47,11 +62,11 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
        <header className="flex-none h-20 z-50">
             <Header />
        </header>
-        <main className="flex-1 flex flex-col bg-gray-100 overflow-y-auto">           
+        <main className="flex-1 flex flex-col bg-gray-100 overflow-y-auto">
            <div className="flex-1">
               {children}
            </div>
         </main>
     </div>
   );
-}
+}
