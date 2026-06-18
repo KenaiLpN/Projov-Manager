@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filter, Pencil, MapPin, BookOpen, Star, Calendar, LayoutGrid, FileText } from "lucide-react";
+import { Filter, Pencil, MapPin, BookOpen, Star, Calendar, LayoutGrid, FileText, Eye } from "lucide-react";
 import * as caAprendizService from "@/services/caAprendizService";
 import { CA_Aprendiz } from "@/types";
 import SearchBar from "@/components/SearchBar";
@@ -70,6 +70,18 @@ function AprendizesContent() {
   const [motivos, setMotivos] = useState<Motivo[]>([]);
   const [escolas, setEscolas] = useState<Escola[]>([]);
   const [auxDataLoaded, setAuxDataLoaded] = useState(false);
+  const [isEducadorAccess, setIsEducadorAccess] = useState(false);
+
+  useEffect(() => {
+    const sessionRaw = localStorage.getItem("projov_user");
+    if (!sessionRaw) return;
+    try {
+      const userObj = JSON.parse(sessionRaw);
+      setIsEducadorAccess(userObj.UsuTipo === "EDUCADOR");
+    } catch {
+      setIsEducadorAccess(false);
+    }
+  }, []);
 
   const loadAuxData = async () => {
     if (auxDataLoaded) return;
@@ -155,12 +167,14 @@ function AprendizesContent() {
             <h1 className="text-3xl font-bold text-[#133c86]">Cadastro de Aprendizes</h1>
             <p className="text-gray-500 mt-1">Gerencie os jovens aprendizes do programa</p>
           </div>
-          <button
-            onClick={() => router.push("/aprendizes/cadaprendizes")}
-            className="px-6 py-3 bg-[#133c86] text-white font-semibold rounded-lg hover:bg-[#0f2e6b] transition-all shadow-md active:scale-95 flex items-center gap-2"
-          >
-            <span className="text-xl">+</span> Novo Aprendiz
-          </button>
+          {!isEducadorAccess && (
+            <button
+              onClick={() => router.push("/aprendizes/cadaprendizes")}
+              className="px-6 py-3 bg-[#133c86] text-white font-semibold rounded-lg hover:bg-[#0f2e6b] transition-all shadow-md active:scale-95 flex items-center gap-2"
+            >
+              <span className="text-xl">+</span> Novo Aprendiz
+            </button>
+          )}
         </div>
 
         {/* Barra de busca e filtros */}
@@ -295,7 +309,8 @@ function AprendizesContent() {
                           onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}`)}
                           className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-xs flex items-center gap-1"
                         >
-                          <Pencil size={12} /> Editar
+                          {isEducadorAccess ? <Eye size={12} /> : <Pencil size={12} />}
+                          {isEducadorAccess ? "Detalhes" : "Editar"}
                         </button>
                       </td>
                     </tr>

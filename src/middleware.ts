@@ -76,6 +76,14 @@ const EMPRESA_ALLOWED_PATHS = new Set([
   "/empresa/avaliacoes-realizadas",
 ]);
 
+function isEducadorAllowedPath(pathname: string): boolean {
+  return (
+    pathname === "/aprendizes" ||
+    pathname === "/aprendizes/cadaprendizes" ||
+    pathname.startsWith("/pedagogico")
+  );
+}
+
 // ---------------------------------------------------------------------------
 // CSP builder — nonce é gerado a cada requisição (Edge Runtime suporta WebCrypto)
 // ---------------------------------------------------------------------------
@@ -139,7 +147,6 @@ export function middleware(request: NextRequest) {
   const isNextInternal =
     pathname.startsWith("/_next") || pathname.startsWith("/favicon");
   const aprendizProfilePath = "/aprendizes/cadaprendizes";
-  const educadorProfilePath = "/educador/perfil";
   const empresaProfilePath = "/empresa/perfil";
   const aprendizCodigo = decodedToken?.sub ? String(decodedToken.sub) : "";
   const isOwnAprendizProfile =
@@ -167,9 +174,19 @@ export function middleware(request: NextRequest) {
     !isAuthRoute &&
     !isPublicRoute &&
     !isNextInternal &&
-    pathname !== educadorProfilePath
+    pathname === "/aprendizes/cadaprendizes" &&
+    !request.nextUrl.searchParams.get("id")
   ) {
-    response = NextResponse.redirect(new URL(educadorProfilePath, request.url));
+    response = NextResponse.redirect(new URL("/aprendizes", request.url));
+  } else if (
+    isValidToken &&
+    isEducadorToken(decodedToken) &&
+    !isAuthRoute &&
+    !isPublicRoute &&
+    !isNextInternal &&
+    !isEducadorAllowedPath(pathname)
+  ) {
+    response = NextResponse.redirect(new URL("/aprendizes", request.url));
   } else if (
     isValidToken &&
     EMPRESA_ALLOWED_PATHS.has(pathname) &&

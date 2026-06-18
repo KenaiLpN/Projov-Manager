@@ -37,8 +37,10 @@ export default function LoginPage() {
     : tipoAcesso === "EDUCADOR"
       ? "Código ou CPF do Educador"
       : tipoAcesso === "EMPRESA"
-        ? "CNPJ da Empresa"
+        ? "Código ou CNPJ da Empresa"
         : "Código do Usuário";
+  const selectedAccessLabel =
+    LOGIN_ACCESS_OPTIONS.find((option) => option.value === tipoAcesso)?.label ?? "acesso";
 
   function handleAccessTypeChange(nextAccessType: LoginAccessType) {
     setTipoAcesso(nextAccessType);
@@ -156,7 +158,8 @@ export default function LoginPage() {
     if (loading) return;
     setForgotError("");
     setLoading(true);
-    if (!forgotEmail) {
+    const email = forgotEmail.trim();
+    if (!email) {
       setForgotError("Por favor, informe seu e-mail.");
       setLoading(false);
       return;
@@ -165,9 +168,13 @@ export default function LoginPage() {
       const res = await fetch("/api/proxy/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotEmail }),
+        body: JSON.stringify({ email, tipoAcesso }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        setForgotError(data?.message || "Erro ao solicitar recuperação de senha.");
+        return;
+      }
       toast.success(data.message || "Um e-mail para troca da senha será enviado para você.");
       setForgotPasswordMode(false);
       setForgotEmail("");
@@ -303,7 +310,7 @@ export default function LoginPage() {
               Recuperar Senha
             </h1>
             <p className="flex text-center justify-center text-[#FFFF] mt-2">
-              Informe seu e-mail cadastrado para receber as instruções e recuperar o acesso.
+              Informe o e-mail cadastrado para {selectedAccessLabel} e receba as instruções de recuperação.
             </p>
           </div>
           <div className="flex flex-col gap-4">
@@ -495,22 +502,22 @@ export default function LoginPage() {
             "Entrar"
           )}
         </button>
-        {tipoAcesso === "USUARIO" && (
-          <button
-            type="button"
-            onClick={() => {
-              setForgotPasswordMode(true);
-              setLoginError(false);
-              setLoginErrorMessage("");
-              setUsuCodigo("");
-              setSenha("");
-            }}
-            className="flex justify-center transition-all text-[#FFFF] hover:text-blue-500"
-            id="lostpassword"
-          >
-            Esqueci minha senha
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            setForgotPasswordMode(true);
+            setLoginError(false);
+            setLoginErrorMessage("");
+            setForgotError("");
+            setForgotEmail("");
+            setUsuCodigo("");
+            setSenha("");
+          }}
+          className="flex justify-center transition-all text-[#FFFF] hover:text-blue-500"
+          id="lostpassword"
+        >
+          Esqueci minha senha
+        </button>
       </form>
     </div>
   );

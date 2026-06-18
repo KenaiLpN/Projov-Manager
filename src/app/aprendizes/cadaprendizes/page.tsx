@@ -850,6 +850,7 @@ function CadastroForm() {
 
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(true);
+  const [userRole, setUserRole] = useState("");
   const [unidades, setUnidades] = useState<any[]>([]);
   const [instituicoes, setInstituicoes] = useState<any[]>([]);
   const [parceiros, setParceiros] = useState<any[]>([]);
@@ -869,6 +870,10 @@ function CadastroForm() {
   const [calendarMode, setCalendarMode] = useState<"aprendiz" | "turma">("aprendiz");
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextDraftSave = useRef(false);
+  const isAprendizAccess = userRole === "APRENDIZ";
+  const isEducadorAccess = userRole === "EDUCADOR";
+  const canEditAprendiz = !isEducadorAccess;
+  const canViewExtendedTabs = !isAprendizAccess;
 
   const tabs = useMemo(() => [
     { id: "jovem",        label: "Jovem",           icon: <User size={16} /> },
@@ -876,10 +881,10 @@ function CadastroForm() {
     { id: "documentacao", label: "Documentação",    icon: <FileText size={16} /> },
     { id: "endereco",     label: "Endereço",        icon: <MapPin size={16} /> },
     { id: "saude",        label: "Saúde",           icon: <HeartPulse size={16} /> },
-    ...(isAdmin ? [{ id: "calendario", label: "Calendário", icon: <CalendarDays size={16} /> }] : []),
-    ...(editingId && isAdmin ? [{ id: "alocacoes",    label: "Alocações",    icon: <MapPin size={16} /> }] : []),
-    ...(editingId && isAdmin ? [{ id: "capacitacoes", label: "Capacitações", icon: <GraduationCap size={16} /> }] : []),
-  ], [editingId, isAdmin]);
+    ...(canViewExtendedTabs ? [{ id: "calendario", label: "Calendário", icon: <CalendarDays size={16} /> }] : []),
+    ...(editingId && canViewExtendedTabs ? [{ id: "alocacoes",    label: "Alocações",    icon: <MapPin size={16} /> }] : []),
+    ...(editingId && canViewExtendedTabs ? [{ id: "capacitacoes", label: "Capacitações", icon: <GraduationCap size={16} /> }] : []),
+  ], [editingId, canViewExtendedTabs]);
   const [activeTab, setActiveTab] = useState("jovem");
 
   useEffect(() => {
@@ -911,7 +916,9 @@ function CadastroForm() {
     if (userStr) {
       try {
         const u = JSON.parse(userStr);
+        setUserRole(u.UsuTipo || "");
         if (u.UsuTipo === "APRENDIZ") setIsAdmin(false);
+        if (u.UsuTipo === "EDUCADOR") setIsAdmin(false);
       } catch {}
     }
     loadSelectData();
@@ -1015,13 +1022,15 @@ function CadastroForm() {
   const handleCalChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
+    if (isEducadorAccess) return;
     const { name, value } = e.target;
     setCalFormData(prev => ({ ...prev, [name]: value }));
-  }, []);
+  }, [isEducadorAccess]);
 
   const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
+    if (isEducadorAccess) return;
     const { name, value } = e.target;
     const numericFields = [
       "Apr_Unidade", "Apr_InstParceira", "Apr_Turma", "Apr_TurmaCCI", "Apr_TurmaENC",
@@ -1036,13 +1045,14 @@ function CadastroForm() {
         ? (value === "" ? null : Number(value))
         : (value === "" ? null : value),
     }));
-  }, []);
+  }, [isEducadorAccess]);
 
   const handleConfirmAprSenhaChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    if (isEducadorAccess) return;
     setConfirmAprSenha(e.target.value);
-  }, []);
+  }, [isEducadorAccess]);
 
   useEffect(() => {
     const uf = formData.Apr_UF_Nat;
@@ -1053,19 +1063,22 @@ function CadastroForm() {
   }, [formData.Apr_UF_Nat]);
 
   const onUFNatChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (isEducadorAccess) return;
     const uf = e.target.value || null;
     setFormData(prev => ({ ...prev, Apr_UF_Nat: uf, Apr_Naturalidade: null }));
-  }, []);
+  }, [isEducadorAccess]);
 
   const onEscolaChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (isEducadorAccess) return;
     const cod = e.target.value ? Number(e.target.value) : null;
     const found = escolas.find((x: any) => x.EscCodigo === cod);
     setFormData(prev => ({ ...prev, AprCodEscola: cod, Apr_NomeEscola: found?.EscNome ?? prev.Apr_NomeEscola }));
     setEscolaEndereco(found?.EscEndereco ?? "");
-  }, [escolas]);
+  }, [escolas, isEducadorAccess]);
 
   useEffect(() => {
     if (editingId) return;
+    if (isEducadorAccess) return;
     if (!formData.Apr_Nome) return;
     if (skipNextDraftSave.current) { skipNextDraftSave.current = false; return; }
     if (draftTimer.current) clearTimeout(draftTimer.current);
@@ -1078,7 +1091,7 @@ function CadastroForm() {
       } catch {}
     }, 2000);
     return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
-  }, [formData, editingId]);
+  }, [formData, editingId, isEducadorAccess]);
 
   const descartarRascunho = useCallback(async () => {
     try {
@@ -1095,6 +1108,7 @@ function CadastroForm() {
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   const requestSave = () => {
+    if (!canEditAprendiz) return;
     if (editingId) {
       setShowSaveConfirm(true);
     } else {
@@ -1103,6 +1117,7 @@ function CadastroForm() {
   };
 
   const handleSave = async () => {
+    if (!canEditAprendiz) return;
     const aprSenha = formData.Apr_senha?.trim() ?? "";
     const confirmSenha = confirmAprSenha.trim();
     if (aprSenha || confirmSenha) {
@@ -1141,6 +1156,7 @@ function CadastroForm() {
   };
 
   const buscaCEP = useCallback(async (cep: string) => {
+    if (isEducadorAccess) return;
     const clean = cep.replace(/\D/g, "");
     if (clean.length !== 8) return;
     try {
@@ -1159,7 +1175,7 @@ function CadastroForm() {
       console.error("Erro ao buscar CEP:", err);
       toast.error("Não foi possível consultar o CEP.");
     }
-  }, []);
+  }, [isEducadorAccess]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc]">
@@ -1167,7 +1183,7 @@ function CadastroForm() {
         <header className="bg-white border-b border-gray-200 px-8 py-5 sticky top-0 z-10 shadow-sm">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              {isAdmin && (
+              {(isAdmin || isEducadorAccess) && (
                 <button onClick={() => router.back()}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 cursor-pointer">
                   <ArrowLeft size={32} />
@@ -1175,7 +1191,7 @@ function CadastroForm() {
               )}
               <div>
                 <h1 className="text-2xl font-bold text-[#133c86]">
-                  {editingId ? "Edição de Aprendiz" : "Novo Aprendiz"}
+                  {isEducadorAccess ? "Consulta de Aprendiz" : (editingId ? "Edição de Aprendiz" : "Novo Aprendiz")}
                 </h1>
                 <p className="text-sm text-gray-500">
                   {formData.Apr_Nome || (editingId ? "Carregando..." : "Preencha os dados abaixo")}
@@ -1183,7 +1199,7 @@ function CadastroForm() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {!editingId && rascunhoSalvoEm && (
+              {canEditAprendiz && !editingId && rascunhoSalvoEm && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-400">
                     Rascunho salvo às {rascunhoSalvoEm.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
@@ -1194,16 +1210,18 @@ function CadastroForm() {
                   </button>
                 </div>
               )}
-              {isAdmin && (
+              {isAdmin && canEditAprendiz && (
                 <button onClick={() => router.back()}
                   className="px-5 py-2 border border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-all">
                   Cancelar
                 </button>
               )}
-              <button onClick={requestSave} disabled={loading}
-                className="px-5 py-2 bg-[#133c86] text-white rounded-lg font-bold hover:bg-[#0f2e6b] transition-all shadow-lg flex items-center gap-2 disabled:opacity-50">
-                {loading ? "Processando..." : (<><Save size={16} />{editingId ? "Atualizar" : "Salvar"}</>)}
-              </button>
+              {canEditAprendiz && (
+                <button onClick={requestSave} disabled={loading}
+                  className="px-5 py-2 bg-[#133c86] text-white rounded-lg font-bold hover:bg-[#0f2e6b] transition-all shadow-lg flex items-center gap-2 disabled:opacity-50">
+                  {loading ? "Processando..." : (<><Save size={16} />{editingId ? "Atualizar" : "Salvar"}</>)}
+                </button>
+              )}
             </div>
           </div>
         </header>
@@ -1223,16 +1241,18 @@ function CadastroForm() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-24">
-            {activeTab === "jovem"        && <TabJovem f={formData} hc={handleChange} unidades={unidades} instituicoes={instituicoes} escolas={escolas} turmas={turmas} situacoes={situacoes} areasAtuacao={areasAtuacao} planos={planos} motivos={motivos} onEscolaChange={onEscolaChange} escolaEndereco={escolaEndereco} cidades={cidades} onUFNatChange={onUFNatChange} confirmAprSenha={confirmAprSenha} onConfirmAprSenhaChange={handleConfirmAprSenhaChange} />}
-            {/* {activeTab === "escolaridade" && <TabEscolaridade f={formData} hc={handleChange} />} */}
-            {activeTab === "documentacao" && <TabDocumentacao f={formData} hc={handleChange} />}
-            {activeTab === "endereco"     && <TabEndereco f={formData} hc={handleChange} buscaCEP={buscaCEP} />}
-            {activeTab === "familiares"   && <TabFamiliares f={formData} hc={handleChange} />}
-            {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
-            {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
-            {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} parceiros={parceiros} cursos={areasAtuacao} turmas={turmas} calendarMode={calendarMode} onCalendarModeChange={handleCalendarModeChange} />}
-            {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} aprendizNome={formData.Apr_Nome || ""} turmas={turmas} motivos={motivos} />}
-            {activeTab === "capacitacoes" && editingId && <TabCapacitacao aprendizId={Number(editingId)} turmas={TURMAS_ENC} unidades={unidades} />}
+            <fieldset disabled={isEducadorAccess} className="contents">
+              {activeTab === "jovem"        && <TabJovem f={formData} hc={handleChange} unidades={unidades} instituicoes={instituicoes} escolas={escolas} turmas={turmas} situacoes={situacoes} areasAtuacao={areasAtuacao} planos={planos} motivos={motivos} onEscolaChange={onEscolaChange} escolaEndereco={escolaEndereco} cidades={cidades} onUFNatChange={onUFNatChange} confirmAprSenha={confirmAprSenha} onConfirmAprSenhaChange={handleConfirmAprSenhaChange} />}
+              {/* {activeTab === "escolaridade" && <TabEscolaridade f={formData} hc={handleChange} />} */}
+              {activeTab === "documentacao" && <TabDocumentacao f={formData} hc={handleChange} />}
+              {activeTab === "endereco"     && <TabEndereco f={formData} hc={handleChange} buscaCEP={buscaCEP} />}
+              {activeTab === "familiares"   && <TabFamiliares f={formData} hc={handleChange} />}
+              {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
+              {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
+              {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} parceiros={parceiros} cursos={areasAtuacao} turmas={turmas} calendarMode={calendarMode} onCalendarModeChange={handleCalendarModeChange} />}
+              {activeTab === "alocacoes"    && editingId && <TabAlocacao aprendizId={Number(editingId)} aprendizNome={formData.Apr_Nome || ""} turmas={turmas} motivos={motivos} />}
+              {activeTab === "capacitacoes" && editingId && <TabCapacitacao aprendizId={Number(editingId)} turmas={TURMAS_ENC} unidades={unidades} />}
+            </fieldset>
           </div>
         </div>
 
@@ -1257,11 +1277,13 @@ function CadastroForm() {
                 className="flex items-center gap-2 px-5 py-2 rounded-lg bg-[#133c86] text-white font-medium hover:bg-[#0f2e6b] transition-all">
                 Próximo <div className="rotate-180"><ArrowLeft size={16} /></div>
               </button>
-            ) : (
+            ) : canEditAprendiz ? (
               <button onClick={requestSave} disabled={loading}
                 className="flex items-center gap-2 px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition-all shadow-lg disabled:opacity-50">
                 <Save size={16} /> {editingId ? "Finalizar Atualização" : "Finalizar Cadastro"}
               </button>
+            ) : (
+              <span className="text-sm font-semibold text-gray-500">Somente consulta</span>
             )}
           </div>
         </div>

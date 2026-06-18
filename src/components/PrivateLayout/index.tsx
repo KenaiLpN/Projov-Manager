@@ -14,6 +14,14 @@ const EMPRESA_ALLOWED_PATHS = new Set([
   "/empresa/avaliacoes-realizadas",
 ]);
 
+function isEducadorAllowedPath(pathname: string): boolean {
+  return (
+    pathname === "/aprendizes" ||
+    pathname === "/aprendizes/cadaprendizes" ||
+    pathname.startsWith("/pedagogico")
+  );
+}
+
 /**
  * PrivateLayout — redireciona acessos restritos para o cadastro correto.
  * A autenticação (JWT) é gerenciada exclusivamente
@@ -40,8 +48,8 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
         if (!pathname.startsWith(expectedPath)) {
           router.push(`${expectedPath}?id=${userObj.UsuCodigo}`);
         }
-      } else if (userObj.UsuTipo === "EDUCADOR" && pathname !== "/educador/perfil") {
-        router.push("/educador/perfil");
+      } else if (userObj.UsuTipo === "EDUCADOR" && !isEducadorAllowedPath(pathname)) {
+        router.push("/aprendizes");
       } else if (userObj.UsuTipo === "EMPRESA" && !EMPRESA_ALLOWED_PATHS.has(pathname)) {
         router.push("/empresa/perfil");
       }

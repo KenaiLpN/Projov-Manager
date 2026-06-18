@@ -1,5 +1,2 @@
-import { ParceiroPlaceholder } from "@/components/parceiro/ParceiroPlaceholder";
-
-export default function AvaliacaoDesempenhoPage() {
-  return <ParceiroPlaceholder title="Avaliação de Desempenho" description="Avaliação de desempenho dos aprendizes vinculados à empresa." />;
-}
+import { AvaliacoesParceiroPage } from "@/components/parceiro/AvaliacoesParceiroPage";
+export default function Page() { return <AvaliacoesParceiroPage status="pendentes" title="Avaliacoes de Desempenho" description="Avaliacoes pendentes dos aprendizes vinculados a empresa." />; }

@@ -305,6 +305,11 @@ export function Header() {
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
 
+  const visibleNavItems = user.role === "EDUCADOR"
+    ? navItems.filter((item) => ["/aprendizes", "/pedagogico"].includes(item.href))
+    : navItems;
+  const showMainNav = !["APRENDIZ", "EMPRESA"].includes(user.role);
+
   return (
     <header className="flex bg-[#0f306d] justify-between items-center">
       <div className="ml-5">
@@ -315,9 +320,9 @@ export function Header() {
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
         </p>``
       </div>
-      {!["APRENDIZ", "EDUCADOR", "EMPRESA"].includes(user.role) && (
+      {showMainNav && (
         <div className="flex h-20" ref={menuRef}>
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
           const hasSub = item.subMenu && item.subMenu.length > 0;
           const isMenuOpen = openedMenu === item.name;
 
