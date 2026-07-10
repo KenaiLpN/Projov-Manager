@@ -1,0 +1,15 @@
+
+> pro-sis-web@0.1.0 api:dev
+> npm --prefix apps/api run dev
+
+
+> bot-api-ff@1.0.1 dev
+> tsx watch --env-file=.env src/server.ts
+
+{"level":30,"time":1783703128108,"pid":24716,"hostname":"Kenai","msg":"Server listening at http://127.0.0.1:3333"}
+HTTP Server running on port 3333
+{"level":30,"time":1783703128109,"pid":24716,"hostname":"Kenai","msg":"Server listening at http://26.233.195.243:3333"}
+{"level":30,"time":1783703128109,"pid":24716,"hostname":"Kenai","msg":"Server listening at http://10.18.3.18:3333"}
+{"level":30,"time":1783703128109,"pid":24716,"hostname":"Kenai","msg":"Server listening at http://10.0.0.106:3333"}
+{"level":30,"time":1783703253880,"pid":24716,"hostname":"Kenai","reqId":"req-1","req":{"method":"POST","url":"/login","host":"127.0.0.1:3333","remoteAddress":"127.0.0.1","remotePort":63757},"msg":"incoming request"}
+{"level":30,"time":1783703254090,"pid":24716,"hostname":"Kenai","reqId":"req-1","res":{"statusCode":400},"responseTime":188.69229999929667,"msg":"request completed"}

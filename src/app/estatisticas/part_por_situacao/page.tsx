@@ -10,12 +10,6 @@ interface RelatorioData {
 }
 
 export default function ListaJovensCargaHorariaPage() {
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split("T")[0];
-  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split("T")[0];
-
-  const [startDate, setStartDate] = useState(firstDayOfMonth);
-  const [endDate, setEndDate] = useState(lastDayOfMonth);
   const [data, setData] = useState<RelatorioData[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,11 +31,6 @@ export default function ListaJovensCargaHorariaPage() {
     fetchData();
   }, []);
 
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR");
-  };
   // src/app/estatisticas/geral_aprendiz/page.tsx
 
   const filteredData = data.filter((item) => {

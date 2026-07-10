@@ -1,9 +1,10 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- carga inicial depende de fluxo de edicao/rascunho */
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft, Save, User, Briefcase, GraduationCap,
-  FileText, MapPin, HeartPulse, Users, DollarSign, CalendarDays,
+  ArrowLeft, Save, User, GraduationCap,
+  FileText, MapPin, HeartPulse, DollarSign, CalendarDays,
 } from "lucide-react";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import { CalendarioForm } from "@/components/forms/aprendiz/CalendarioForm";
@@ -14,6 +15,7 @@ import { toast } from "react-hot-toast";
 import api from "@/services/api";
 import * as caAprendizService from "@/services/caAprendizService";
 import { CA_Aprendiz } from "@/types";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -367,6 +369,67 @@ function fmtDate(v: string | null | undefined) {
   try { return new Date(v).toISOString().split("T")[0]; } catch { return ""; }
 }
 
+type FormChangeHandler = React.ChangeEventHandler<
+  HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+>;
+
+type MutableAprendiz = Record<string, unknown>;
+
+type UnidadeOption = {
+  UniCodigo: number;
+  UniNome: string;
+};
+
+type InstituicaoOption = {
+  IpaCodigo?: number | null;
+  IpaDescricao?: string | null;
+};
+
+type ParceiroOption = {
+  ParCodigo: number;
+  ParDescricao: string;
+};
+
+type EscolaOption = {
+  EscCodigo?: number | null;
+  EscNome?: string | null;
+  EscEndereco?: string | null;
+};
+
+type TurmaOption = {
+  TurCodigo?: number | null;
+  TurNome?: string | null;
+};
+
+type SituacaoOption = {
+  StaCodigo?: number | string | null;
+  StaDescricao?: string | null;
+};
+
+type AreaAtuacaoOption = {
+  AreaCodigo?: number | null;
+  AreaDescricao?: string | null;
+  AreaCargaTeorica4h?: number | null;
+  AreaCargaPratica4h?: number | null;
+  AreaCargaTeorica6h?: number | null;
+  AreaCargaPratica6h?: number | null;
+};
+
+type PlanoOption = {
+  PlanCodigo?: number | null;
+  PlanDescricao?: string | null;
+};
+
+type MotivoOption = {
+  MotCodigo?: number | null;
+  MotDescricao?: string | null;
+};
+
+type ParentescoOption = {
+  GpaCodigo?: number | null;
+  GpaDescricao?: string | null;
+};
+
 function SectionTitle({ title }: { title: string }) {
   return (
     <h3 className="col-span-full text-sm font-semibold text-[#133c86] uppercase tracking-wide border-b border-gray-200 pb-1 mt-4 mb-1 first:mt-0">
@@ -380,7 +443,7 @@ function Field({
   className = "", children, disabled = false,
 }: {
   label: string; name: string; value: string | number | null | undefined;
-  onChange: React.ChangeEventHandler<any>; type?: string; required?: boolean;
+  onChange: FormChangeHandler; type?: string; required?: boolean;
   className?: string; children?: React.ReactNode; disabled?: boolean;
 }) {
   const base = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#133c86]/30 focus:border-[#133c86] disabled:bg-gray-100 disabled:text-gray-500";
@@ -436,9 +499,9 @@ function TabJovem({
   f, hc, unidades, instituicoes, escolas, turmas, situacoes, areasAtuacao, planos, motivos,
   onEscolaChange, escolaEndereco, cidades, onUFNatChange, confirmAprSenha, onConfirmAprSenhaChange,
 }: {
-  f: CA_Aprendiz; hc: React.ChangeEventHandler<any>;
-  unidades: any[]; instituicoes: any[]; escolas: any[]; turmas: any[];
-  situacoes: any[]; areasAtuacao: any[]; planos: any[]; motivos: any[];
+  f: CA_Aprendiz; hc: FormChangeHandler;
+  unidades: UnidadeOption[]; instituicoes: InstituicaoOption[]; escolas: EscolaOption[]; turmas: TurmaOption[];
+  situacoes: SituacaoOption[]; areasAtuacao: AreaAtuacaoOption[]; planos: PlanoOption[]; motivos: MotivoOption[];
   onEscolaChange: React.ChangeEventHandler<HTMLSelectElement>;
   escolaEndereco: string;
   cidades: { MunICodigo: string; MunIDescricao: string }[];
@@ -459,13 +522,13 @@ function TabJovem({
       {/* Unidade em destaque */}
       <Sel label="Unidade" name="Apr_Unidade" value={f.Apr_Unidade} onChange={hc}>
         <option value="">Selecione</option>
-        {unidades.map((u: any) => (
+        {unidades.map((u) => (
           <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
         ))}
       </Sel>
       <Sel label="Instituição Parceira" name="Apr_InstParceira" value={f.Apr_InstParceira} onChange={hc}>
         <option value="">Selecione</option>
-        {instituicoes.map((i: any, idx: number) => (
+        {instituicoes.map((i, idx) => (
           <option key={i.IpaCodigo ?? idx} value={i.IpaCodigo ?? ""}>
             {i.IpaDescricao}
           </option>
@@ -539,7 +602,7 @@ function TabJovem({
 
       <Sel label="Escola" name="AprCodEscola" value={f.AprCodEscola} onChange={onEscolaChange}>
         <option value="">Selecione</option>
-        {escolas.map((e: any, idx: number) => (
+        {escolas.map((e, idx) => (
           <option key={e.EscCodigo ?? idx} value={e.EscCodigo ?? ""}>
             {e.EscNome}
           </option>
@@ -550,7 +613,7 @@ function TabJovem({
 
       <Sel label="Status do Jovem" name="Apr_Situacao" value={f.Apr_Situacao} onChange={hc}>
         <option value="">Selecione</option>
-        {situacoes.map((s: any, idx: number) => (
+        {situacoes.map((s, idx) => (
           <option key={s.StaCodigo ?? idx} value={s.StaCodigo ?? ""}>
             {s.StaDescricao}
           </option>
@@ -558,7 +621,7 @@ function TabJovem({
       </Sel>
       <Sel label="Motivo de Desligamento" name="AprMotivoDesligamento1" value={f.AprMotivoDesligamento1} onChange={hc}>
         <option value="">Selecione</option>
-        {motivos.map((m: any, idx: number) => (
+        {motivos.map((m, idx) => (
           <option key={m.MotCodigo ?? idx} value={m.MotCodigo ?? ""}>
             {m.MotDescricao}
           </option>
@@ -574,7 +637,7 @@ function TabJovem({
 
       <Sel label="Turma Simultaneidade" name="Apr_Turma" value={f.Apr_Turma} onChange={hc}>
         <option value="">Selecione</option>
-        {turmas.map((t: any, idx: number) => (
+        {turmas.map((t, idx) => (
           <option key={t.TurCodigo ?? idx} value={t.TurCodigo ?? ""}>
             {t.TurNome}
           </option>
@@ -596,7 +659,7 @@ function TabJovem({
       <Field label="Meses de Contrato" name="Apr_MesesContrato" value={f.Apr_MesesContrato} onChange={hc} type="number" />
       <Sel label="Área de Atuação" name="Apr_AreaAtuacao" value={f.Apr_AreaAtuacao} onChange={hc}>
         <option value="">Selecione</option>
-        {areasAtuacao.map((a: any, idx: number) => (
+        {areasAtuacao.map((a, idx) => (
           <option key={a.AreaCodigo ?? idx} value={a.AreaCodigo ?? ""}>
             {a.AreaDescricao}
           </option>
@@ -604,7 +667,7 @@ function TabJovem({
       </Sel>
       <Sel label="Plano Curricular" name="Apr_PlanoCurricular" value={f.Apr_PlanoCurricular} onChange={hc}>
         <option value="">Selecione</option>
-        {planos.map((p: any, idx: number) => (
+        {planos.map((p, idx) => (
           <option key={p.PlanCodigo ?? idx} value={p.PlanCodigo ?? ""}>
             {p.PlanDescricao}
           </option>
@@ -647,7 +710,7 @@ function TabJovem({
   );
 }
 
-function TabSocioEconomico({ f, hc, parentescos }: { f: CA_Aprendiz; hc: React.ChangeEventHandler<any>; parentescos: any[] }) {
+function TabSocioEconomico({ f, hc, parentescos }: { f: CA_Aprendiz; hc: FormChangeHandler; parentescos: ParentescoOption[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
        <SectionTitle title="Dados do Responsável / Familiar" />
@@ -665,7 +728,7 @@ function TabSocioEconomico({ f, hc, parentescos }: { f: CA_Aprendiz; hc: React.C
       <Field label="Profissão" name="Apr_Resp_Profissao" value={f.Apr_Resp_Profissao} onChange={hc} />
       <Sel label="Grau de Parentesco" name="Apr_Resp_Parentesco" value={f.Apr_Resp_Parentesco} onChange={hc}>
         <option value="">Selecione</option>
-        {parentescos.map((p: any, idx: number) => (
+        {parentescos.map((p, idx) => (
           <option key={p.GpaCodigo ?? idx} value={p.GpaCodigo ?? ""}>{p.GpaDescricao}</option>
         ))}
       </Sel>
@@ -716,17 +779,7 @@ function TabSocioEconomico({ f, hc, parentescos }: { f: CA_Aprendiz; hc: React.C
   );
 }
 
-// function TabEscolaridade({ f, hc }: { f: CA_Aprendiz; hc: React.ChangeEventHandler<any> }) {
-//   return (
-//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//       <SectionTitle title="Horários da Escola" />
-//       <Field label="Horário de Início" name="Apr_Escola_HInicio" value={f.Apr_Escola_HInicio} onChange={hc} />
-//       <Field label="Horário de Término" name="Apr_Escola_HTermino" value={f.Apr_Escola_HTermino} onChange={hc} />
-//     </div>
-//   );
-// }
-
-function TabDocumentacao({ f, hc }: { f: CA_Aprendiz; hc: React.ChangeEventHandler<any> }) {
+function TabDocumentacao({ f, hc }: { f: CA_Aprendiz; hc: FormChangeHandler }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <SectionTitle title="Carteira de Identidade" />
@@ -755,7 +808,7 @@ function TabDocumentacao({ f, hc }: { f: CA_Aprendiz; hc: React.ChangeEventHandl
 }
 
 function TabEndereco({ f, hc, buscaCEP }: {
-  f: CA_Aprendiz; hc: React.ChangeEventHandler<any>; buscaCEP: (cep: string) => void;
+  f: CA_Aprendiz; hc: FormChangeHandler; buscaCEP: (cep: string) => void;
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -788,7 +841,7 @@ function TabEndereco({ f, hc, buscaCEP }: {
   );
 }
 
-function TabFamiliares({ f, hc }: { f: CA_Aprendiz; hc: React.ChangeEventHandler<any> }) {
+function TabFamiliares() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
      
@@ -798,7 +851,7 @@ function TabFamiliares({ f, hc }: { f: CA_Aprendiz; hc: React.ChangeEventHandler
 
 
 
-function TabSaude({ f, hc }: { f: CA_Aprendiz; hc: React.ChangeEventHandler<any> }) {
+function TabSaude({ f, hc }: { f: CA_Aprendiz; hc: FormChangeHandler }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <SectionTitle title="Deficiência" />
@@ -851,16 +904,16 @@ function CadastroForm() {
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(true);
   const [userRole, setUserRole] = useState("");
-  const [unidades, setUnidades] = useState<any[]>([]);
-  const [instituicoes, setInstituicoes] = useState<any[]>([]);
-  const [parceiros, setParceiros] = useState<any[]>([]);
-  const [escolas, setEscolas] = useState<any[]>([]);
-  const [turmas, setTurmas] = useState<any[]>([]);
-  const [situacoes, setSituacoes] = useState<any[]>([]);
-  const [areasAtuacao, setAreasAtuacao] = useState<any[]>([]);
-  const [planos, setPlanos] = useState<any[]>([]);
-  const [motivos, setMotivos] = useState<any[]>([]);
-  const [parentescos, setParentescos] = useState<any[]>([]);
+  const [unidades, setUnidades] = useState<UnidadeOption[]>([]);
+  const [instituicoes, setInstituicoes] = useState<InstituicaoOption[]>([]);
+  const [parceiros, setParceiros] = useState<ParceiroOption[]>([]);
+  const [escolas, setEscolas] = useState<EscolaOption[]>([]);
+  const [turmas, setTurmas] = useState<TurmaOption[]>([]);
+  const [situacoes, setSituacoes] = useState<SituacaoOption[]>([]);
+  const [areasAtuacao, setAreasAtuacao] = useState<AreaAtuacaoOption[]>([]);
+  const [planos, setPlanos] = useState<PlanoOption[]>([]);
+  const [motivos, setMotivos] = useState<MotivoOption[]>([]);
+  const [parentescos, setParentescos] = useState<ParentescoOption[]>([]);
   const [cidades, setCidades] = useState<{ MunICodigo: string; MunIDescricao: string }[]>([]);
   const [escolaEndereco, setEscolaEndereco] = useState("");
   const [formData, setFormData] = useState<CA_Aprendiz>({});
@@ -929,10 +982,10 @@ function CadastroForm() {
         const dados = res.data.data?.dados;
         if (!dados) return;
         skipNextDraftSave.current = true;
-        const formatted: any = { ...dados };
-        DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f]); });
+        const formatted: MutableAprendiz = { ...dados };
+        DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f] as string | null | undefined); });
         formatted.Apr_senha = "";
-        setFormData(formatted);
+        setFormData(formatted as CA_Aprendiz);
         setConfirmAprSenha("");
         setRascunhoSalvoEm(new Date(res.data.data.updatedAt));
         toast("Rascunho restaurado automaticamente.", { icon: "📋" });
@@ -1002,10 +1055,10 @@ function CadastroForm() {
     setLoading(true);
     try {
       const record = await caAprendizService.getById(id);
-      const formatted: any = { ...record };
-      DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f]); });
+      const formatted: MutableAprendiz = { ...record };
+      DATE_FIELDS.forEach(f => { formatted[f] = fmtDate(formatted[f] as string | null | undefined); });
       formatted.Apr_senha = "";
-      setFormData(formatted);
+      setFormData(formatted as CA_Aprendiz);
       setConfirmAprSenha("");
       // calFormData guarda apenas campos de cálculo sem coluna em CA_Aprendiz.
       // Os campos Apr_* (curso, jornada, datas, empresa, férias) são lidos
@@ -1071,7 +1124,7 @@ function CadastroForm() {
   const onEscolaChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     if (isEducadorAccess) return;
     const cod = e.target.value ? Number(e.target.value) : null;
-    const found = escolas.find((x: any) => x.EscCodigo === cod);
+    const found = escolas.find((x) => x.EscCodigo === cod);
     setFormData(prev => ({ ...prev, AprCodEscola: cod, Apr_NomeEscola: found?.EscNome ?? prev.Apr_NomeEscola }));
     setEscolaEndereco(found?.EscEndereco ?? "");
   }, [escolas, isEducadorAccess]);
@@ -1147,9 +1200,9 @@ function CadastroForm() {
       setFormData(prev => ({ ...prev, Apr_senha: "" }));
       setConfirmAprSenha("");
       if (isAdmin && !editingId) router.push("/aprendizes");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Erro ao salvar aprendiz.");
+      toast.error(getApiErrorMessage(err, "Erro ao salvar aprendiz."));
     } finally {
       setLoading(false);
     }
@@ -1246,7 +1299,7 @@ function CadastroForm() {
               {/* {activeTab === "escolaridade" && <TabEscolaridade f={formData} hc={handleChange} />} */}
               {activeTab === "documentacao" && <TabDocumentacao f={formData} hc={handleChange} />}
               {activeTab === "endereco"     && <TabEndereco f={formData} hc={handleChange} buscaCEP={buscaCEP} />}
-              {activeTab === "familiares"   && <TabFamiliares f={formData} hc={handleChange} />}
+              {activeTab === "familiares"   && <TabFamiliares />}
               {activeTab === "socio"        && <TabSocioEconomico f={formData} hc={handleChange} parentescos={parentescos} />}
               {activeTab === "saude"        && <TabSaude f={formData} hc={handleChange} />}
               {activeTab === "calendario"   && <CalendarioForm formData={formData} handleChange={handleChange} calFormData={calFormData} handleCalChange={handleCalChange} unidades={unidades} instituicoes={instituicoes} parceiros={parceiros} cursos={areasAtuacao} turmas={turmas} calendarMode={calendarMode} onCalendarModeChange={handleCalendarModeChange} />}

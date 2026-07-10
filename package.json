@@ -7,9 +7,18 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:web": "next dev",
+    "dev:all": "concurrently -n web,api -c blue,green \"npm run dev:web\" \"npm run api:dev\"",
     "build": "next build",
+    "build:web": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "start:web": "next start",
+    "lint": "eslint",
+    "api:install": "npm --prefix apps/api install",
+    "api:dev": "npm --prefix apps/api run dev",
+    "api:build": "npm --prefix apps/api run build",
+    "api:start": "npm --prefix apps/api run start",
+    "build:all": "npm run build && npm run api:build"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -39,6 +48,7 @@
     "@types/node": "^22.19.7",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.3",
     "eslint": "^9",
     "eslint-config-next": "^15.5.20",
     "tailwindcss": "^4",

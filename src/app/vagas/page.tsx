@@ -12,13 +12,13 @@ import api from "@/services/api";
 import { toast } from "react-hot-toast";
 import Modal from "@/components/modal";
 import VagaForm from "@/components/vagas/VagaForm";
-import VagaList, { Vaga } from "@/components/vagas/VagaList";
+import VagaList, { Vaga, VagaArea, VagaEmpresa } from "@/components/vagas/VagaList";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 
 export default function VagasPage() {
   const [vagas, setVagas] = useState<Vaga[]>([]);
-  const [empresas, setEmpresas] = useState<any[]>([]);
-  const [areas, setAreas] = useState<any[]>([]);
+  const [empresas, setEmpresas] = useState<VagaEmpresa[]>([]);
+  const [areas, setAreas] = useState<VagaArea[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -57,7 +57,7 @@ export default function VagasPage() {
       const res = await api.get("/vagas");
       setVagas(Array.isArray(res.data) ? res.data : res.data.data || []);
       toast.success("Lista atualizada!");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao atualizar lista.");
     } finally {
       setLoading(false);
@@ -76,7 +76,7 @@ export default function VagasPage() {
       await api.delete(`/vagas/${vagaToDelete}`);
       setVagas(prev => prev.filter(v => v.ReqId !== vagaToDelete));
       toast.success("Vaga excluída com sucesso!");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao excluir vaga.");
     } finally {
       setIsDeleting(false);
@@ -155,7 +155,7 @@ export default function VagasPage() {
         loading={loading}
         empresas={empresas}
         areas={areas}
-        onEdit={(vaga) => {
+        onEdit={() => {
           // Future: Load data into form for editing
           toast.success("Função de edição em breve!");
         }}

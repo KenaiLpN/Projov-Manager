@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -10,6 +11,7 @@ import TabelaInstituicoes, {
 } from "@/components/tabelas/tabelainstituicoes";
 import Pagination from "@/components/pagination";
 import { fetchCepAddress } from "@/services/cepService";
+import { getApiErrorMessage } from "@/utils/apiError";
 interface InstituicaoFormData {
   EscNome: string;
   EscEmail: string;
@@ -51,7 +53,6 @@ export default function Instituicoes() {
   const [formData, setFormData] =
     useState<InstituicaoFormData>(initialFormState);
   const [saving, setSaving] = useState<boolean>(false);
-  const roles = ["Diretor", "Coordenador", "Secretaria", "TI", "Outro"];
   const estados = [
     "AC",
     "AL",
@@ -157,12 +158,6 @@ export default function Instituicoes() {
     setPage(1);
     fetchInstituicoes(1, "");
   };
-  const handlePreviousPage = () => {
-    if (page > 1) setPage((prev) => prev - 1);
-  };
-  const handleNextPage = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
-  };
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -185,10 +180,9 @@ export default function Instituicoes() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchInstituicoes(page, search);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao excluir:", err);
-      const msg = err.response?.data?.message || "Erro ao excluir.";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(err, "Erro ao excluir."));
     } finally {
       setDeleting(false);
     }
@@ -215,13 +209,9 @@ export default function Instituicoes() {
       }
       closeModal();
       fetchInstituicoes(page, search);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro completo:", err);
-      if (err.response?.data) {
-        toast.error(`Erro: ${JSON.stringify(err.response.data)}`);
-      } else {
-        toast.error("Erro ao salvar instituição.");
-      }
+      toast.error(getApiErrorMessage(err, "Erro ao salvar instituição."));
     } finally {
       setSaving(false);
     }

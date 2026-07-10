@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "@/components/modal";
@@ -9,6 +10,8 @@ import TabelaUnidades from "@/components/tabelas/tabelaunidades";
 import Pagination from "@/components/pagination";
 import SearchBar from "@/components/SearchBar";
 import { fetchCepAddress } from "@/services/cepService";
+import { getApiErrorMessage } from "@/utils/apiError";
+import { Unidade } from "@/types";
 interface UnidadeFormData {
   UniNome: string;
   UniCGC: string;
@@ -25,13 +28,13 @@ interface UnidadeFormData {
   UniEstado: string;
   UniEnderecoWeb: string;
   UniTipo: string;
-  UniDataRefPesquisa: Date;
+  UniDataRefPesquisa: Date | string;
 }
 export default function Unidades() {
   // const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [unidades, setUnidades] = useState<any[]>([]);
+  const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
@@ -74,7 +77,6 @@ export default function Unidades() {
     }
   };
   const [saving, setSaving] = useState<boolean>(false);
-  const roles = ["Matriz", "Filial", "Parceiro", "Outro"];
   const estados = [
     "AC",
     "AL",
@@ -126,7 +128,7 @@ export default function Unidades() {
     });
     setIsModalOpen(true);
   };
-  const handleEditUnity = (item: any) => {
+  const handleEditUnity = (item: Unidade) => {
     setEditingId(item.UniCodigo);
     setFormData({
       UniNome: item.UniNome || "",
@@ -204,10 +206,9 @@ export default function Unidades() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchUnidades(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao excluir:", err);
-      const msg = err.response?.data?.message || "Erro ao excluir unidade.";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(err, "Erro ao excluir unidade."));
     } finally {
       setDeleting(false);
     }
@@ -225,9 +226,9 @@ export default function Unidades() {
   const handleSalvar = async () => {
     setSaving(true);
     try {
-      const payload: any = {};
-      Object.keys(formData).forEach((key) => {
-        const value = formData[key as keyof UnidadeFormData];
+      const payload: Record<string, string | Date> = {};
+      (Object.keys(formData) as Array<keyof UnidadeFormData>).forEach((key) => {
+        const value = formData[key];
         if (typeof value === "string" && value.trim() === "") return;
         payload[key] = value;
       });
@@ -240,13 +241,9 @@ export default function Unidades() {
       }
       closeModal();
       fetchUnidades(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro completo:", err);
-      if (err.response?.data) {
-        toast.error(`Erro de validação: ${JSON.stringify(err.response.data)}`);
-      } else {
-        toast.error("Erro ao salvar unidade.");
-      }
+      toast.error(getApiErrorMessage(err, "Erro ao salvar unidade."));
     } finally {
       setSaving(false);
     }

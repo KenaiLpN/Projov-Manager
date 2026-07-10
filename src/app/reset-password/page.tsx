@@ -3,6 +3,7 @@ import { useState, Suspense } from "react";
 import api from "@/services/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,9 +48,8 @@ function ResetPasswordForm() {
       const response = await api.post("/reset-password", { token, newPassword });
       toast.success(response.data.message || "Senha alterada com sucesso!");
       router.push("/login");
-    } catch (error: any) {
-      const msg = error?.response?.data?.message || "Erro ao tentar redefinir a senha.";
-      setErrorMsg(msg);
+    } catch (error: unknown) {
+      setErrorMsg(getApiErrorMessage(error, "Erro ao tentar redefinir a senha."));
     } finally {
       setLoading(false);
     }

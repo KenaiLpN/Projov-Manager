@@ -75,7 +75,6 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
         backgroundColor: "#ffffff",
       });
 
-      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
@@ -83,7 +82,6 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
       const imgW = pageW;
       const imgH = imgW * ratio;
 
-      let posY = 0;
       let remaining = imgH;
       let first = true;
 
@@ -101,7 +99,6 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
 
         pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 0, 0, imgW, sliceH);
         remaining -= pageH;
-        posY += pageH;
         first = false;
       }
 
@@ -354,4 +351,4 @@ export function CalendarioPreview({ calendario, onClose }: Props) {
       </div>
     </div>
   );
-}
+}

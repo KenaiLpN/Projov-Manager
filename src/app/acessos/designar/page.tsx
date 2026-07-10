@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { AcessoSidebar } from "@/components/acessosidebar";
 import api from "@/services/api";
@@ -74,7 +75,7 @@ export default function DesignarFuncoesPage() {
       await api.put(`/users/${usuCodigo}`, { UsuTipo: nextRole });
       toast.success("Cargo atualizado com sucesso!");
       setLista(prev => prev.map(u => u.UsuCodigo === usuCodigo ? { ...u, UsuTipo: nextRole } : u));
-    } catch (err) {
+    } catch {
       toast.error("Erro ao atualizar o cargo.");
     } finally {
       setUpdating(null);

@@ -1,0 +1,16 @@
+Erro de Validação: {
+  validation: [
+    {
+      keyword: 'invalid_value',
+      instancePath: '/tipoAcesso',
+      schemaPath: '#/tipoAcesso/invalid_value',
+      message: 'Invalid option: expected one of "USUARIO"|"APRENDIZ"|"EDUCADOR"|"EMPRESA"',
+      params: [Object],
+      Symbol(ZodFastifySchemaValidationError): true
+    }
+  ],
+  context: 'body',
+  url: '/login',
+  method: 'POST',
+  ip: '127.0.0.1'
+}

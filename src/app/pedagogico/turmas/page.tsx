@@ -4,6 +4,7 @@ import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import api from "@/services/api";
+import { getApiErrorMessage } from "@/utils/apiError";
 import TabelaTurmas, { Turma } from "@/components/tabelas/tabelaturmas";
 import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
@@ -288,12 +289,8 @@ export default function TurmasPage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Erro ao salvar.";
-      toast.error(msg);
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Erro ao salvar."));
     } finally {
       setSaving(false);
     }

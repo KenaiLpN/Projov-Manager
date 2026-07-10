@@ -35,20 +35,12 @@ export default function ListaAprendizPorParceiro() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR");
-  };
   // src/app/estatisticas/geral_aprendiz/page.tsx
 
   const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
     
     // Use optional chaining and fallback to empty string
-    const nomefantasia = (item.Parceiro ?? "").toLowerCase();
-
     return (
       item.Parceiro?.toLowerCase().includes(term) ||
         item.Unidade?.toLowerCase().includes(term) ||

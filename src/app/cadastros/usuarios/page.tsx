@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -10,6 +11,16 @@ import { ROLE_OPTIONS } from "@/utils/roles";
 import Pagination from "@/components/pagination";
 import { toast } from "react-hot-toast";
 import SearchBar from "@/components/SearchBar";
+import { getApiErrorMessage } from "@/utils/apiError";
+
+type UsuarioPayload = {
+  UsuCodigo: string;
+  UsuNome: string;
+  UsuEmail: string;
+  UsuTipo: string;
+  UsuSenha?: string;
+};
+
 export default function CadCliPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -111,10 +122,9 @@ export default function CadCliPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchUsuarios(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao excluir:", err);
-      const msg = err.response?.data?.message || "Erro ao excluir usuário.";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(err, "Erro ao excluir usuário."));
     } finally {
       setDeleting(false);
     }
@@ -146,9 +156,12 @@ export default function CadCliPage() {
     }
     setSaving(true);
     try {
-      const { confirmacao_senha, UsuSenha, ...restOfData } = formData;
-      const payload: any = {
-        ...restOfData,
+      const { UsuSenha } = formData;
+      const payload: UsuarioPayload = {
+        UsuCodigo: formData.UsuCodigo,
+        UsuNome: formData.UsuNome,
+        UsuEmail: formData.UsuEmail,
+        UsuTipo: formData.UsuTipo,
       };
       if (UsuSenha && UsuSenha.trim() !== "") {
         payload.UsuSenha = UsuSenha;
@@ -162,14 +175,9 @@ export default function CadCliPage() {
       }
       closeModal();
       fetchUsuarios(page); 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro completo:", err);
-      if (err.response?.data) {
-        console.log("Detalhes do erro Zod:", err.response.data);
-        toast.error(`Erro de validação: ${JSON.stringify(err.response.data)}`);
-      } else {
-        toast.error("Erro ao salvar usuário.");
-      }
+      toast.error(getApiErrorMessage(err, "Erro ao salvar usuário."));
     } finally {
       setSaving(false);
     }
@@ -344,4 +352,4 @@ export default function CadCliPage() {
       </div>
     </div>
   );
-}
+}

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
 import Modal from "../../../components/modal";
@@ -90,18 +91,14 @@ export default function CadRamosAtividadePage() {
   useEffect(() => {
     fetchData(page);
   }, [page]);
-  const handlePreviousPage = () => {
-    if (page > 1) setPage((prev) => prev - 1);
-  };
-  const handleNextPage = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
-  };
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    const { name, value, type } = e.target as any;
+    const { name, value } = e.target;
     const val =
-      type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
+      e.target instanceof HTMLInputElement && e.target.type === "checkbox"
+        ? e.target.checked
+        : value;
     setFormData((prev) => ({ ...prev, [name]: val }));
   };
   const handleDelete = (id: number) => {
@@ -117,7 +114,7 @@ export default function CadRamosAtividadePage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir.");
     } finally {
       setDeleting(false);
@@ -149,7 +146,7 @@ export default function CadRamosAtividadePage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Erro ao salvar.");
     } finally {
@@ -326,4 +323,4 @@ export default function CadRamosAtividadePage() {
       </div>
     </div>
   );
-}
+}

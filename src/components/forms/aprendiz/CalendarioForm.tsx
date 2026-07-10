@@ -10,6 +10,7 @@ import {
 } from "@/utils/calendarioAprendizagem";
 import { toast } from "react-hot-toast";
 import api from "@/services/api";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 interface Props {
   formData: CA_Aprendiz;
@@ -20,18 +21,42 @@ interface Props {
   handleCalChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
-  unidades: any[];
-  instituicoes: any[];
-  parceiros: any[];
-  cursos: any[];
+  unidades: UnidadeOption[];
+  instituicoes: InstituicaoOption[];
+  parceiros: ParceiroOption[];
+  cursos: CursoOption[];
   turmas?: TurmaCalendario[];
   calendarMode?: "aprendiz" | "turma";
   onCalendarModeChange?: (mode: "aprendiz" | "turma") => void;
 }
 
+interface UnidadeOption {
+  UniCodigo?: number | null;
+  UniNome?: string | null;
+}
+
+interface InstituicaoOption {
+  IpaCodigo?: number | null;
+  IpaDescricao?: string | null;
+}
+
+interface ParceiroOption {
+  ParCodigo?: number | null;
+  ParDescricao?: string | null;
+}
+
+interface CursoOption {
+  AreaCodigo?: number | null;
+  AreaDescricao?: string | null;
+  AreaCargaTeorica4h?: number | null;
+  AreaCargaPratica4h?: number | null;
+  AreaCargaTeorica6h?: number | null;
+  AreaCargaPratica6h?: number | null;
+}
+
 interface TurmaCalendario {
-  TurCodigo: number | string;
-  TurNome: string;
+  TurCodigo?: number | string | null;
+  TurNome?: string | null;
   TurCurso?: string | null;
   TurDiaSemana?: string | null;
   TurDiaSemana02?: string | null;
@@ -68,7 +93,6 @@ export const CalendarioForm = React.memo(function CalendarioForm({
   calFormData,
   handleCalChange,
   unidades,
-  instituicoes,
   parceiros,
   cursos,
   turmas = [],
@@ -262,7 +286,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     const jornada = Number(formData.Apr_HorasDiarias);
     if (!cursoId || !jornada) return;
 
-    const curso = cursos.find((c: any) => String(c.AreaCodigo) === String(cursoId));
+    const curso = cursos.find((c) => String(c.AreaCodigo) === String(cursoId));
     if (!curso) return;
 
     let diasTeoria: number | undefined;
@@ -282,7 +306,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     if (diasPratica !== undefined && diasPratica > 0) {
       handleCalChange({ target: { name: "CalDiasAprendizagemPratica", value: String(diasPratica) } } as React.ChangeEvent<HTMLInputElement>);
     }
-  }, [formData.Apr_AreaAtuacao, formData.Apr_HorasDiarias]);
+  }, [formData.Apr_AreaAtuacao, formData.Apr_HorasDiarias, cursos, handleCalChange]);
 
   const gerarCalendarioHandler = () => {
     if (isTurmaMode && !selectedTurma) {
@@ -300,12 +324,12 @@ export const CalendarioForm = React.memo(function CalendarioForm({
 
     const empresaNome =
       parceiros.find(
-        (p: any) => String(p.ParCodigo) === String(formData.Apr_InstParceira),
+        (p) => String(p.ParCodigo) === String(formData.Apr_InstParceira),
       )?.ParDescricao || "";
 
     const cursoNome =
       cursos.find(
-        (c: any) => String(c.AreaCodigo) === String(formData.Apr_AreaAtuacao),
+        (c) => String(c.AreaCodigo) === String(formData.Apr_AreaAtuacao),
       )?.AreaDescricao || String(formData.Apr_AreaAtuacao || "");
 
     const input: CalendarioInput = {
@@ -442,9 +466,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
           ? `Alocação de ${alocacoes[0].nome} criada.`
           : "Alocações do introdutório e encontro semanal criadas.",
       );
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.message ?? "Erro ao enturmar aprendiz.";
-      toast.error(msg);
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Erro ao enturmar aprendiz."));
     } finally {
       setEnturmando(false);
     }
@@ -454,7 +477,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
     const countA = turmaCounts[String(a.TurCodigo)] ?? 0;
     const countB = turmaCounts[String(b.TurCodigo)] ?? 0;
     if (countA !== countB) return countA - countB;
-    return a.TurNome.localeCompare(b.TurNome, "pt-BR");
+    return (a.TurNome ?? "").localeCompare(b.TurNome ?? "", "pt-BR");
   });
 
   const normalizeText = (value: string) =>
@@ -542,8 +565,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Curso</label>
                 <select name="Apr_AreaAtuacao" value={formData.Apr_AreaAtuacao ?? ""} onChange={handleChange} className={inputCls}>
                   <option value="">Selecione...</option>
-                  {cursos.map((c: any) => (
-                    <option key={c.AreaCodigo} value={c.AreaCodigo}>{c.AreaDescricao}</option>
+                  {cursos.map((c) => (
+                    <option key={c.AreaCodigo ?? ""} value={c.AreaCodigo ?? ""}>{c.AreaDescricao}</option>
                   ))}
                 </select>
               </div>
@@ -582,7 +605,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <select name="CalTurmaIntrodutorio" value={calendarioDraft.CalTurmaIntrodutorio || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Selecione...</option>
                   {turmasIntrodutorioOrdenadas.map((t) => (
-                    <option key={t.TurCodigo} value={t.TurCodigo}>{turmaOptionLabel(t)}</option>
+                    <option key={t.TurCodigo ?? ""} value={t.TurCodigo ?? ""}>{turmaOptionLabel(t)}</option>
                   ))}
                 </select>
               </div>
@@ -592,7 +615,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <select name="CalTurmaEncontroSemanal" value={calendarioDraft.CalTurmaEncontroSemanal || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Selecione...</option>
                   {turmasOrdenadasPorLotacao.map((t) => (
-                    <option key={t.TurCodigo} value={t.TurCodigo}>{turmaOptionLabel(t)}</option>
+                    <option key={t.TurCodigo ?? ""} value={t.TurCodigo ?? ""}>{turmaOptionLabel(t)}</option>
                   ))}
                 </select>
               </div>
@@ -607,7 +630,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <select name="CalTurmaEncontroMensal" value={calendarioDraft.CalTurmaEncontroMensal || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Não se aplica</option>
                   {turmasOrdenadasPorLotacao.map((t) => (
-                    <option key={t.TurCodigo} value={t.TurCodigo}>{turmaOptionLabel(t)}</option>
+                    <option key={t.TurCodigo ?? ""} value={t.TurCodigo ?? ""}>{turmaOptionLabel(t)}</option>
                   ))}
                 </select>
               </div>
@@ -627,8 +650,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Unidade Feriado Teoria</label>
                 <select name="CalUnidadeFeriadoTeoria" value={calFormData.CalUnidadeFeriadoTeoria || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Selecione...</option>
-                  {unidades.map((u: any) => (
-                    <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
+                  {unidades.map((u) => (
+                    <option key={u.UniCodigo ?? ""} value={u.UniCodigo ?? ""}>{u.UniNome}</option>
                   ))}
                 </select>
               </div>
@@ -637,8 +660,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Unidade Feriado Prática</label>
                 <select name="CalUnidadeFeriadoPratica" value={calFormData.CalUnidadeFeriadoPratica || ""} onChange={handleCalChange} className={inputCls}>
                   <option value="">Selecione...</option>
-                  {unidades.map((u: any) => (
-                    <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
+                  {unidades.map((u) => (
+                    <option key={u.UniCodigo ?? ""} value={u.UniCodigo ?? ""}>{u.UniNome}</option>
                   ))}
                 </select>
               </div>
@@ -647,8 +670,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 <label className={turmaLabelCls}>Empresa</label>
                 <select name="Apr_InstParceira" value={formData.Apr_InstParceira ?? ""} onChange={handleChange} className={inputCls}>
                   <option value="">Selecione...</option>
-                  {parceiros.map((p: any) => (
-                    <option key={p.ParCodigo} value={p.ParCodigo}>{p.ParDescricao}</option>
+                  {parceiros.map((p) => (
+                    <option key={p.ParCodigo ?? ""} value={p.ParCodigo ?? ""}>{p.ParDescricao}</option>
                   ))}
                 </select>
               </div>
@@ -725,7 +748,7 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 >
                   <option value="">Selecione...</option>
                   {turmas.map((t) => (
-                    <option key={t.TurCodigo} value={t.TurCodigo}>
+                    <option key={t.TurCodigo ?? ""} value={t.TurCodigo ?? ""}>
                       {t.TurNome}
                     </option>
                   ))}
@@ -743,8 +766,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 className={inputCls}
               >
                 <option value="">Selecione...</option>
-                {cursos.map((c: any) => (
-                  <option key={c.AreaCodigo} value={c.AreaCodigo}>
+                {cursos.map((c) => (
+                  <option key={c.AreaCodigo ?? ""} value={c.AreaCodigo ?? ""}>
                     {c.AreaDescricao}
                   </option>
                 ))}
@@ -836,8 +859,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 className={inputCls}
               >
                 <option value="">Selecione...</option>
-                {unidades.map((u: any) => (
-                  <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
+                  {unidades.map((u) => (
+                   <option key={u.UniCodigo ?? ""} value={u.UniCodigo ?? ""}>{u.UniNome}</option>
                 ))}
               </select>
             </div>
@@ -926,8 +949,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 className={inputCls}
               >
                 <option value="">Selecione...</option>
-                {unidades.map((u: any) => (
-                  <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
+                  {unidades.map((u) => (
+                  <option key={u.UniCodigo ?? ""} value={u.UniCodigo ?? ""}>{u.UniNome}</option>
                 ))}
               </select>
             </div>
@@ -941,8 +964,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 className={inputCls}
               >
                 <option value="">Selecione...</option>
-                {unidades.map((u: any) => (
-                  <option key={u.UniCodigo} value={u.UniCodigo}>{u.UniNome}</option>
+                  {unidades.map((u) => (
+                  <option key={u.UniCodigo ?? ""} value={u.UniCodigo ?? ""}>{u.UniNome}</option>
                 ))}
               </select>
             </div>
@@ -957,8 +980,8 @@ export const CalendarioForm = React.memo(function CalendarioForm({
                 className={inputCls}
               >
                 <option value="">Selecione...</option>
-                {parceiros.map((p: any) => (
-                  <option key={p.ParCodigo} value={p.ParCodigo}>{p.ParDescricao}</option>
+                  {parceiros.map((p) => (
+                  <option key={p.ParCodigo ?? ""} value={p.ParCodigo ?? ""}>{p.ParDescricao}</option>
                 ))}
               </select>
             </div>

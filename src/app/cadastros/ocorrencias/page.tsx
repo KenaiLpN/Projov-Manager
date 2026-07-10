@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -9,6 +10,7 @@ import TabelaOcorrencias, {
   Ocorrencia,
 } from "@/components/tabelas/tabelaocorrencias";
 import Pagination from "@/components/pagination";
+import { getApiErrorMessage } from "@/utils/apiError";
 interface OcorrenciaFormData {
   OcoCodigo: string;
   OcoDescricao: string;
@@ -106,7 +108,7 @@ export default function OcorrenciasPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchOcorrencias(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Erro ao excluir.");
     } finally {
@@ -131,7 +133,11 @@ export default function OcorrenciasPage() {
         setSaving(false);
         return;
       }
-      const payload: any = {
+      const payload: {
+        OcoDescricao: string;
+        OcoTipo: string | null;
+        OcoCodigo?: number;
+      } = {
         OcoDescricao: formData.OcoDescricao,
         OcoTipo: formData.OcoTipo || null,
       };
@@ -147,22 +153,12 @@ export default function OcorrenciasPage() {
       }
       closeModal();
       fetchOcorrencias(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      const data = err.response?.data;
-      const msg = data?.detail
-        ? `${data.message}: ${data.detail}`
-        : data?.message || "Erro ao salvar.";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(err, "Erro ao salvar."));
     } finally {
       setSaving(false);
     }
-  };
-  const handlePreviousPage = () => {
-    if (page > 1) setPage(page - 1);
-  };
-  const handleNextPage = () => {
-    if (page < totalPages) setPage(page + 1);
   };
   return (
     <div className="flex flex-row h-full w-full">
@@ -319,4 +315,4 @@ export default function OcorrenciasPage() {
       </div>
     </div>
   );
-}
+}

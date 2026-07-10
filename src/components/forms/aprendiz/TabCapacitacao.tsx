@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import api from "@/services/api";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 interface Capacitacao {
   CapSequencia: number;
@@ -26,6 +27,8 @@ const EMPTY_FORM = {
   CapDataTermino: "",
   CapObservacoes: "",
 };
+
+type CapacitacaoForm = typeof EMPTY_FORM;
 
 interface Props {
   aprendizId: number;
@@ -97,8 +100,8 @@ export function TabCapacitacao({ aprendizId, turmas, unidades }: Props) {
       }
       setShowForm(false);
       fetchCapacitacoes();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Erro ao salvar capacitação.");
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Erro ao salvar capacitação."));
     } finally {
       setSaving(false);
     }
@@ -115,13 +118,13 @@ export function TabCapacitacao({ aprendizId, turmas, unidades }: Props) {
     }
   };
 
-  const Field = ({ label, name, type = "text" }: { label: string; name: string; type?: string }) => (
+  const Field = ({ label, name, type = "text" }: { label: string; name: keyof CapacitacaoForm; type?: string }) => (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-bold text-gray-500 uppercase">{label}</label>
       <input
         type={type}
         name={name}
-        value={(form as any)[name]}
+        value={form[name]}
         onChange={hc}
         className="p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all text-sm"
       />

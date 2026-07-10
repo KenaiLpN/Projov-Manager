@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { AcessoSidebar } from "@/components/acessosidebar";
 import Modal from "@/components/modal";
@@ -96,7 +97,7 @@ export default function FuncoesSistemaPage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Erro ao salvar.");
     } finally {
@@ -121,7 +122,7 @@ export default function FuncoesSistemaPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir.");
     }
   };

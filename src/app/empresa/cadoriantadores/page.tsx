@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
 import Modal from "../../../components/modal";
@@ -102,12 +103,6 @@ export default function CadOrientadoresPage() {
     setPage(1);
     fetchData(1, "");
   };
-  const handlePreviousPage = () => {
-    if (page > 1) setPage((prev) => prev - 1);
-  };
-  const handleNextPage = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
-  };
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -127,7 +122,7 @@ export default function CadOrientadoresPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir.");
     } finally {
       setDeleting(false);
@@ -159,7 +154,7 @@ export default function CadOrientadoresPage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Erro ao salvar.");
     } finally {
@@ -335,4 +330,4 @@ export default function CadOrientadoresPage() {
       </div>
     </div>
   );
-}
+}

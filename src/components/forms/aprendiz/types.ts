@@ -8,6 +8,7 @@ export interface AprendizFormData {
   IdEscola?: number;
   IdMonitorResponsavel?: number;
   IdTurmaCapacitacao?: number;
+  IdPlanoCurricular?: number;
   DataNascimento?: string;
   Sexo?: string;
   EstadoCivil?: string;
@@ -119,4 +120,4 @@ export const ufOptions = [
   "SP",
   "SE",
   "TO",
-];
+];

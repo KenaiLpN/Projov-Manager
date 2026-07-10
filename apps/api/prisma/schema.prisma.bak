@@ -1,0 +1,1108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Aprendiz {
+  IdAluno                Int       @id
+  CodigoExterno          String?   @db.VarChar(50)
+  NomeJovem              String    @db.VarChar(150)
+  NomeSocial             String?   @db.VarChar(150)
+  IdUnidade              Int?
+  IdInstituicaoParceira  Int?
+  IdEscola               Int?
+  IdMonitorResponsavel   Int?
+  IdTurmaCapacitacao     Int?
+  DataNascimento         DateTime? @db.Date
+  Sexo                   String?   @db.VarChar(20)
+  EstadoCivil            String?   @db.VarChar(20)
+  Nacionalidade          String?   @db.VarChar(50)
+  UF_Naturalidade        String?   @db.Char(2)
+  Naturalidade           String?   @db.VarChar(100)
+  AlistamentoMilitar     String?   @db.Char(3)
+  EstudaAtualmente       String?   @db.Char(3)
+  EscolaridadeNivel      String?   @db.VarChar(100)
+  TipoAprendizagem       String?   @db.VarChar(50)
+  TurnoEscolar           String?   @db.VarChar(20)
+  StatusJovem            String?   @db.VarChar(50)
+  TipoPagamento          String?   @db.VarChar(30)
+  CBO                    String?   @db.VarChar(20)
+  AreaAtuacao            String?   @db.VarChar(100)
+  HorasDiarias           Int?
+  MesesContrato          Int?
+  DataInicioEmpresa      DateTime? @db.Date
+  DataInicioAprendizagem DateTime? @db.Date
+  DataPrevistaTermino    DateTime? @db.Date
+  DataDesligamento       DateTime? @db.Date
+  DataInicioFerias       DateTime? @db.Date
+  DataTerminoFerias      DateTime? @db.Date
+  TurmaSimultaneidade    String?   @db.VarChar(100)
+  TurmaCCI               String?   @db.VarChar(100)
+  RG                     String?   @db.VarChar(20)
+  RG_DataEmissao         DateTime? @db.Date
+  RG_OrgaoExpedidor      String?   @db.VarChar(20)
+  RG_UF                  String?   @db.Char(2)
+  CPF                    String?   @unique @db.Char(11)
+  PIS                    String?   @db.VarChar(20)
+  CTPS_Numero            String?   @db.VarChar(20)
+  CTPS_Serie             String?   @db.VarChar(10)
+  Reservista             String?   @db.VarChar(20)
+  TituloEleitor          String?   @db.VarChar(20)
+  TituloSecao            String?   @db.VarChar(10)
+  TituloZona             String?   @db.VarChar(10)
+  CEP                    String?   @db.Char(8)
+  Logradouro             String?   @db.VarChar(150)
+  Numero                 String?   @db.VarChar(20)
+  Complemento            String?   @db.VarChar(50)
+  Bairro                 String?   @db.VarChar(100)
+  Municipio              String?   @db.VarChar(100)
+  UF_Endereco            String?   @db.Char(2)
+  TelefoneFixo           String?   @db.VarChar(20)
+  Celular                String?   @db.VarChar(20)
+  Email                  String?   @db.VarChar(100)
+  OutrosTelefones        String?   @db.VarChar(255)
+  UltimaTentativa        String?   @db.VarChar(50)
+  DataUltimaInteracao    DateTime? @default(now()) @db.DateTime
+  UsaMedicamentos        Boolean?
+  MedicamentosQual       String?   @db.VarChar(255)
+  MedicamentosFinalidade String?   @db.VarChar(255)
+  TemAlergia             Boolean?
+  AlergiaQual            String?   @db.VarChar(255)
+  TemProblemaSaude       Boolean?
+  ProblemaSaudeQual      String?   @db.VarChar(255)
+  Deficiencia            String?   @db.VarChar(50)
+
+  @@map("Aprendiz")
+}
+
+model CadastroRamoAtividade {
+  IdRamo       Int       @id
+  Descricao    String    @db.VarChar(150)
+  CodigoCNAE   String?   @db.VarChar(20)
+  Observacao   String?   @db.Text
+  Ativo        Boolean?  @default(true)
+  DataInclusao DateTime? @default(now()) @db.DateTime
+
+  @@map("CadastroRamoAtividade")
+}
+
+model CadastroRegiao {
+  IdRegiao            Int       @id @default(autoincrement())
+  NomeRegiao          String    @db.VarChar(100)
+  SiglaRegiao         String?   @db.VarChar(10)
+  ResponsavelRegional String?   @db.VarChar(100)
+  Ativo               Boolean?  @default(true)
+  DataCriacao         DateTime? @default(now()) @db.DateTime
+
+  @@map("CadastroRegiao")
+}
+
+model Orientadores {
+  IdOrientador   Int       @id @default(autoincrement())
+  NomeOrientador String    @db.VarChar(150)
+  CPF            String?   @unique @db.Char(11)
+  Email          String?   @db.VarChar(100)
+  Telefone       String?   @db.VarChar(20)
+  UnidadeAtuacao String?   @db.VarChar(100)
+  Situacao       String?   @default("Ativo") @db.VarChar(20)
+  DataCadastro   DateTime? @default(now()) @db.DateTime
+
+  @@index([NomeOrientador])
+  @@map("Orientadores")
+}
+
+model PerfisAcesso {
+  IdPerfil   Int    @id @default(autoincrement())
+  NomePerfil String @db.VarChar(50)
+
+  @@map("PerfisAcesso")
+}
+
+model MigrationHistory {
+  MigrationId    String @db.VarChar(150)
+  ContextKey     String @db.VarChar(300)
+  Model          Bytes
+  ProductVersion String @db.VarChar(32)
+
+  @@id([MigrationId, ContextKey])
+  @@map("__MigrationHistory")
+}
+
+model CA_AcessosUsuario {
+  AceCodigo     String   @db.VarChar(8)
+  AceDataHora   DateTime @db.DateTime
+  AceTipoAcesso String   @db.VarChar(1)
+
+  @@id([AceCodigo, AceDataHora])
+}
+
+model CA_AcessosUsuarios {
+  Acesequencia   Int       @id @default(autoincrement())
+  AceUsuario     String?   @db.VarChar(8)
+  AceDataEntrada DateTime? @db.DateTime
+  AceUsuTela     String?   @db.VarChar(50)
+}
+
+model CA_AcompanhamentoInscricao {
+  AciAprendiz        Int
+  AciDataMensagem    DateTime @db.DateTime
+  AciTextoMensagem   String?  @db.VarChar(1000)
+  AciUsuarioMensagem String?  @db.VarChar(8)
+
+  @@id([AciAprendiz, AciDataMensagem])
+}
+
+model CA_AlocacaoAprendiz {
+  ALAAprendiz             Int
+  ALATurma                Int
+  ALAUnidadeParceiro      Int
+  ALAStatus               String?   @db.VarChar(1)
+  ALATutor                String?   @db.VarChar(8)
+  ALADataInicio           DateTime? @db.DateTime
+  ALADataPrevTermino      DateTime? @db.DateTime
+  ALADataTermino          DateTime? @db.DateTime
+  ALAInicioExpediente     DateTime? @db.DateTime
+  ALATerminoExpediente    DateTime? @db.DateTime
+  ALAValorBolsa           Float?    @db.Float
+  ALAValorTaxa            Float?    @db.Float
+  ALAObservacao           String?   @db.VarChar(255)
+  ALAOrdem Int @id @default(autoincrement())
+  ALApagto                String?   @db.VarChar(1)
+  ALAOrientador           Int?
+  ALAMotivoDesligamento   Int?
+  ALAUsuarioCadastro      String?   @db.VarChar(8)
+  ALAUsuarioDataCadastro  DateTime? @db.DateTime
+  ALAUsuarioAlteracao     String?   @db.VarChar(8)
+  ALAUsuarioDataAlteracao DateTime? @db.DateTime
+  ALAValorEncargos        Float?    @db.Float
+  ALATurmaAnterior        Int?
+  ALADataMudaTurma        DateTime? @db.DateTime
+  ALAUsuarioMudaTurma     String?   @db.VarChar(8)
+  ALAMotivoMudaTurma      String?   @db.VarChar(50)
+
+  @@unique([ALAAprendiz, ALATurma, ALAUnidadeParceiro])
+}
+
+model CA_ApuracaoAnualAprendizes {
+  ApaAnoRef   String @db.VarChar(4)
+  ApaMesRef   String @db.VarChar(2)
+  ApaAtivos   Int?
+  ApaEntradas Int?
+  ApaSaidas   Int?
+
+  @@id([ApaAnoRef, ApaMesRef])
+}
+
+model CA_AreaAtuacao {
+  AreaCodigo          Int     @id @default(autoincrement())
+  AreaDescricao       String? @db.VarChar(80)
+  AreaNumeroCadastro  Int?
+  AreaCargaHoraria    Int?
+  AreaCargaTeorica4h  Int?
+  AreaCargaTeorica6h  Int?
+  AreaCargaPratica4h  Int?
+  AreaCargaPratica6h  Int?
+  AreaCertificado     String? @db.VarChar(8000)
+  AreaNomeCertificado String? @db.VarChar(150)
+}
+
+model CA_AulasCapacitacaoAprendiz {
+  AcpAprendiz            Int
+  AcpTurma               Int
+  AcpDataAula            DateTime  @db.DateTime
+  AcpPresenca            String?   @db.VarChar(1)
+  AcpUsuario             String?   @db.VarChar(8)
+  AcpDataAlteracao       DateTime? @db.DateTime
+  AcpPresencaInformatica String?   @db.VarChar(1)
+
+  @@id([AcpAprendiz, AcpTurma, AcpDataAula])
+}
+
+model CA_AulasDisciplinasAprendiz {
+  AdiCodAprendiz   Int
+  AdiTurma         Int
+  AdiDisciplina    Int
+  AdiEducador      Int
+  AdiDataAula      DateTime  @db.DateTime
+  AdiCargaHoraria  Int       @db.SmallInt
+  AdiPresenca      String?   @db.VarChar(1)
+  AdiObservacoes   String?   @db.VarChar(255)
+  AdiPresencaTarde String?   @db.VarChar(1)
+  AdiUsuario       String?   @db.VarChar(8)
+  AdiDataAlteracao DateTime? @db.DateTime
+
+  @@id([AdiCodAprendiz, AdiTurma, AdiDisciplina, AdiEducador, AdiDataAula])
+}
+
+model CA_AulasDisciplinasTurmaProf {
+  ADPTurma             Int
+  ADPprofessor         Int
+  ADPDisciplina        Int
+  ADPDataAula          DateTime  @db.DateTime
+  ADPOrdemAula         Int
+  ADPStatus            String?   @db.VarChar(1)
+  ADPConteudoLecionado String?   @db.VarChar(1000)
+  ADPRecursosUsados    String?   @db.VarChar(1000)
+  ADPObservacoes       String?   @db.VarChar(1000)
+  ADPUsuario           String?   @db.VarChar(8)
+  ADPDataAlteracao     DateTime? @db.DateTime
+
+  @@id([ADPTurma, ADPprofessor, ADPDisciplina, ADPDataAula, ADPOrdemAula])
+}
+
+model CA_AutorizacaoUsuario {
+  AutFUsuario String @db.VarChar(8)
+  AutFFuncao  String @db.VarChar(50)
+  AutFTipoAut String @db.VarChar(1)
+
+  @@id([AutFUsuario, AutFFuncao])
+}
+
+model CA_AvaliacaoAprendizCapacitacao {
+  NcaAprendiz              Int
+  NcaTurma                 Int
+  NcaNotaGeral             Int?      @db.SmallInt
+  NcaPortugues             Int?      @db.SmallInt
+  NcaMatematica            Int?      @db.SmallInt
+  NcaTecnicasAdm           Int?      @db.SmallInt
+  NcaDigitacao             Int?      @db.SmallInt
+  NcaRelacoesHumanas       Int?      @db.SmallInt
+  NcaCiencias              Int?      @db.SmallInt
+  NcaPluralidade           Int?      @db.SmallInt
+  NcaInformatica           Int?      @db.SmallInt
+  NcaCaracteristicasGerais String?   @db.VarChar(1000)
+  NcaWord                  Int?      @db.SmallInt
+  NcaExcel                 Int?      @db.SmallInt
+  NcaInternet              Int?      @db.SmallInt
+  NcaDataAvaliacao         DateTime? @db.DateTime
+  NcaUsuarioAvaliacao      String?   @db.VarChar(8)
+
+  @@id([NcaAprendiz, NcaTurma])
+}
+
+model CA_Bairros {
+  DescBairro String @id @db.VarChar(40)
+  RegBairro  Int
+}
+
+model CA_CalendarioJovem {
+  CLJCodigo               Int
+  CLJDataEncontro         DateTime @db.DateTime
+  CLJIndice Int @id @default(autoincrement())
+  CLJTurma                Int?
+  CLJTipo                 Int?
+  CLJUnidade              Int?
+  CLJUnidadeSemanal       Int?
+  CLJUnidadePratica       Int?
+  CLJDiaEncontroMensal    Int?
+  CLJSemanaEncontroMensal Int?
+  CLJUniEmpresa           Int?
+
+  @@unique([CLJCodigo, CLJDataEncontro])
+}
+
+model CA_CapacitacaoAprendiz {
+  CapSequencia Int @id @default(autoincrement())
+  CapAprendiz        Int
+  CapTurma           Int
+  CapStatus          String    @db.VarChar(1)
+  CapUnidade         Int
+  CapDataInicio      DateTime  @db.DateTime
+  CapDataPrevTermino DateTime? @db.DateTime
+  CapDataTermino     DateTime? @db.DateTime
+  CapObservacoes     String?   @db.VarChar(1000)
+
+  @@unique([CapAprendiz, CapTurma])
+}
+
+model CA_CodigosCEP {
+  Cep_Codigo     String  @id @db.VarChar(8)
+  Cep_Logradouro String? @db.VarChar(80)
+  Cep_Cidade     String? @db.VarChar(50)
+  Cep_Bairro     String? @db.VarChar(50)
+  Cep_UF         String? @db.VarChar(2)
+}
+
+model CA_Conceitos {
+  ConCodigo     String  @id @db.VarChar(10)
+  ConNota       Float?  @db.Float
+  ConPercentual Float?  @db.Float
+  ConAprova     String? @db.VarChar(1)
+}
+
+model CA_ContagemFaltasPeriodo {
+  FtpParDescricao      String? @db.VarChar(80)
+  FtpParUniDescricao   String? @db.VarChar(80)
+  FtpAprCodigo         Int     @id
+  FtpFaltaDias         Int?
+  FtpFaltaHoras        Int?
+  FtpAulasTotais       Int?
+  FtpParUniCNPJ        String? @db.VarChar(14)
+  FtpAprNumSistExterno String? @db.VarChar(15)
+  FtpAprNome           String? @db.VarChar(60)
+  FtpParceiro          Int?
+}
+
+model CA_Cursos {
+  CurCodigo         String @id @db.VarChar(6)
+  CurDescricao      String @db.VarChar(80)
+  CurCargaHoraria   Int?
+  CurAbreviatura    String @db.VarChar(12)
+  EnsNumeroPeriodos Int?   @db.SmallInt
+}
+
+model CA_CursosSuperior {
+  CsupCodigo    Int     @id @default(autoincrement())
+  CsupDescricao String? @db.VarChar(80)
+}
+
+model CA_DatasEncontros {
+  DteData          DateTime @id @db.DateTime
+  DteTipoEncontro  String   @db.VarChar(1)
+  DteLocalEncontro String?  @db.VarChar(255)
+}
+
+model CA_Disciplinas {
+  DisCodigo      Int     @id @default(autoincrement()) @db.SmallInt
+  DisDescricao   String? @db.VarChar(80)
+  DisAbreviatura String? @db.VarChar(10)
+  DisCor         String? @db.VarChar(7)
+}
+
+model CA_DisciplinasAprendiz {
+  DiaCodAprendiz    Int
+  DiaDisciplinaProf Int
+  DiaCargaHoraria   Int?    @db.SmallInt
+  DiaNumeroFaltas   Int?    @db.SmallInt
+  DiaConceito       String? @db.VarChar(2)
+  DiaObservacoes    String? @db.VarChar(255)
+  DiaAula1          String? @db.VarChar(1)
+  DiaAula2          String? @db.VarChar(1)
+  DiaAula3          String? @db.VarChar(1)
+  DiaAula4          String? @db.VarChar(1)
+  DiaAula5          String? @db.VarChar(1)
+  DiaAula6          String? @db.VarChar(1)
+  DiaAula7          String? @db.VarChar(1)
+  DiaAula8          String? @db.VarChar(1)
+  DiaAula9          String? @db.VarChar(1)
+  DiaAula10         String? @db.VarChar(1)
+  DiaAula11         String? @db.VarChar(1)
+  DiaAula12         String? @db.VarChar(1)
+  DiaAula13         String? @db.VarChar(1)
+  DiaAula14         String? @db.VarChar(1)
+  DiaAula15         String? @db.VarChar(1)
+  DieCompreensao    Int?    @db.TinyInt
+  DieComLing        Int?    @db.TinyInt
+  DiePostura        Int?    @db.TinyInt
+  DieParticipacao   Int?    @db.TinyInt
+  DiaAula16         String? @db.VarChar(1)
+  DiaAula17         String? @db.VarChar(1)
+  DiaAula18         String? @db.VarChar(1)
+  DiaAula19         String? @db.VarChar(1)
+  DiaAula20         String? @db.VarChar(1)
+  DiaDestaque       String? @db.VarChar(1)
+  DiaParecerFinal   String? @db.VarChar(255)
+
+  @@id([DiaCodAprendiz, DiaDisciplinaProf])
+}
+
+model CA_DisciplinasTurmaProf {
+  DPTurma       Int
+  DPProf        Int
+  DPDisciplina  Int       @db.SmallInt
+  DPDataInicio  DateTime  @db.DateTime
+  DPDataTermino DateTime? @db.DateTime
+  DpSalaFisica  String?   @db.VarChar(30)
+  DpOrdem Int @id @default(autoincrement())
+  DPProfAux     Int?
+  DPParecer01   String?   @db.Text
+  DPParecer02   String?   @db.Text
+  DPParecer03   String?   @db.Text
+
+  @@unique([DPTurma, DPProf, DPDisciplina, DPDataInicio])
+}
+
+model CA_Documentos {
+  DocCodigo        String  @id @db.VarChar(3)
+  DocDescricao     String? @db.VarChar(120)
+  DocValor         Float?  @db.Float
+  DocTipo          String? @db.VarChar(1)
+  DocObrigatorio   String? @db.VarChar(1)
+  DocDiasEntrega   Int?    @db.SmallInt
+  DocProtocolo     String? @db.VarChar(1)
+  DocOrientacoes   String? @db.VarChar(4000)
+  DocExigeAnexo    String? @db.VarChar(1)
+  DocOrientacoes02 String? @db.VarChar(4000)
+}
+
+model CA_DocumentosAprendiz {
+  DAprMatricula     Int
+  DAprDocumento     String    @db.VarChar(3)
+  DAprDataSolic     DateTime  @db.DateTime
+  DAprDataEntrega   DateTime? @db.DateTime
+  DAprUsuario       String?   @db.VarChar(8)
+  DAprObservacao    String?   @db.VarChar(4000)
+  DAprStatus        String?   @db.VarChar(1)
+  DAprSequencia Int @id @default(autoincrement())
+  DAprDocAnexo      String?   @db.VarChar(1)
+  DAprJustificativa String?   @db.VarChar(4000)
+  DAprParecer       String?   @db.VarChar(4000)
+  DAprStatusParecer String?   @db.VarChar(1)
+  DAprUsuParecer    String?   @db.VarChar(8)
+  DAprDataParecer   DateTime? @db.DateTime
+  DAprContParacer   String?   @db.VarChar(4000)
+  AluNomeAnexo      String?   @db.VarChar(255)
+  DAprPrevEntrega   DateTime? @db.DateTime
+
+  @@unique([DAprMatricula, DAprDocumento, DAprDataSolic])
+}
+
+model CA_Educadores {
+  EducCodigo                Int       @id @default(autoincrement())
+  EducNome                  String?   @db.VarChar(50)
+  EducSexo                  String?   @db.VarChar(1)
+  EducEndereco              String?   @db.VarChar(50)
+  EducNumeroEndereco        String?   @db.VarChar(6)
+  EducComplemento           String?   @db.VarChar(20)
+  EducBairro                String?   @db.VarChar(50)
+  EducCidade                String?   @db.VarChar(30)
+  EducUF                    String?   @db.VarChar(2)
+  EducCEP                   String?   @db.VarChar(9)
+  EducTelefone              String?   @db.VarChar(10)
+  EducTelefoneCelular       String?   @db.VarChar(11)
+  EducEMail                 String?   @db.VarChar(60)
+  EducDataNascimento        DateTime? @db.DateTime
+  EducNaturalidade          String?   @db.VarChar(30)
+  EducUFNaturalidade        String?   @db.VarChar(2)
+  EducEstadoCivil           String?   @db.VarChar(1)
+  EducNomedoPai             String?   @db.VarChar(50)
+  EducNomedaMae             String?   @db.VarChar(50)
+  EducSituacao              String?   @db.VarChar(1)
+  EducDataEntrada           DateTime? @db.DateTime
+  EducDataSaida             DateTime? @db.DateTime
+  EducTipoAdmissao          String?   @db.VarChar(25)
+  EducIdentidade            String?   @db.VarChar(15)
+  EducExpedIdentidade       String?   @db.VarChar(8)
+  EducCPF                   String?   @db.VarChar(11)
+  EducTitulodeEleitor       String?   @db.VarChar(15)
+  EducZonaEleitoral         String?   @db.VarChar(4)
+  EducSecaoEleitoral        String?   @db.VarChar(4)
+  EducMunEleitoral          String?   @db.VarChar(30)
+  EducSenha                 String?   @db.VarChar(8)
+  EducCartprofissional      String?   @db.VarChar(20)
+  EducSerieCartProfissional String?   @db.VarChar(5)
+  EducObservacoes           String?   @db.VarChar(255)
+  EducGrauInstrucao         Int?
+  EducNumSistInterno        String?   @db.VarChar(15)
+  EducTipo                  String?   @db.VarChar(1)
+
+  @@map("CA_Educadores")
+}
+
+model CA_Encaminhamentos {
+  Enc_CodigoAprendiz Int
+  Enc_DataEncaminha  DateTime @db.DateTime
+  Enc_Horario        String?  @db.VarChar(4)
+  Enc_UnidParceiro   Int
+  Enc_Contato        String?  @db.VarChar(50)
+  Enc_Status         String   @db.VarChar(2)
+  Enc_Observacoes    String?  @db.VarChar(255)
+  Enc_Usuario        String   @db.VarChar(8)
+  Enc_Trajeto        String?  @db.VarChar(500)
+  Enc_Sequencia      Int      @id @default(autoincrement())
+  Enc_Requisicao     Int?
+  Enc_Feedback       String?  @db.VarChar(500)
+
+  @@unique([Enc_CodigoAprendiz, Enc_DataEncaminha])
+}
+
+model CA_Escolas {
+  EscCodigo         Int     @id @default(autoincrement())
+  EscNome           String? @db.VarChar(50)
+  EscEndereco       String? @db.VarChar(80)
+  EscNumeroEndereco String? @db.VarChar(6)
+  EscComplemento    String? @db.VarChar(30)
+  EscBairro         String? @db.VarChar(50)
+  EscCEP            String? @db.VarChar(8)
+  EscCidade         String? @db.VarChar(50)
+  EscEstado         String? @db.VarChar(2)
+  EscTelefone       String? @db.VarChar(10)
+  EscDiretor        String? @db.VarChar(50)
+  EscEmail          String? @db.VarChar(80)
+}
+
+model CA_Eventos {
+  EvnCodigo    Int      @id @default(autoincrement())
+  EvnNome      String   @db.VarChar(80)
+  EvnData      DateTime @db.DateTime
+  EvnDescricao String?  @db.VarChar(255)
+}
+
+model CA_Fechamento {
+  FechAprendiz      Int
+  FechUnidade       Int
+  FechMesFechamento Int
+  FechAnoFechamento String @db.VarChar(4)
+  FechBolsa         Float  @db.Float
+  FechTaxa          Float  @db.Float
+  FechPagamento     String @db.VarChar(1)
+  FechTurma         Int?
+  FechAreaAtuacao   Int?
+
+  @@id([FechAprendiz, FechUnidade, FechMesFechamento, FechAnoFechamento])
+}
+
+model CA_Feriados {
+  FerUnidade   Int
+  FerData      DateTime @db.DateTime
+  FerDescricao String?  @db.VarChar(50)
+  FerOrdem Int @id @default(autoincrement())
+  FerTipo      String?  @db.VarChar(1)
+
+  @@unique([FerUnidade, FerData])
+}
+
+model CA_Frequecia {
+  FreqAprendiz        Int
+  FreqReferencia      String    @db.VarChar(7)
+  FreqDataPrevEntrega DateTime  @db.DateTime
+  FreqDataEntrega     DateTime? @db.DateTime
+  FreqUsuarioEntrega  String?   @db.VarChar(8)
+  FreqFaltas          String?   @db.VarChar(255)
+  FreqObservacao      String?   @db.VarChar(255)
+  FreqSituacao        String?   @db.VarChar(1)
+  FreqOrdem Int @id @default(autoincrement())
+  FreqNumFaltas       Int?
+
+  @@unique([FreqAprendiz, FreqReferencia])
+}
+
+model CA_funcoesSistema {
+  FunSCodigo    Int    @id @db.SmallInt
+  FunSDescricao String @db.VarChar(200)
+  FunSNomeForm  String @db.VarChar(50)
+}
+
+model CA_GrauEscolaridade {
+  GreCodigo    Int     @id @default(autoincrement())
+  GreDescricao String? @db.VarChar(30)
+}
+
+model CA_GrauParentesco {
+  GpaCodigo    Int     @id @default(autoincrement())
+  GpaDescricao String? @db.VarChar(30)
+}
+
+model CA_IndicesSociais {
+  IndCodigo      Int    @id @default(autoincrement())
+  IndDescricao   String @db.VarChar(50)
+  IndValorMaximo Float?
+  IndValorMinimo Float?
+}
+
+model CA_InstituicoesParceiras {
+  IpaCodigo           Int       @id @default(autoincrement())
+  IpaDescricao        String    @db.VarChar(80)
+  IpaEndereco         String?   @db.VarChar(100)
+  IpaNumeroEndereco   String?   @db.VarChar(6)
+  IpaComplemento      String?   @db.VarChar(20)
+  IpaBairro           String?   @db.VarChar(30)
+  IpaCidade           String?   @db.VarChar(30)
+  IpaEstado           String?   @db.VarChar(2)
+  IpaCEP              String?   @db.VarChar(8)
+  IpaEmail            String?   @db.VarChar(80)
+  IpaTelefone         String?   @db.VarChar(10)
+  IpaCelular          String?   @db.VarChar(11)
+  IpaNomeContato      String?   @db.VarChar(50)
+  IpaDataCadastro     DateTime? @db.DateTime
+  IpaDataAlteracao    DateTime? @db.DateTime
+  IpaUsuarioAlteracao String?   @db.VarChar(8)
+  IpaUsuarioCadastro  String?   @db.VarChar(8)
+  IpaSenha            String?   @db.VarChar(8)
+}
+
+model CA_Itinerarios {
+  ItnCodigo Int    @id @default(autoincrement())
+  ItnNome   String @db.VarChar(50)
+}
+
+model CA_LogTransacao {
+  Log_Aprendiz Int
+  Log_usuario  String   @db.VarChar(8)
+  Log_Data     DateTime @db.DateTime
+  Log_Tela     String   @db.VarChar(255)
+  Log_Ip       String?  @db.VarChar(20)
+  Log_Turma    Int?
+
+  @@id([Log_Aprendiz, Log_usuario, Log_Data, Log_Tela])
+}
+
+model CA_Membro_Familia {
+  Fam_AperendizId      Int
+  Fam_Nome             String    @db.VarChar(50)
+  Fam_GrauParentescoId Int
+  Fam_DataNascimento   DateTime? @db.DateTime
+  Fam_ProfissaoId      Int?
+  Fam_TipoEmpregoId    Int?
+  Fam_Renda            Float?    @db.Float
+  Fam_Ordem            Int       @id @default(autoincrement())
+  Fam_Identidade       String?   @db.VarChar(15)
+  Fam_OrgaoIdentidade  String?   @db.VarChar(10)
+}
+
+model CA_MotivoDesligamento {
+  MotCodigo    Int    @id @default(autoincrement())
+  MotDescricao String @db.VarChar(50)
+}
+
+model CA_MotivoDesligamentos {
+  MotCodigo    Int     @id @default(autoincrement())
+  MotDescricao String? @db.VarChar(50)
+}
+
+model CA_NotasAprendiz {
+  NdiAprendiz     Int
+  NdiDisciplina   Int
+  NdiNota         Int?
+  NdiCargaHoraria Int
+  NdiTurma        Int
+
+  @@id([NdiAprendiz, NdiDisciplina])
+}
+
+model CA_Ocorrencias {
+  OcoCodigo    Int     @id @default(autoincrement())
+  OcoDescricao String? @db.VarChar(50)
+  OcoTipo      String? @db.VarChar(1)
+}
+
+model CA_OcorrenciasAprendiz {
+  OcaCodAprendiz         Int
+  OcaCodOcorrencia       Int
+  OcaDataOcorrencia      DateTime  @db.DateTime
+  OcaUsuarioocorrencia   String    @db.VarChar(8)
+  OcaObservacoes         String    @db.VarChar(1000)
+  OcaOrdem               Int       @id @default(autoincrement())
+  OcaDataEntrega         DateTime? @db.DateTime
+  OcaPrevDevolucao       DateTime? @db.DateTime
+  OcaDevolucao           DateTime? @db.DateTime
+  OcaDisciplinaTurmaProf Int?
+  OcaEmissorOcorrencia   String    @db.VarChar(1)
+}
+
+model CA_OcorrenciasdoAprendiz {
+  OcadCodAprendiz         Int
+  OcadCodOcorrencia       Int
+  OcadDataOcorrencia      DateTime  @db.DateTime
+  OcadUsuarioocorrencia   String    @db.VarChar(8)
+  OcadObservacoes         String    @db.VarChar(1000)
+  OcadOrdem               Int       @id @default(autoincrement())
+  OcadDataEntrega         DateTime? @db.DateTime
+  OcadPrevDevolucao       DateTime? @db.DateTime
+  OcadDevolucao           DateTime? @db.DateTime
+  OcadDisciplinaTurmaProf Int?
+  OcadEmissorOcorrencia   String    @db.VarChar(1)
+}
+
+model CA_Opcoes {
+  OpcCodigo Int @id @default(autoincrement())
+  OpcQuestao       Int
+  OpcTexto         String @db.VarChar(120)
+  OpcOrdemExibicao Int
+  OpcNota          Int?   @db.SmallInt
+
+  @@unique([OpcCodigo, OpcQuestao])
+}
+
+model CA_Orientador {
+  OriCodigo          Int     @id @default(autoincrement())
+  OriUnidadeParceiro Int
+  OriNome            String  @db.VarChar(50)
+  OriTelefone        String? @db.VarChar(10)
+  OriEmail           String? @db.VarChar(80)
+}
+
+model CA_Parceiros {
+  ParCodigo                   Int       @id @default(autoincrement())
+  ParDescricao                String    @db.VarChar(80)
+  ParNomeFantasia             String?   @db.VarChar(80)
+  ParAtividadeId              Int
+  ParCNPJ                     String?   @db.VarChar(14)
+  ParEndereco                 String?   @db.VarChar(100)
+  ParNumeroEndereco           String?   @db.VarChar(6)
+  ParComplemento              String?   @db.VarChar(20)
+  ParBairro                   String?   @db.VarChar(80)
+  ParCidade                   String?   @db.VarChar(30)
+  ParEstado                   String?   @db.VarChar(2)
+  ParEmail                    String?   @db.VarChar(80)
+  ParSiteEmpresa              String?   @db.VarChar(80)
+  ParNomeContato              String?   @db.VarChar(50)
+  ParTaxa20Horas              Float?    @db.Float
+  ParBolsa20Horas             Float?    @db.Float
+  ParTaxa30Horas              Float?    @db.Float
+  ParBolsa30Horas             Float?    @db.Float
+  ParDataCadastro             DateTime? @db.DateTime
+  ParDataAlteracao            DateTime? @db.DateTime
+  ParUsuarioAlteracao         String?   @db.VarChar(8)
+  ParUsuarioCadastro          String?   @db.VarChar(8)
+  ParTelefone                 String?   @db.VarChar(10)
+  ParCelular                  String?   @db.VarChar(11)
+  ParCEP                      String?   @db.VarChar(8)
+  ParSenha                    String?   @db.VarChar(8)
+  ParRespFundacao             String?   @db.VarChar(8)
+  ParInscricao                String?   @db.VarChar(20)
+  ParInscricaoMunicipal       String?   @db.VarChar(20)
+  ParGestorPrograma           String?   @db.VarChar(50)
+  ParEmailGestorPrograma      String?   @db.VarChar(80)
+  ParGestorFinanceiro         String?   @db.VarChar(50)
+  ParEmailGestorFinanceiro    String?   @db.VarChar(80)
+  ParGestorRH                 String?   @db.VarChar(50)
+  ParEmailGestorRH            String?   @db.VarChar(80)
+  ParCargoRepresentanteLegal  String?   @db.VarChar(40)
+  ParEmailRespresentanteLegal String?   @db.VarChar(80)
+  ParSituacao                 String?   @db.VarChar(1)
+  ParValeRefeicao             Float?    @db.Float
+  ParValeAlimentacao          Float?    @db.Float
+  ParValeTransporte           String?   @db.VarChar(1)
+  ParBeneficios               String?   @db.VarChar(500)
+  ParObservacoes              String?   @db.VarChar(1000)
+  ParConhecInstituicao        String?   @db.VarChar(50)
+}
+
+model CA_ParceirosUnidade {
+  ParUniCodigo Int @id @default(autoincrement())
+  ParUniCodigoParceiro   Int
+  ParUniDescricao        String    @db.VarChar(80)
+  ParUniCNPJ             String?   @db.VarChar(14)
+  ParUniEndereco         String?   @db.VarChar(100)
+  ParUniNumeroEndereco   String?   @db.VarChar(6)
+  ParUniComplemento      String?   @db.VarChar(20)
+  ParUniBairro           String?   @db.VarChar(80)
+  ParUniCidade           String?   @db.VarChar(80)
+  ParUniEstado           String?   @db.VarChar(2)
+  ParUniEmail            String?   @db.VarChar(80)
+  ParUniNomeContato      String?   @db.VarChar(50)
+  ParUniTaxa20Horas      Float?    @db.Float
+  ParUniBolsa20Horas     Float?    @db.Float
+  ParUniTaxa30Horas      Float?    @db.Float
+  ParUniBolsa30Horas     Float?    @db.Float
+  ParUniDataCadastro     DateTime? @db.DateTime
+  ParUniUsuarioCadastro  String?   @db.VarChar(8)
+  ParUniDataAlteracao    DateTime? @db.DateTime
+  ParUniUsuarioAlteracao String?   @db.VarChar(8)
+  ParUniTelefone         String?   @db.VarChar(10)
+  ParUniCelular          String?   @db.VarChar(11)
+  ParUniCEP              String?   @db.VarChar(8)
+  ParUniResponsavelLegal String?   @db.VarChar(80)
+  ParUniObservacoes      String?   @db.VarChar(1000)
+
+  @@unique([ParUniCodigo, ParUniCodigoParceiro])
+}
+
+model CA_Participantes {
+  PrtAprendiz     Int
+  PrtObservacao   String? @db.VarChar(255)
+  PrtCodigoEvento Int
+  PrtPresenca     String? @db.VarChar(1)
+
+  @@id([PrtCodigoEvento, PrtAprendiz])
+}
+
+model CA_PerfilCapacitacao {
+  PerfAprendiz                   Int
+  PerfTurma                      Int
+  PerfComunicacao                String?   @db.VarChar(1)
+  PerfInteresse                  String?   @db.VarChar(1)
+  PerfEstilo                     String?   @db.VarChar(1)
+  PerfDiccao                     String?   @db.VarChar(1)
+  PerfRedacao                    String?   @db.VarChar(1)
+  PerfMatematica                 String?   @db.VarChar(1)
+  PerfArea                       String?   @db.VarChar(1)
+  PerfDepartamento               String?   @db.VarChar(50)
+  PerfDigitacao                  String?   @db.VarChar(1)
+  PerfExcel                      String?   @db.VarChar(1)
+  PerfOutlook                    String?   @db.VarChar(1)
+  Perfjafoiaprendiz              String?   @db.VarChar(1)
+  PerfAreaAprendiz               String?   @db.VarChar(50)
+  PerfProAtivo                   String?   @db.VarChar(1)
+  PerfColaborador                String?   @db.VarChar(1)
+  PerfCalmo                      String?   @db.VarChar(1)
+  PerfResponsavel                String?   @db.VarChar(1)
+  PerfOrganizado                 String?   @db.VarChar(1)
+  PerfIntrovertido               String?   @db.VarChar(1)
+  PerfDisciplinado               String?   @db.VarChar(1)
+  PerfNervoso                    String?   @db.VarChar(1)
+  PerfImpulsivo                  String?   @db.VarChar(1)
+  PerfDisperso                   String?   @db.VarChar(1)
+  PerfCursos                     String?   @db.VarChar(255)
+  PerfDataAvaliacao              DateTime? @db.DateTime
+  PerfUsuarioAvaliacao           String?   @db.VarChar(8)
+  PerfComentariosEducador        String?   @db.VarChar(1000)
+  PerfComentariosInformatica     String?   @db.VarChar(1000)
+  PerfWord                       String?   @db.VarChar(1)
+  PerfPowerPoint                 String?   @db.VarChar(1)
+  PerfLinguagem                  String?   @db.VarChar(1)
+  PerfRaciocinioLogico           String?   @db.VarChar(1)
+  PerfIdiomas                    String?   @db.VarChar(1)
+  PerfSescon                     String?   @db.VarChar(1)
+  PerfCriatividade               String?   @db.VarChar(1)
+  PerfRelacionamentoInterpessoal String?   @db.VarChar(1)
+  PerfLideranca                  String?   @db.VarChar(1)
+  PerfAproveitamento             String?   @db.VarChar(1)
+  PerfComprometimento            String?   @db.VarChar(1)
+  PerfTrabalhoEquipe             String?   @db.VarChar(1)
+
+  @@id([PerfAprendiz, PerfTurma])
+}
+
+model CA_PerfilUsuario {
+  PerfCodigo    String @id @db.VarChar(1)
+  PerfDescricao String @db.VarChar(30)
+}
+
+model CA_Pesquisa {
+  PesCodigo      Int     @id @default(autoincrement())
+  PesNome        String  @db.VarChar(80)
+  PesDescricao   String? @db.VarChar(255)
+  PesPublicoAlvo String? @db.VarChar(1)
+}
+
+model CA_Pesquisa_Parceiro {
+  PepCodigo         Int       @id @default(autoincrement())
+  PepPesquisaCodigo Int
+  PepParceiroCodigo Int
+  PepAno            String    @db.VarChar(4)
+  PepMes            Int
+  PepRealizada      String?   @db.VarChar(1)
+  PepAprendiz       Int?
+  PepDataRealizada  DateTime? @db.DateTime
+  PepTutor          String?   @db.VarChar(8)
+  PepObservacao     String?   @db.VarChar(1000)
+  PepOrientador     Int?
+  PepTurma          Int?
+  PepConsideracoes  String?   @db.VarChar(1000)
+}
+
+model CA_PlanoCurricular {
+  PlcCodigoPlano     Int     @db.SmallInt
+  PlcDisciplina      Int     @db.SmallInt
+  PlcCargaHoraria    Int?    @db.SmallInt
+  PlcTipoAvaliacao   String? @db.VarChar(1)
+  PlcNumeroAulas     Int?    @db.TinyInt
+  PlcDescricao       String? @db.VarChar(50)
+  PlcOrdemDisciplina Int?
+  PlcGeraCronograma  String? @db.VarChar(1)
+  EducCodigo         Int?
+
+  @@id([PlcCodigoPlano, PlcDisciplina])
+}
+
+model CA_Planos {
+  PlanCodigo    Int     @id @default(autoincrement())
+  PlanCurso     String  @db.VarChar(6)
+  PlanDescricao String? @db.VarChar(80)
+}
+
+model CA_Profissoes {
+  ProfCodigo    Int    @id @default(autoincrement())
+  ProfDescricao String @db.VarChar(50)
+}
+
+model CA_Questao {
+  QueCodigo Int @id @default(autoincrement())
+  QuePesquisa      Int
+  QueTexto         String @db.VarChar(255)
+  QueTipoQustao    String @db.VarChar(1)
+  QueOrdemExibicao Int
+
+  @@unique([QueCodigo, QuePesquisa])
+}
+
+model CA_RamosAtividades {
+  RatCodigo    Int    @id @default(autoincrement())
+  RatDescricao String @db.VarChar(60)
+}
+
+model CA_Regioes {
+  CodRegiao  Int    @id @default(autoincrement())
+  DescRegiao String @db.VarChar(40)
+}
+
+model CA_RequisicoesVagas {
+  ReqId                      Int       @id @default(autoincrement())
+  ReqEmpresa                 Int
+  ReqDataSolita__o           DateTime  @map("ReqDataSolitação") @db.DateTime
+  ReqQuantidade              Int       @db.SmallInt
+  ReqSexo                    String?   @db.VarChar(1)
+  ReqHorarioEntrevista       String?   @db.VarChar(50)
+  ReqSubstituicao            String    @db.VarChar(1)
+  ReqCaracteristicasPessoais String?   @db.VarChar(500)
+  ReqAreaAtuacao             Int
+  ReqHabilidades             String?   @db.VarChar(1000)
+  ReqAtividades              String?   @db.VarChar(1000)
+  ReqContaoEntrevista        String?   @db.VarChar(255)
+  ReqObservacoes             String?   @db.VarChar(500)
+  ReqSituacao                String?   @db.VarChar(1)
+  ReqObservacoesInst         String?   @db.VarChar(500)
+  ReqBeneficios              String?   @db.VarChar(500)
+  ReqSalario                 Float?    @db.Float
+  ReqHorarioTrabalho         String?   @db.VarChar(255)
+  ReqUsuarioCadastro         String?   @db.VarChar(8)
+  ReqDataCadastro            DateTime? @db.DateTime
+  ReqUsuarioFechamento       String?   @db.VarChar(8)
+  ReqDataFechamento          DateTime? @db.DateTime
+  ReqDadosFechamento         String?   @db.VarChar(1200)
+  ReqSubstituir              String?   @db.VarChar(80)
+  ReqDataEntrevista          DateTime? @db.DateTime
+  ReqEndEntrevista           String?   @db.VarChar(255)
+  ReqMaiorMenor              String?   @db.VarChar(1)
+  ReqIdadeMinima             Int?      @db.SmallInt
+}
+
+model CA_Resposta_Parceiro {
+  ResCodigo           Int     @id @default(autoincrement())
+  ResPesquisaParceiro Int
+  ResQuestao          Int
+  ResOpcaoEscolhida   Int?
+  ResRespostaTexto    String? @db.VarChar(255)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model CA_SessionActive {
+  SeASessionID String  @db.VarChar(24)
+  SeAEscola    Int
+  SeAUsuario   String? @db.VarChar(8)
+
+  @@ignore
+}
+
+model CA_SituacaoAprendiz {
+  StaCodigo      Int     @id @default(autoincrement())
+  StaAbreviatura String? @db.VarChar(2)
+  StaDescricao   String? @db.VarChar(50)
+  StaArea        String? @db.VarChar(1)
+}
+
+model CA_StatusEncaminhamento {
+  Ste_Codigo    String @id @db.VarChar(2)
+  Ste_Descricao String @db.VarChar(80)
+}
+
+model CA_TiposEstagio {
+  EstCodigo    Int    @id @default(autoincrement())
+  EstDescricao String @db.VarChar(50)
+}
+
+model CA_Turmas {
+  TurCodigo              Int       @id @default(autoincrement())
+  TurCurso               String?   @db.VarChar(6)
+  TurNome                String?   @db.VarChar(40)
+  TurDiaSemana           String?   @db.VarChar(1)
+  TurInicio              DateTime? @db.DateTime
+  Termino                DateTime? @db.DateTime
+  TurObservacoes         String?   @db.VarChar(255)
+  TurUsuario             String?   @db.VarChar(8)
+  TurStatus              String?   @db.VarChar(1)
+  TurPlanoCurricular     Int       @db.SmallInt
+  TurUnidade             Int?
+  TurNumeroMeses         Int?
+  TurEducadorResponsavel Int?
+  TurEducadorInformatica Int?
+  TurSemanaEncontro      String?   @db.VarChar(1)
+  TurDiaSemana02         String?   @db.VarChar(1)
+}
+
+model CA_Unidades {
+  UniCodigo             Int       @id @default(autoincrement())
+  UniNome               String?   @db.VarChar(60)
+  UniEndereco           String?   @db.VarChar(50)
+  UniNumeroEndereco     String?   @db.VarChar(6)
+  UniComplemento        String?   @db.VarChar(30)
+  UniBairro             String?   @db.VarChar(50)
+  UniCEP                String?   @db.VarChar(8)
+  UniCidade             String?   @db.VarChar(50)
+  UniEstado             String?   @db.VarChar(2)
+  UniTelefone           String?   @db.VarChar(10)
+  UniCGC                String?   @db.VarChar(18)
+  UniEnderecoWeb        String?   @db.VarChar(80)
+  UniEmailPadraoEnvio   String?   @db.VarChar(80)
+  UniRepresentanteLegal String?   @db.VarChar(80)
+  UniRepresentanteCargo String?   @db.VarChar(50)
+  UniTipo               String?   @db.VarChar(1)
+  UniDataRefPesquisa    DateTime? @db.DateTime
+}
+
+model CA_Usuarios {
+  UsuCodigo     String    @id @db.VarChar(50)
+  UsuNome       String?   @db.VarChar(90)
+  UsuSenha      String    @db.VarChar(255)
+  UsuTipo       String?   @db.VarChar(50)
+  UsuEmail      String?   @db.VarChar(60)
+  id_usuario    Int
+  atualizado_em DateTime?
+  criado_em     DateTime?
+  chk_ativo     Boolean
+}
+
+model CA_UsuarioUnidade {
+  UniCodigoUnidade Int
+  UnicodigoUsuario String @db.VarChar(8)
+
+  @@id([UniCodigoUnidade, UnicodigoUsuario])
+}
+
+model CA_Vale_Transporte {
+  VtpAprendiz   Int
+  VtpItinerario Int
+  VtpLinha      String @db.VarChar(10)
+  VtpTarifa     Float  @db.Float
+  VtpOrdem Int @id @default(autoincrement())
+  VtpQuantidade Int    @db.SmallInt
+
+  @@unique([VtpAprendiz, VtpItinerario, VtpLinha])
+}
+
+model CA_Vinculo_Empregaticio {
+  Vin_Descricao String @db.VarChar(50)
+  Vin_Codigo    Int    @id @default(autoincrement())
+}
+
+model MA_Municipios {
+  MunICodigo         String  @id @db.VarChar(7)
+  MunICodUF          String? @db.VarChar(2)
+  MunIDescricao      String? @db.VarChar(50)
+  MunICepInicial     String? @db.VarChar(8)
+  MunICepFinal       String? @db.VarChar(8)
+  MunIEstado         String? @db.VarChar(2)
+  MunIDescricaoPlena String? @db.VarChar(50)
+}
+
+model CCA_Usuarios_BKP {
+  UsuCodigo String  @id @db.VarChar(8)
+  UsuNome   String? @db.VarChar(90)
+  UsuSenha  String? @db.VarChar(16)
+  UsuTipo   String? @db.VarChar(1)
+  UsuEmail  String? @db.VarChar(60)
+
+  @@map("_CCA_Usuarios_BKP")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model CA_USUARIOS_BKP_29012026 {
+  UsuCodigo     String    @db.VarChar(50)
+  UsuNome       String?   @db.VarChar(90)
+  UsuSenha      String    @db.VarChar(255)
+  UsuTipo       String?   @db.VarChar(50)
+  UsuEmail      String?   @db.VarChar(60)
+  id_usuario    Int
+  atualizado_em DateTime?
+  criado_em     DateTime?
+  chk_ativo     Boolean
+
+  @@map("_CA_USUARIOS_BKP_29012026")
+  @@ignore
+}

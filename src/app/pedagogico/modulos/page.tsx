@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 
 import { useState, useEffect } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
@@ -110,7 +111,7 @@ export default function ModulosAprendizagemPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir o módulo.");
     } finally {
       setDeleting(false);
@@ -144,7 +145,7 @@ export default function ModulosAprendizagemPage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Erro ao salvar o módulo.");
     } finally {

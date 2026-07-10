@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect, useCallback } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
 import Modal from "@/components/modal";

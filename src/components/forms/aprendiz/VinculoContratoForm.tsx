@@ -1,6 +1,32 @@
 import React from "react";
 import { Briefcase } from "lucide-react";
 import { AprendizFormData } from "./types";
+
+type UnidadeOption = {
+  UniCodigo: number;
+  UniNome: string;
+};
+
+type InstituicaoOption = {
+  IpaCodigo: number;
+  IpaDescricao: string;
+};
+
+type OrientadorOption = {
+  id_usuario: number;
+  UsuNome: string;
+};
+
+type PlanoOption = {
+  PlanCodigo: number;
+  PlanDescricao: string;
+};
+
+type TurmaOption = {
+  TurCodigo: number;
+  TurNome: string;
+};
+
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -8,11 +34,11 @@ interface Props {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => void;
-  unidades: any[];
-  instituicoes: any[];
-  orientadores: any[];
-  planos: any[];
-  turmas: any[];
+  unidades: UnidadeOption[];
+  instituicoes: InstituicaoOption[];
+  orientadores: OrientadorOption[];
+  planos: PlanoOption[];
+  turmas: TurmaOption[];
 }
 
 export const VinculoContratoForm = React.memo(function VinculoContratoForm({
@@ -22,7 +48,6 @@ export const VinculoContratoForm = React.memo(function VinculoContratoForm({
   instituicoes,
   orientadores,
   planos,
-  turmas,
 }: Props) {
 
 
@@ -123,12 +148,12 @@ export const VinculoContratoForm = React.memo(function VinculoContratoForm({
           </label>
           <select
             name="IdPlanoCurricular"
-            value={(formData as any).IdPlanoCurricular || ""}
+            value={formData.IdPlanoCurricular || ""}
             onChange={handleChange}
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           >
             <option value="">Selecione...</option>
-            {planos.map((p: any) => (
+            {planos.map((p) => (
               <option key={p.PlanCodigo} value={p.PlanCodigo}>
                 {p.PlanDescricao}
               </option>
@@ -268,4 +293,4 @@ export const VinculoContratoForm = React.memo(function VinculoContratoForm({
       </div>
     </section>
   );
-});
+});

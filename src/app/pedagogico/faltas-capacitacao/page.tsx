@@ -233,7 +233,7 @@ export default function FaltasCapacitacaoPage() {
   const [lcDisciplina, setLcDisciplina]   = useState("");
   const [lcData, setLcData]               = useState("");
   const [lcDatas, setLcDatas]             = useState<string[]>([]);
-  const [lcTurmaInfo, setLcTurmaInfo]     = useState<TurmaInfo | null>(null);
+  const [, setLcTurmaInfo]                = useState<TurmaInfo | null>(null);
   const [lcLancando, setLcLancando]       = useState(false);
 
   // ── carregar datas ao selecionar turma ───────────────────────────────────

@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
 import api from "@/services/api";
+import { getApiErrorMessage } from "@/utils/apiError";
 import { toast } from "react-hot-toast";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import Pagination from "@/components/pagination";
@@ -17,8 +19,6 @@ import {
   X,
   Save,
   MapPin,
-  Calendar,
-  FileText,
   Briefcase,
 } from "lucide-react";
 
@@ -92,11 +92,9 @@ export default function MonitoresFuncionariosPage() {
       setLista(resp.data.data);
       setTotalPages(resp.data.meta.totalPages);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro Axios:", err);
-      const apiError = err.response?.data?.message || err.response?.data?.error || "Erro de conexão com o servidor.";
-      const detailedError = err.response?.data?.message ? `${apiError} (Código: ${err.response?.data?.code || '500'})` : apiError;
-      setError(detailedError);
+      setError(getApiErrorMessage(err, "Erro de conexão com o servidor."));
     } finally {
       setLoading(false);
     }
@@ -165,7 +163,7 @@ export default function MonitoresFuncionariosPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir.");
     }
   };
@@ -196,7 +194,7 @@ export default function MonitoresFuncionariosPage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Erro ao salvar.");
     } finally {

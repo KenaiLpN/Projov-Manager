@@ -3,7 +3,6 @@
 import React from "react";
 import { 
   Building2, 
-  MapPin, 
   Calendar, 
   Users, 
   Clock,
@@ -28,11 +27,21 @@ export interface Vaga {
   ReqSalario?: number;
 }
 
+export interface VagaEmpresa {
+  ParCodigo: number;
+  ParDescricao: string;
+}
+
+export interface VagaArea {
+  AreaCodigo: number;
+  AreaDescricao: string;
+}
+
 interface VagaListProps {
   vagas: Vaga[];
   loading: boolean;
-  empresas: any[];
-  areas: any[];
+  empresas: VagaEmpresa[];
+  areas: VagaArea[];
   onEdit: (vaga: Vaga) => void;
   onDelete: (id: number) => void;
   onView: (vaga: Vaga) => void;
@@ -98,7 +107,7 @@ export default function VagaList({
         </div>
         <h3 className="text-lg font-bold text-gray-700 mb-1">Nenhuma vaga encontrada</h3>
         <p className="text-gray-400 text-sm max-w-xs mx-auto">
-          Não há requisições de vagas cadastradas no momento. Clique em "Nova Vaga" para começar.
+          Não há requisições de vagas cadastradas no momento. Clique em Nova Vaga para começar.
         </p>
       </div>
     );

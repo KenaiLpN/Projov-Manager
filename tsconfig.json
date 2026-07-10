@@ -37,6 +37,9 @@
     "build/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "apps/api",
+    "apps/api/node_modules",
+    "apps/api/dist"
   ]
 }

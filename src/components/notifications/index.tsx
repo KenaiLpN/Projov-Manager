@@ -10,6 +10,13 @@ interface Notification {
   time: string;
   type: "cadastro" | "info";
 }
+
+type RecentRegistration = {
+  IdAluno?: string | number;
+  NomeJovem?: string;
+  DataUltimaInteracao?: string;
+};
+
 export function NotificationsMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -20,11 +27,11 @@ export function NotificationsMenu() {
     setLoading(true);
     try {
       const response = await api.get("/aprendiz?limit=5");
-      const list = response.data.data || [];
-      const formatted: Notification[] = list.map((item: any) => ({
-        id: item.IdAluno,
+      const list: RecentRegistration[] = response.data.data || [];
+      const formatted: Notification[] = list.map((item) => ({
+        id: String(item.IdAluno ?? ""),
         title: "Novo Aprendiz",
-        description: `Cadastro de ${item.NomeJovem}`,
+        description: `Cadastro de ${item.NomeJovem ?? "aprendiz"}`,
         time: item.DataUltimaInteracao || new Date().toISOString(),
         type: "cadastro",
       }));

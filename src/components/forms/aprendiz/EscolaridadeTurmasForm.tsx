@@ -1,6 +1,17 @@
 import React from "react";
 import { GraduationCap } from "lucide-react";
 import { AprendizFormData } from "./types";
+
+type EscolaOption = {
+  EscCodigo: number;
+  EscNome: string;
+};
+
+type TurmaOption = {
+  TurCodigo: number;
+  TurNome: string;
+};
+
 interface Props {
   formData: AprendizFormData;
   handleChange: (
@@ -8,8 +19,8 @@ interface Props {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => void;
-  escolas: any[];
-  turmas: any[];
+  escolas: EscolaOption[];
+  turmas: TurmaOption[];
 }
 export const EscolaridadeTurmasForm = React.memo(function EscolaridadeTurmasForm({
   formData,
@@ -107,7 +118,7 @@ export const EscolaridadeTurmasForm = React.memo(function EscolaridadeTurmasForm
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           >
             <option value="">Selecione...</option>
-            {turmas.map((t: any) => (
+            {turmas.map((t) => (
               <option key={t.TurCodigo} value={t.TurNome}>
                 {t.TurNome}
               </option>
@@ -125,7 +136,7 @@ export const EscolaridadeTurmasForm = React.memo(function EscolaridadeTurmasForm
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           >
             <option value="">Selecione...</option>
-            {turmas.map((t: any) => (
+            {turmas.map((t) => (
               <option key={t.TurCodigo} value={t.TurNome}>
                 {t.TurNome}
               </option>
@@ -143,7 +154,7 @@ export const EscolaridadeTurmasForm = React.memo(function EscolaridadeTurmasForm
             className="p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all"
           >
             <option value="">Selecione...</option>
-            {turmas.map((t: any) => (
+            {turmas.map((t) => (
               <option key={t.TurCodigo} value={t.TurCodigo}>
                 {t.TurNome}
               </option>
@@ -154,4 +165,4 @@ export const EscolaridadeTurmasForm = React.memo(function EscolaridadeTurmasForm
       </div>
     </section>
   );
-});
+});

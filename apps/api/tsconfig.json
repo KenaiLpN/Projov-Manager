@@ -1,0 +1,29 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "display": "Node 22",
+  "_version": "22.0.0",
+
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "module": "Node16", 
+    "target": "es2022",
+
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    "outDir": "./dist",
+    "rootDir": "./src",
+    
+    // Node16 é o recomendado para Node 22+ em vez do Node10 (legado)
+    "moduleResolution": "Node16", 
+    "typeRoots": ["./node_modules/@types", "./src/@types"],
+
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

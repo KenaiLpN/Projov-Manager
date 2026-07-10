@@ -1,7 +1,6 @@
 "use client";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
-import api from "@/services/api";
 import ConfirmModal from "@/components/modal/ConfirmModal";
 import TabelaCadastroRegiao, {
   CadastroRegiao,

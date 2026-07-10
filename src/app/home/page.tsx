@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import {
   Users,
-  Palmtree,
-  Briefcase,
   UserPlus,
   ArrowUpRight,
   BookmarkCheck,

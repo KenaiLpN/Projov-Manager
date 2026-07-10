@@ -109,8 +109,8 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
         api.get("/unidades-parceiro?limit=1000")
       ]);
       
-      const empList = (Array.isArray(empRes.data) ? empRes.data : empRes.data.data || [])
-        .sort((a: any, b: any) => a.ParDescricao.localeCompare(b.ParDescricao));
+      const empList: Empresa[] = (Array.isArray(empRes.data) ? empRes.data : empRes.data.data || [])
+        .sort((a: Empresa, b: Empresa) => a.ParDescricao.localeCompare(b.ParDescricao));
         
       setEmpresas(empList);
       setAreas(Array.isArray(areaRes.data) ? areaRes.data : areaRes.data.data || []);
@@ -151,7 +151,7 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      const submitData = {
+      const submitData: Record<string, string | number | null> = {
         ReqEmpresa: parseInt(formData.ReqEmpresa) || 0,
         ReqDataSolita__o: formData.ReqDataSolita__o,
         ReqQuantidade: parseInt(formData.ReqQuantidade) || 1,
@@ -178,7 +178,7 @@ export default function VagaForm({ onSuccess, onCancel }: VagaFormProps) {
       // Limpar campos extras do submitData se houver algum
       Object.keys(submitData).forEach(key => {
         if (submitData[key as keyof typeof submitData] === "") {
-          (submitData as any)[key] = null;
+          submitData[key] = null;
         }
       });
 

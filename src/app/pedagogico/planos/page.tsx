@@ -8,6 +8,7 @@ import TabelaPlanoCurricular, {
   PlanoCurricular,
 } from "@/components/tabelas/tabelaPlanoCurricular";
 import api from "@/services/api";
+import { getApiErrorMessage } from "@/utils/apiError";
 import { toast } from "react-hot-toast";
 
 interface Plano {
@@ -241,12 +242,8 @@ export default function PlanosPage() {
       }
       setIsModalOpen(false);
       fetchData(page);
-    } catch (err: any) {
-      const msg =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        "Erro ao salvar.";
-      toast.error(msg);
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Erro ao salvar."));
     } finally {
       setSaving(false);
     }

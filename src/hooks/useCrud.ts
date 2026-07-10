@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
 interface UseCrudOptions {
   endpoint: string;
   limit?: number;
 }
-export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOptions) {
+export function useCrud<T, FormType = object>({ endpoint, limit = 10 }: UseCrudOptions) {
   const [lista, setLista] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOpti
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Erro ao excluir ${endpoint}:`, err);
       toast.error("Erro ao excluir.");
     } finally {
@@ -87,10 +88,9 @@ export function useCrud<T, FormType = any>({ endpoint, limit = 10 }: UseCrudOpti
       setEditingId(null);
       fetchData(page);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Erro ao salvar ${endpoint}:`, err);
-      const msg = err.response?.data?.message || "Erro ao salvar.";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(err, "Erro ao salvar."));
       return false;
     } finally {
       setSaving(false);

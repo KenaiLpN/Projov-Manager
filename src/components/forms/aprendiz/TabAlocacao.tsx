@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import api from "@/services/api";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 interface Alocacao {
   ALAOrdem: number;
@@ -74,8 +75,8 @@ const PAGTO_OPTIONS = [
 interface Props {
   aprendizId: number;
   aprendizNome: string;
-  turmas: { TurCodigo: number; TurNome: string; TurCurso?: string | null }[];
-  motivos: { MotCodigo: number; MotDescricao: string }[];
+  turmas: { TurCodigo?: number | null; TurNome?: string | null; TurCurso?: string | null }[];
+  motivos: { MotCodigo?: number | null; MotDescricao?: string | null }[];
 }
 
 const parseBR = (v: string) =>
@@ -255,10 +256,9 @@ export function TabAlocacao({ aprendizId, aprendizNome, turmas, motivos }: Props
       }
       setShowForm(false);
       fetchAlocacoes();
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.message ?? "Erro ao salvar alocação.";
-      console.error("ALOCACAO SAVE ERROR:", err?.response?.data ?? err);
-      toast.error(msg);
+    } catch (err: unknown) {
+      console.error("ALOCACAO SAVE ERROR:", err);
+      toast.error(getApiErrorMessage(err, "Erro ao salvar alocação."));
     } finally {
       setSaving(false);
     }
@@ -321,7 +321,7 @@ export function TabAlocacao({ aprendizId, aprendizNome, turmas, motivos }: Props
             <select name="ALATurma" value={form.ALATurma} onChange={hc} className={inputCls}>
               <option value="">Selecione</option>
               {filteredTurmas.map((t) => (
-                <option key={t.TurCodigo} value={t.TurCodigo}>
+                <option key={t.TurCodigo ?? ""} value={t.TurCodigo ?? ""}>
                   {t.TurNome}
                 </option>
               ))}
@@ -491,7 +491,7 @@ export function TabAlocacao({ aprendizId, aprendizNome, turmas, motivos }: Props
               <select name="ALAMotivoDesligamento" value={form.ALAMotivoDesligamento} onChange={hc} className={inputCls}>
                 <option value="">Selecione</option>
                 {motivos.map((m) => (
-                  <option key={m.MotCodigo} value={m.MotCodigo}>
+                  <option key={m.MotCodigo ?? ""} value={m.MotCodigo ?? ""}>
                     {m.MotDescricao}
                   </option>
                 ))}

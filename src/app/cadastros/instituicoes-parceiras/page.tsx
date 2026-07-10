@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
 import Modal from "../../../components/modal";
@@ -150,12 +151,6 @@ export default function InstituicoesParceirasPage() {
     }, 500);
     return () => clearTimeout(delayDebounceFn);
   }, [page, search]);
-  const handlePreviousPage = () => {
-    if (page > 1) setPage((prev) => prev - 1);
-  };
-  const handleNextPage = () => {
-    if (page < totalPages) setPage((prev) => prev + 1);
-  };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));

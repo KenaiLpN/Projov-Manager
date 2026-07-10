@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
@@ -26,11 +27,11 @@ export default function AreasAtuacaoPage() {
     Partial<
       AreaAtuacao & {
         AreaCertificado: string;
-        AreaNumeroCadastro: number;
-        AreaCargaTeorica4h: number;
-        AreaCargaTeorica6h: number;
-        AreaCargaPratica4h: number;
-        AreaCargaPratica6h: number;
+        AreaNumeroCadastro: number | null;
+        AreaCargaTeorica4h: number | null;
+        AreaCargaTeorica6h: number | null;
+        AreaCargaPratica4h: number | null;
+        AreaCargaPratica6h: number | null;
       }
     >
   >({
@@ -61,7 +62,7 @@ export default function AreasAtuacaoPage() {
   };
   const handleEdit = (item: AreaAtuacao) => {
     setEditingId(item.AreaCodigo);
-    setFormData(item as any);
+    setFormData(item);
     setIsModalOpen(true);
   };
   const closeModal = () => {
@@ -128,7 +129,7 @@ export default function AreasAtuacaoPage() {
       setIsConfirmOpen(false);
       setItemToDelete(null);
       fetchData(page);
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao excluir.");
     } finally {
       setDeleting(false);
@@ -156,7 +157,7 @@ export default function AreasAtuacaoPage() {
       }
       closeModal();
       fetchData(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("Erro ao salvar.");
     } finally {
