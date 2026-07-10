@@ -9,6 +9,7 @@ import TabelaInstituicoes, {
   Instituicao,
 } from "@/components/tabelas/tabelainstituicoes";
 import Pagination from "@/components/pagination";
+import { fetchCepAddress } from "@/services/cepService";
 interface InstituicaoFormData {
   EscNome: string;
   EscEmail: string;
@@ -81,25 +82,18 @@ export default function Instituicoes() {
     "TO",
   ];
   const buscaCEP = async (cep: string) => {
-    const cepLimpo = cep.replace(/\D/g, "");
-    if (cepLimpo.length === 8) {
-      try {
-        const response = await fetch(
-          `https://viacep.com.br/ws/${cepLimpo}/json/`,
-        );
-        const data = await response.json();
-        if (!data.erro) {
-          setFormData((prev) => ({
-            ...prev,
-            EscEndereco: data.logradouro,
-            EscBairro: data.bairro,
-            EscCidade: data.localidade,
-            EscEstado: data.uf,
-          }));
-        }
-      } catch (err) {
-        console.error("Erro ao buscar CEP");
-      }
+    try {
+      const address = await fetchCepAddress(cep);
+      if (!address) return;
+      setFormData((prev) => ({
+        ...prev,
+        EscEndereco: address.logradouro,
+        EscBairro: address.bairro,
+        EscCidade: address.localidade,
+        EscEstado: address.uf,
+      }));
+    } catch {
+      console.error("Erro ao buscar CEP");
     }
   };
   const openModalNew = () => {

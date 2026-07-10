@@ -1,12 +1,18 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filter, Pencil, MapPin, BookOpen, Star, Calendar, LayoutGrid, FileText, Eye } from "lucide-react";
+import { Filter } from "lucide-react";
+import { toast } from "react-hot-toast";
 import * as caAprendizService from "@/services/caAprendizService";
-import { CA_Aprendiz } from "@/types";
 import SearchBar from "@/components/SearchBar";
 import Modal from "@/components/modal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
+import {
+  AprendizesTable,
+  type AprendizTableRow,
+} from "@/components/tabelas/AprendizesTable";
 import api from "@/services/api";
+import { canDeleteAprendiz, getSessionUserRole } from "@/utils/roles";
 
 interface InstituicaoParceira { IpaCodigo: number; IpaDescricao: string; }
 interface Turma { TurCodigo: number; TurNome: string; }
@@ -51,11 +57,15 @@ function AprendizesContent() {
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter") || "";
 
-  const [aprendizes, setAprendizes] = useState<(CA_Aprendiz & { unidadeNome?: string | null })[]>([]);
+  const [aprendizes, setAprendizes] = useState<AprendizTableRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<AprendizTableRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [advancedFilterForm, setAdvancedFilterForm] = useState<AdvancedFilter>(INITIAL_FILTER_STATE);
@@ -77,8 +87,11 @@ function AprendizesContent() {
     if (!sessionRaw) return;
     try {
       const userObj = JSON.parse(sessionRaw);
-      setIsEducadorAccess(userObj.UsuTipo === "EDUCADOR");
+      const role = getSessionUserRole(userObj);
+      setUserRole(role);
+      setIsEducadorAccess(role === "EDUCADOR");
     } catch {
+      setUserRole("");
       setIsEducadorAccess(false);
     }
   }, []);
@@ -122,7 +135,7 @@ function AprendizesContent() {
       const result = await caAprendizService.getAll(
         p, 10, s, f, adv ? JSON.stringify(adv) : "",
       );
-      setAprendizes(result.data as (CA_Aprendiz & { unidadeNome?: string | null })[]);
+      setAprendizes(result.data as AprendizTableRow[]);
       setTotalPages(result.meta.totalPages);
     } catch (err) {
       console.error(err);
@@ -156,6 +169,53 @@ function AprendizesContent() {
 
   const setField = (key: keyof AdvancedFilter, value: string) =>
     setAdvancedFilterForm(prev => ({ ...prev, [key]: value }));
+
+  const canEditAprendiz = !isEducadorAccess;
+  const canRemoveAprendiz = canDeleteAprendiz(userRole);
+
+  const handleOpenAprendiz = useCallback((id: number) => {
+    router.push(`/aprendizes/cadaprendizes?id=${id}`);
+  }, [router]);
+
+  const handleOpenAprendizTab = useCallback((id: number, tab: string) => {
+    router.push(`/aprendizes/cadaprendizes?id=${id}&tab=${tab}`);
+  }, [router]);
+
+  const handleRequestDelete = (aprendiz: AprendizTableRow) => {
+    if (!canRemoveAprendiz) return;
+    setItemToDelete(aprendiz);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete?.Apr_Codigo) return;
+    setDeleting(true);
+    try {
+      await caAprendizService.remove(itemToDelete.Apr_Codigo);
+      toast.success("Aprendiz excluido com sucesso!");
+      setIsConfirmOpen(false);
+      setItemToDelete(null);
+      fetchAprendizes(page, search, filter, activeAdvancedFilter);
+    } catch (err: unknown) {
+      console.error("Erro ao excluir aprendiz:", err);
+      const msg =
+        err &&
+        typeof err === "object" &&
+        "response" in err &&
+        err.response &&
+        typeof err.response === "object" &&
+        "data" in err.response &&
+        err.response.data &&
+        typeof err.response.data === "object" &&
+        "message" in err.response.data &&
+        typeof err.response.data.message === "string"
+          ? err.response.data.message
+          : "Erro ao excluir aprendiz.";
+      toast.error(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
@@ -226,101 +286,18 @@ function AprendizesContent() {
           )}
         </div>
 
-        {/* Tabela */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                {["Código", "Nome", "Telefone", "Sexo", "Situação", "E-mail", "Alocações", "Capacitações", "Avaliação", "Calendário", "Cal. Turma", "Emitir Cal.", "Ações"].map(h => (
-                  <th key={h} className="px-3 py-3 font-bold text-gray-700 uppercase text-xs tracking-wider whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={13} className="p-10 text-center text-gray-400">Carregando dados...</td>
-                </tr>
-              ) : aprendizes.length === 0 ? (
-                <tr>
-                  <td colSpan={13} className="p-10 text-center text-gray-400">Nenhum aprendiz encontrado.</td>
-                </tr>
-              ) : (
-                aprendizes.map((a) => {
-                  const id = a.Apr_Codigo;
-                  const row = a as any;
-                  return (
-                    <tr key={id} className="hover:bg-blue-50 transition-colors bg-white">
-                      <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">{id}</td>
-                      <td className="px-3 py-2 text-gray-800 max-w-[180px]">
-                        <span className="block truncate font-medium">{a.Apr_Nome}</span>
-                      </td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
-                        {row.Apr_Telefone || a.Apr_Celular || "—"}
-                      </td>
-                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
-                        {a.Apr_Sexo || "—"}
-                      </td>
-                      <td className="px-3 py-2 max-w-[160px]">
-                        {row.situacaoDescricao ? (
-                          <span className="block truncate text-xs text-gray-700">{row.situacaoDescricao}</span>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-gray-600 max-w-[160px]">
-                        <span className="block truncate text-xs">{a.Apr_Email || "Não Informado"}</span>
-                      </td>
-
-                      {/* Botões de ação iconográficos */}
-                      <td className="px-3 py-2 text-center">
-                        <button title="Alocações" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=alocacoes`)} className="p-1.5 rounded hover:bg-blue-100 text-blue-600 transition-colors">
-                          <MapPin size={15} />
-                        </button>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <button title="Capacitações" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=capacitacoes`)} className="p-1.5 rounded hover:bg-green-100 text-green-600 transition-colors">
-                          <BookOpen size={15} />
-                        </button>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <button title="Avaliação" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=avaliacao`)} className="p-1.5 rounded hover:bg-yellow-100 text-yellow-600 transition-colors">
-                          <Star size={15} />
-                        </button>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <button title="Calendário" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=calendario`)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600 transition-colors">
-                          <Calendar size={15} />
-                        </button>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <button title="Calcular Calendário Turma" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=calendario-turma`)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600 transition-colors">
-                          <LayoutGrid size={15} />
-                        </button>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <button title="Emitir Calendário" onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}&tab=emitir-calendario`)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600 transition-colors">
-                          <FileText size={15} />
-                        </button>
-                      </td>
-
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <button
-                          onClick={() => router.push(`/aprendizes/cadaprendizes?id=${id}`)}
-                          className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition-all font-semibold text-xs flex items-center gap-1"
-                        >
-                          {isEducadorAccess ? <Eye size={12} /> : <Pencil size={12} />}
-                          {isEducadorAccess ? "Detalhes" : "Editar"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <AprendizesTable
+            aprendizes={aprendizes}
+            loading={loading}
+            canEdit={canEditAprendiz}
+            canDelete={canRemoveAprendiz}
+            isEducadorAccess={isEducadorAccess}
+            onOpenTab={handleOpenAprendizTab}
+            onEdit={handleOpenAprendiz}
+            onDelete={handleRequestDelete}
+          />
         </div>
-
         {/* Paginação */}
         <div className="mt-4 flex justify-between items-center text-gray-500 text-sm italic">
           <span>Mostrando página {page} de {totalPages}</span>
@@ -357,6 +334,15 @@ function AprendizesContent() {
             </button>
           </div>
         </div>
+
+        <ConfirmModal
+          isOpen={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          onConfirm={confirmDelete}
+          title="Confirmar Exclusao"
+          message={`Tem certeza que deseja excluir ${itemToDelete?.Apr_Nome || "este aprendiz"}? Esta acao nao pode ser desfeita.`}
+          loading={deleting}
+        />
 
         {/* Modal de filtro avançado */}
         <Modal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)}>

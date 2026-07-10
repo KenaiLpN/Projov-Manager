@@ -1,8 +1,11 @@
 import React from "react";
+import { CrudDataTable, CrudDataTableColumn } from "../CrudDataTable";
+
 export interface GrauEscolaridade {
   GreCodigo: number;
   GreDescricao: string;
 }
+
 interface TabelaProps {
   dados: GrauEscolaridade[];
   loading: boolean;
@@ -10,6 +13,7 @@ interface TabelaProps {
   onEdit: (item: GrauEscolaridade) => void;
   onDelete: (id: number) => void;
 }
+
 const TabelaGrauEscolaridade: React.FC<TabelaProps> = ({
   dados,
   loading,
@@ -17,67 +21,25 @@ const TabelaGrauEscolaridade: React.FC<TabelaProps> = ({
   onEdit,
   onDelete,
 }) => {
-  if (loading) {
-    return <div className="text-center p-8 text-[#133c86]">Carregando...</div>;
-  }
-  if (error) {
-    return (
-      <div className="text-red-600 p-8 text-center border-t border-red-200">
-        ❌ Erro: {error}
-      </div>
-    );
-  }
-  if (!dados || dados.length === 0) {
-    return (
-      <div className="text-center p-8 text-gray-500">
-        Nenhum grau de escolaridade cadastrado.
-      </div>
-    );
-  }
+  const columns: CrudDataTableColumn<GrauEscolaridade>[] = [
+    { header: "ID", cell: (item) => item.GreCodigo },
+    { header: "Descricao", cell: (item) => item.GreDescricao },
+  ];
+
   return (
-    <div className="p-4 overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-[#bacce6]">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tl-lg">
-              ID
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Descrição
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tr-lg">
-              Ações
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {dados.map((item) => (
-            <tr key={item.GreCodigo} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.GreCodigo}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.GreDescricao}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button
-                  onClick={() => onEdit(item)}
-                  className="text-indigo-600 hover:text-indigo-900 mr-4 cursor-pointer"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => onDelete(item.GreCodigo)}
-                  className="text-red-600 hover:text-red-900 cursor-pointer"
-                >
-                  Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <CrudDataTable
+      data={dados}
+      columns={columns}
+      getRowKey={(item) => item.GreCodigo}
+      loading={loading}
+      error={error}
+      loadingMessage="Carregando..."
+      emptyMessage="Nenhum grau de escolaridade cadastrado."
+      errorMessage="Erro"
+      onEdit={onEdit}
+      onDelete={(item) => onDelete(item.GreCodigo)}
+    />
   );
 };
-export default TabelaGrauEscolaridade;
+
+export default TabelaGrauEscolaridade;

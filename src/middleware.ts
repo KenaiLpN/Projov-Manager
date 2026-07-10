@@ -65,6 +65,34 @@ function isEmpresaToken(decoded: JwtClaims | null): boolean {
   );
 }
 
+function normalizeRoleCode(role: unknown): string {
+  if (typeof role !== "string") return "";
+  const normalized = role
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase();
+
+  if (normalized === "ADMINISTRADOR") return "A";
+  if (normalized === "PEDAGOGICO" || normalized === "PROFESSOR") return "P";
+  if (normalized === "TECNICO") return "T";
+  if (normalized === "DESENVOLVEDOR") return "DEV";
+
+  return normalized;
+}
+
+function getTokenRole(decoded: JwtClaims | null): string {
+  if (!decoded) return "";
+  const candidates = [decoded.role, decoded.tokenTipo, decoded.tipoAcesso]
+    .map(normalizeRoleCode)
+    .filter(Boolean);
+
+  return candidates.includes("DEV") ? "DEV" : candidates[0] || "";
+}
+
+const CHAMADOS_ALLOWED_ROLES = new Set(["A", "P", "T", "DEV"]);
+const CHAMADOS_TECHNICAL_ROLES = new Set(["T", "DEV"]);
+
 const EMPRESA_ALLOWED_PATHS = new Set([
   "/empresa/perfil",
   "/empresa/aprendizes-alocados",
@@ -146,6 +174,8 @@ export function middleware(request: NextRequest) {
   const isPublicRoute = pathname.startsWith("/reset-password");
   const isNextInternal =
     pathname.startsWith("/_next") || pathname.startsWith("/favicon");
+  const isChamadosRoute = pathname === "/chamados" || pathname.startsWith("/chamados/");
+  const tokenRole = getTokenRole(decodedToken);
   const aprendizProfilePath = "/aprendizes/cadaprendizes";
   const empresaProfilePath = "/empresa/perfil";
   const aprendizCodigo = decodedToken?.sub ? String(decodedToken.sub) : "";
@@ -157,6 +187,30 @@ export function middleware(request: NextRequest) {
 
   if (!isValidToken && !isAuthRoute && !isPublicRoute && !isNextInternal) {
     response = NextResponse.redirect(new URL("/login", request.url));
+  } else if (
+    isValidToken &&
+    isChamadosRoute &&
+    !CHAMADOS_ALLOWED_ROLES.has(tokenRole)
+  ) {
+    response = NextResponse.redirect(new URL("/login", request.url));
+  } else if (
+    isValidToken &&
+    pathname.startsWith("/chamados/admin") &&
+    !CHAMADOS_TECHNICAL_ROLES.has(tokenRole)
+  ) {
+    response = NextResponse.redirect(new URL("/chamados/portal", request.url));
+  } else if (
+    isValidToken &&
+    pathname === "/chamados"
+  ) {
+    response = NextResponse.redirect(
+      new URL(
+        CHAMADOS_TECHNICAL_ROLES.has(tokenRole)
+          ? "/chamados/admin/dashboard"
+          : "/chamados/portal",
+        request.url,
+      ),
+    );
   } else if (
     isValidToken &&
     isAprendizToken(decodedToken) &&

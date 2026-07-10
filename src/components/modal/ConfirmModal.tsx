@@ -10,6 +10,7 @@ interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   loading?: boolean;
+  variant?: "danger" | "success" | "primary";
 }
 const ConfirmModal = ({
   isOpen,
@@ -20,7 +21,18 @@ const ConfirmModal = ({
   confirmText = "Excluir",
   cancelText = "Cancelar",
   loading = false,
+  variant,
 }: ConfirmModalProps) => {
+  const normalizedConfirmText = confirmText.toLocaleLowerCase("pt-BR");
+  const normalizedTitle = title.toLocaleLowerCase("pt-BR");
+  const resolvedVariant =
+    variant ??
+    (normalizedConfirmText.includes("salvar") ||
+    normalizedTitle.includes("alteração") ||
+    normalizedTitle.includes("alteracao")
+      ? "success"
+      : "danger");
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="flex flex-col items-center text-center p-2">
@@ -45,14 +57,15 @@ const ConfirmModal = ({
         <div className="flex gap-4 w-full">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors font-semibold cursor-pointer"
+            className="prosis-modal-button prosis-modal-button-secondary flex-1 px-4 py-2 font-semibold cursor-pointer"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 transition-colors font-semibold cursor-pointer"
+            data-variant={resolvedVariant}
+            className="prosis-modal-button prosis-modal-button-primary flex-1 px-4 py-2 font-semibold cursor-pointer"
           >
             {loading ? "Excluindo..." : confirmText}
           </button>
@@ -61,4 +74,4 @@ const ConfirmModal = ({
     </Modal>
   );
 };
-export default ConfirmModal;
+export default ConfirmModal;

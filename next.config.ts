@@ -6,12 +6,6 @@ const API_URL = isDev
   : process.env.NEXT_PUBLIC_API_URL?.trim() || "https://bot-api-ff.vercel.app";
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   transpilePackages: ["primereact", "primeicons"],
   async headers() {
     return [

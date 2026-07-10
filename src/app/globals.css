@@ -3,23 +3,45 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --prosis-bg: #f3f4f6;
+  --prosis-bg: #f6f8fb;
   --prosis-surface: #ffffff;
-  --prosis-surface-soft: #f9fafb;
-  --prosis-border: #e5e7eb;
-  --prosis-text: #111827;
-  --prosis-muted: #6b7280;
-  --prosis-brand: #133c86;
+  --prosis-surface-soft: #edf3f8;
+  --prosis-border: #d8e0ea;
+  --prosis-table-divider: #d8e0ea;
+  --prosis-text: #172033;
+  --prosis-muted: #64748b;
+  --prosis-brand: #244b7d;
+  --prosis-brand-strong: #1d3d66;
+  --prosis-brand-bg: #244b7d;
+  --prosis-brand-bg-hover: #1d3d66;
+  --prosis-brand-soft: #d9e7f6;
+  --prosis-accent: #0f766e;
+  --prosis-focus: #5aa4ff;
+  --prosis-success: #15803d;
+  --prosis-success-soft: #dcfce7;
+  --prosis-danger: #dc2626;
+  --prosis-danger-soft: #fee2e2;
 }
 
 html.dark {
   --prosis-bg: #0b1220;
-  --prosis-surface: #172033;
-  --prosis-surface-soft: #111a2c;
-  --prosis-border: #2b3a55;
+  --prosis-surface: #121c2e;
+  --prosis-surface-soft: #1a2a42;
+  --prosis-border: #2a3b55;
+  --prosis-table-divider: #22324a;
   --prosis-text: #e8eef8;
   --prosis-muted: #a8b3c7;
   --prosis-brand: #8ab4ff;
+  --prosis-brand-strong: #aecbff;
+  --prosis-brand-bg: #244b7d;
+  --prosis-brand-bg-hover: #2d5d98;
+  --prosis-brand-soft: #1c3352;
+  --prosis-accent: #5eead4;
+  --prosis-focus: #60a5fa;
+  --prosis-success: #4ade80;
+  --prosis-success-soft: #123522;
+  --prosis-danger: #f87171;
+  --prosis-danger-soft: #3b1618;
 }
 
 html,
@@ -37,6 +59,41 @@ textarea {
     background-color 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
+}
+
+[class~="bg-[#123a83]"],
+[class~="bg-[#123A83]"],
+[class~="bg-[#133c86]"],
+[class~="bg-[#0f2e6b]"] {
+  background-color: var(--prosis-brand-bg) !important;
+}
+
+[class~="hover:bg-[#0f2e6b]"]:hover,
+[class~="hover:bg-[#123a83]"]:hover,
+[class~="hover:bg-[#133c86]"]:hover {
+  background-color: var(--prosis-brand-bg-hover) !important;
+}
+
+[class~="bg-[#bacce6]"] {
+  background-color: var(--prosis-brand-soft) !important;
+}
+
+[class~="bg-[#0096da]"],
+[class~="bg-[#0088cc]"],
+[class~="bg-[#2563eb]"] {
+  background-color: var(--prosis-brand-bg) !important;
+}
+
+[class~="text-[#133c86]"] {
+  color: var(--prosis-brand) !important;
+}
+
+[class~="border-[#133c86]"] {
+  border-color: var(--prosis-brand) !important;
+}
+
+[class~="focus:border-[#133c86]"]:focus {
+  border-color: var(--prosis-focus) !important;
 }
 
 html.dark [class~="bg-gray-100"],
@@ -65,20 +122,20 @@ html.dark .theme-toggle-thumb {
 
 html.dark [class~="bg-[#0f306d]"],
 html.dark [class~="bg-[#0F306D]"] {
-  background-color: #162338 !important;
+  background-color: var(--prosis-surface-soft) !important;
 }
 
 html.dark [class~="bg-[#123a83]"],
 html.dark [class~="bg-[#123A83]"],
 html.dark [class~="bg-[#133c86]"],
 html.dark [class~="bg-[#0f2e6b]"] {
-  background-color: #223a5c !important;
+  background-color: var(--prosis-brand-bg) !important;
 }
 
 html.dark [class~="bg-[#0096da]"],
 html.dark [class~="bg-[#0088cc]"],
 html.dark [class~="bg-[#2563eb]"] {
-  background-color: #1d4f91 !important;
+  background-color: var(--prosis-brand-bg) !important;
 }
 
 html.dark [class~="bg-[#bacce6]"],
@@ -87,7 +144,7 @@ html.dark [class~="bg-blue-50/50"],
 html.dark [class~="bg-blue-50/30"],
 html.dark [class~="bg-indigo-50/30"],
 html.dark [class~="bg-amber-50/30"] {
-  background-color: #22324a !important;
+  background-color: var(--prosis-surface-soft) !important;
 }
 
 html.dark [class~="border-gray-100"],
@@ -103,6 +160,20 @@ html.dark [class~="divide-gray-200"] > :not([hidden]) ~ :not([hidden]),
 html.dark [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]),
 html.dark [class~="divide-slate-200"] > :not([hidden]) ~ :not([hidden]) {
   border-color: var(--prosis-border) !important;
+}
+
+html.dark table,
+html.dark table thead,
+html.dark table tbody,
+html.dark table tr,
+html.dark table th,
+html.dark table td,
+html.dark [class~="divide-gray-50"] > :not(:last-child),
+html.dark [class~="divide-gray-100"] > :not(:last-child),
+html.dark [class~="divide-gray-200"] > :not(:last-child),
+html.dark [class~="divide-slate-100"] > :not(:last-child),
+html.dark [class~="divide-slate-200"] > :not(:last-child) {
+  border-color: var(--prosis-table-divider) !important;
 }
 
 html.dark [class~="text-gray-900"],
@@ -150,7 +221,7 @@ html.dark table {
 html.dark thead,
 html.dark thead[class~="bg-gray-50"],
 html.dark thead[class~="bg-[#bacce6]"] {
-  background-color: #22324a !important;
+  background-color: var(--prosis-surface-soft) !important;
 }
 
 html.dark tr[class~="bg-white"],
@@ -207,6 +278,155 @@ html.dark .p-datepicker table td > span:not(.p-highlight):not(.p-disabled):hover
 html.dark .p-highlight {
   background-color: #2d5fbd;
   color: #ffffff;
+}
+
+.prosis-modal-button {
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.prosis-modal-button-secondary {
+  border-color: #d4dae4;
+  background-color: #eef2f7;
+  color: #1f2937;
+}
+
+.prosis-modal-button-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.prosis-modal-button-primary {
+  color: #ffffff;
+}
+
+.prosis-modal-button-primary[data-variant="danger"] {
+  background-color: #dc2626;
+}
+
+.prosis-modal-button-primary[data-variant="danger"]:hover {
+  background-color: #b91c1c;
+}
+
+.prosis-modal-button-primary[data-variant="success"] {
+  background-color: #15803d;
+}
+
+.prosis-modal-button-primary[data-variant="success"]:hover {
+  background-color: #166534;
+}
+
+.prosis-modal-button-primary[data-variant="primary"] {
+  background-color: var(--prosis-brand-bg);
+}
+
+.prosis-modal-button-primary[data-variant="primary"]:hover {
+  background-color: var(--prosis-brand-bg-hover);
+}
+
+.prosis-modal-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+html.dark .prosis-modal button[class~="bg-gray-200"],
+html.dark .prosis-modal-button-secondary {
+  border-color: #3a4f70 !important;
+  background-color: #22324a !important;
+  color: var(--prosis-text) !important;
+}
+
+html.dark .prosis-modal button[class~="hover:bg-gray-300"]:hover,
+html.dark .prosis-modal-button-secondary:hover {
+  border-color: #4a6388 !important;
+  background-color: #2a3b55 !important;
+}
+
+html.dark .prosis-modal button[class~="bg-green-600"],
+html.dark .prosis-modal-button-primary[data-variant="success"] {
+  background-color: #16835a !important;
+  color: #f4fff9 !important;
+}
+
+html.dark .prosis-modal button[class~="hover:bg-green-700"]:hover,
+html.dark .prosis-modal-button-primary[data-variant="success"]:hover {
+  background-color: #1d9a6b !important;
+}
+
+html.dark .prosis-modal button[class~="bg-red-600"],
+html.dark .prosis-modal-button-primary[data-variant="danger"] {
+  background-color: #b4232f !important;
+  color: #fff5f5 !important;
+}
+
+html.dark .prosis-modal button[class~="hover:bg-red-700"]:hover,
+html.dark .prosis-modal-button-primary[data-variant="danger"]:hover {
+  background-color: #d13745 !important;
+}
+
+.prosis-table-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.25rem;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  background-color: transparent;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+}
+
+.prosis-table-status[data-status="active"] {
+  color: var(--prosis-success);
+}
+
+.prosis-table-status[data-status="inactive"] {
+  color: var(--prosis-danger);
+}
+
+.prosis-table-action {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.prosis-table-action:hover {
+  transform: translateY(-1px);
+}
+
+.prosis-table-action[data-variant="edit"] {
+  color: var(--prosis-brand);
+}
+
+.prosis-table-action[data-variant="edit"]:hover {
+  border-color: color-mix(in srgb, var(--prosis-brand) 35%, transparent);
+  background-color: color-mix(in srgb, var(--prosis-brand) 12%, transparent);
+  color: var(--prosis-brand-strong);
+}
+
+.prosis-table-action[data-variant="delete"] {
+  color: var(--prosis-danger);
+}
+
+.prosis-table-action[data-variant="delete"]:hover {
+  border-color: color-mix(in srgb, var(--prosis-danger) 35%, transparent);
+  background-color: color-mix(in srgb, var(--prosis-danger) 12%, transparent);
 }
 
 @layer utilities {

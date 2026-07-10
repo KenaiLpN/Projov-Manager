@@ -413,7 +413,7 @@ export function gerarCalendario(input: CalendarioInput): CalendarioGerado {
     `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
     
   // Data de início na empresa: dia seguinte ao término introdutório (pula fim de semana)
-  let dataInicioEmpresaCalc = dataTerminoIntro ? new Date(dataTerminoIntro) : null;
+  const dataInicioEmpresaCalc = dataTerminoIntro ? new Date(dataTerminoIntro) : null;
   if (dataInicioEmpresaCalc) {
     dataInicioEmpresaCalc.setDate(dataInicioEmpresaCalc.getDate() + 1);
     while (isFimDeSemana(dataInicioEmpresaCalc, input.folga)) {

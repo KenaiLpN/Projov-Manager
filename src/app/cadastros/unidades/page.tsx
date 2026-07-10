@@ -8,6 +8,7 @@ import api from "@/services/api";
 import TabelaUnidades from "@/components/tabelas/tabelaunidades";
 import Pagination from "@/components/pagination";
 import SearchBar from "@/components/SearchBar";
+import { fetchCepAddress } from "@/services/cepService";
 interface UnidadeFormData {
   UniNome: string;
   UniCGC: string;
@@ -58,23 +59,18 @@ export default function Unidades() {
     UniDataRefPesquisa: new Date(),
   });
   const buscaCEP = async (cep: string) => {
-    const cepLimpo = cep.replace(/\D/g, "");
-    if (cepLimpo.length === 8) {
-      try {
-        const response = await fetch(`/api/cep/${cepLimpo}`);
-        const data = await response.json();
-        if (!data.erro) {
-          setFormData((prev) => ({
-            ...prev,
-            UniEndereco: data.logradouro,
-            UniBairro: data.bairro,
-            UniCidade: data.localidade,
-            UniEstado: data.uf,
-          }));
-        }
-      } catch (err) {
-        console.error("Erro ao buscar CEP", err);
-      }
+    try {
+      const address = await fetchCepAddress(cep);
+      if (!address) return;
+      setFormData((prev) => ({
+        ...prev,
+        UniEndereco: address.logradouro,
+        UniBairro: address.bairro,
+        UniCidade: address.localidade,
+        UniEstado: address.uf,
+      }));
+    } catch (err) {
+      console.error("Erro ao buscar CEP", err);
     }
   };
   const [saving, setSaving] = useState<boolean>(false);

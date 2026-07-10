@@ -6,7 +6,7 @@ import Link from "next/link";
 import { AlertCircle, CalendarDays, IdCard, Mail, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
 import api from "@/services/api";
 import { Usuario } from "@/types";
-import { getRoleLabel } from "@/utils/roles";
+import { getRoleLabel, getSessionUserRole } from "@/utils/roles";
 
 type PerfilUsuario = Omit<Usuario, "cpf"> & {
   cpf?: string | null;
@@ -114,7 +114,7 @@ export default function PerfilPage() {
     loadProfile();
   }, [loadProfile]);
 
-  const roleLabel = getRoleLabel(user?.UsuTipo);
+  const roleLabel = getRoleLabel(getSessionUserRole(user));
   const statusLabel = loading
     ? "Carregando..."
     : user?.chk_ativo == null

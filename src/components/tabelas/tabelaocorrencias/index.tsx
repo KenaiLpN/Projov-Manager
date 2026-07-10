@@ -1,9 +1,12 @@
 import React from "react";
+import { CrudDataTable, CrudDataTableColumn } from "../CrudDataTable";
+
 export interface Ocorrencia {
   OcoCodigo: number;
   OcoDescricao: string | null;
   OcoTipo: string | null;
 }
+
 interface TabelaOcorrenciasProps {
   dados: Ocorrencia[];
   loading: boolean;
@@ -11,6 +14,7 @@ interface TabelaOcorrenciasProps {
   onEdit: (item: Ocorrencia) => void;
   onDelete: (id: number) => void;
 }
+
 const TabelaOcorrencias: React.FC<TabelaOcorrenciasProps> = ({
   dados,
   loading,
@@ -18,77 +22,30 @@ const TabelaOcorrencias: React.FC<TabelaOcorrenciasProps> = ({
   onEdit,
   onDelete,
 }) => {
-  if (loading) {
-    return (
-      <div className="text-center p-8 text-[#133c86]">
-        Carregando ocorrências...
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="text-red-600 p-8 text-center border-t border-red-200">
-        ❌ Erro: {error}
-      </div>
-    );
-  }
-  if (!dados || dados.length === 0) {
-    return (
-      <div className="text-center p-8 text-gray-500">
-        Nenhuma ocorrência registrada.
-      </div>
-    );
-  }
+  const columns: CrudDataTableColumn<Ocorrencia>[] = [
+    { header: "Codigo", cell: (item) => item.OcoCodigo },
+    {
+      header: "Descricao",
+      cell: (item) => item.OcoDescricao || "-",
+      className: "max-w-xs truncate",
+    },
+    { header: "Tipo", cell: (item) => item.OcoTipo || "-" },
+  ];
+
   return (
-    <div className="p-4 overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-[#bacce6]">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tl-lg">
-              Código
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Descrição
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider">
-              Tipo
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-[#133c86] uppercase tracking-wider rounded-tr-lg">
-              Ações
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {dados.map((item) => (
-            <tr key={item.OcoCodigo} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {item.OcoCodigo}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">
-                {item.OcoDescricao || "-"}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.OcoTipo || "-"}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button
-                  onClick={() => onEdit(item)}
-                  className="text-indigo-600 hover:text-indigo-900 mr-4 cursor-pointer"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => onDelete(item.OcoCodigo)}
-                  className="text-red-600 hover:text-red-900 cursor-pointer"
-                >
-                  Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <CrudDataTable
+      data={dados}
+      columns={columns}
+      getRowKey={(item) => item.OcoCodigo}
+      loading={loading}
+      error={error}
+      loadingMessage="Carregando ocorrencias..."
+      emptyMessage="Nenhuma ocorrencia registrada."
+      errorMessage="Erro"
+      onEdit={onEdit}
+      onDelete={(item) => onDelete(item.OcoCodigo)}
+    />
   );
 };
-export default TabelaOcorrencias;
+
+export default TabelaOcorrencias;

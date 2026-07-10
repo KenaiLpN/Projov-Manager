@@ -15,7 +15,7 @@ const Modal = ({ isOpen, onClose, children, maxWidth = "max-w-5xl" }: ModalProps
     >
       <div
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        className={`bg-white rounded-2xl shadow-2xl p-6 relative w-full ${maxWidth} max-h-[90vh] flex flex-col`}
+        className={`prosis-modal bg-white rounded-2xl shadow-2xl p-6 relative w-full ${maxWidth} max-h-[90vh] flex flex-col`}
       >
         <button
           onClick={onClose}

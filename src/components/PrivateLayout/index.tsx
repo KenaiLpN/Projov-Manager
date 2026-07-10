@@ -2,6 +2,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Header } from "../header";
+import { getSessionUserRole } from "@/utils/roles";
 
 const EMPRESA_ALLOWED_PATHS = new Set([
   "/empresa/perfil",
@@ -13,6 +14,9 @@ const EMPRESA_ALLOWED_PATHS = new Set([
   "/empresa/contagem-faltas",
   "/empresa/avaliacoes-realizadas",
 ]);
+
+const CHAMADOS_ALLOWED_ROLES = new Set(["A", "P", "T", "DEV"]);
+const CHAMADOS_TECHNICAL_ROLES = new Set(["T", "DEV"]);
 
 function isEducadorAllowedPath(pathname: string): boolean {
   return (
@@ -43,6 +47,20 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 
     try {
       const userObj = JSON.parse(sessionRaw);
+      const role = getSessionUserRole(userObj);
+
+      if (pathname.startsWith("/chamados")) {
+        if (!CHAMADOS_ALLOWED_ROLES.has(role)) {
+          router.push("/login");
+          return;
+        }
+        if (pathname.startsWith("/chamados/admin") && !CHAMADOS_TECHNICAL_ROLES.has(role)) {
+          router.push("/chamados/portal");
+          return;
+        }
+        return;
+      }
+
       if (userObj.UsuTipo === "APRENDIZ") {
         const expectedPath = "/aprendizes/cadaprendizes";
         if (!pathname.startsWith(expectedPath)) {
@@ -62,6 +80,10 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 
   const isPublicPage = pathname === "/login" || pathname === "/cadastro" || pathname === "/reset-password";
   if (isPublicPage) {
+    return <>{children}</>;
+  }
+
+  if (pathname.startsWith("/chamados")) {
     return <>{children}</>;
   }
 

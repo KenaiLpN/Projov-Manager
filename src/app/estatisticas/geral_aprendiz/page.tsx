@@ -16,7 +16,6 @@ import {  BarChart,
           Legend
         } from 'recharts';
 // Importando ícones simples para os botões (opcional, usei texto para facilitar)
-import { ChevronLeft, ChevronRight } from "lucide-react"; 
 
 const OPCOES_BOTOES = [
   { id: 1, label: "Ativos Por Turma" },
@@ -30,9 +29,34 @@ const OPCOES_BOTOES = [
   { id: 9, label: "Como Conheceu ProJov" },
 ];
 
+interface EstatisticaGeralItem {
+  Qtde?: number;
+  Turma?: string;
+  d_nome?: string;
+  Status?: string;
+  Area?: string;
+  Cidade?: string;
+  d_turma?: string;
+  d_unidade?: string;
+  d_DataInicio?: string;
+  d_DataFim?: string;
+  d_benficio?: string;
+  d_bolsa?: string;
+  d_genero?: string;
+  d_situacao?: string;
+  d_nascimento?: string;
+  d_idade?: string | number;
+  Motivo?: string;
+  NomeFantasia?: string;
+  Descricao?: string;
+  Unidade?: string;
+  TipoPagamento?: string;
+  ConhecInstituicao?: string;
+}
+
 
 export default function ListaJovensCargaHorariaPage() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<EstatisticaGeralItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeForm, setActiveForm] = useState<number | null>(null);
@@ -62,7 +86,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/ativos_por_area_atuacao");
         setData(response.data);
-      } catch (error) {
+      } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {
         setLoading(false);
@@ -76,7 +100,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/ativos_por_cidade");
         setData(response.data);
-      } catch (error) {
+    } catch {
         toast.error("Erro ao carregar cidades.");
       } finally {
         setLoading(false);
@@ -89,7 +113,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/desligados_por_periodo");
         setData(response.data);
-      } catch (error) {
+      } catch {
         toast.error("Erro ao carregar desligados.");
       } finally {
         setLoading(false);
@@ -103,7 +127,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/desligados_por_motivo");
         setData(response.data);
-      } catch (error) {
+      } catch {
         toast.error("Erro ao carregar desligados.");
       } finally {
         setLoading(false);
@@ -117,7 +141,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/alocacao_no_periodo");
         setData(response.data);
-      } catch (error) {
+      } catch {
         toast.error("Erro ao carregar Periodo.");
       } finally {
         setLoading(false);
@@ -131,7 +155,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/ativos_por_unidade");
         setData(response.data);
-      } catch (error) {
+      } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {
         setLoading(false);
@@ -145,7 +169,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/tipo_pagamento");
         setData(response.data);
-      } catch (error) {
+      } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {
         setLoading(false);
@@ -159,7 +183,7 @@ export default function ListaJovensCargaHorariaPage() {
       try {
         const response = await api.get("/participantessituacao/conheceu_projov");
         setData(response.data);
-      } catch (error) {
+      } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {
         setLoading(false);
@@ -559,8 +583,8 @@ case 3:
               </thead>
               <tbody>
                 {currentItems.map((item, idx) => {
-                  const total = filteredData.reduce((acc, curr) => acc + curr.Qtde, 0);
-                  const percent = ((item.Qtde / total) * 100).toFixed(1);
+                  const total = filteredData.reduce((acc, curr) => acc + (curr.Qtde ?? 0), 0);
+                  const percent = total > 0 ? (((item.Qtde ?? 0) / total) * 100).toFixed(1) : "0.0";
                   
                   return (
                     <tr key={idx} className="hover:bg-teal-50/30 border-b border-gray-100 transition-colors">
@@ -629,7 +653,7 @@ case 3:
                   cy="50%"
                   outerRadius={100}
                   labelLine={false}
-                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
                 >
                   {filteredData.map((_, index) => (
                     <Cell 

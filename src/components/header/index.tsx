@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { UserMenu } from "../perfildropdown";
 import { NotificationsMenu } from "../notifications";
-import { getRoleLabel } from "@/utils/roles";
+import { getRoleLabel, getSessionUserRole } from "@/utils/roles";
 
 interface NavItem {
   name: string;
@@ -270,9 +270,10 @@ export function Header() {
     const dadosSalvos = localStorage.getItem("projov_user");
     if (dadosSalvos) {
       const usuarioParseado = JSON.parse(dadosSalvos);
+      const role = getSessionUserRole(usuarioParseado);
       setUser({
         nome: usuarioParseado.UsuNome,
-        role: usuarioParseado.UsuTipo || "Sem cargo",
+        role: role || "Sem cargo",
       });
     }
   }, []);
@@ -318,7 +319,7 @@ export function Header() {
         </h1>
         <p className="text-[#F6F6F6] text-xs m-2">
           Rua Pará, nº 159 - BARUERI - SP. Tel.: (11) 4166-2630
-        </p>``
+        </p>
       </div>
       {showMainNav && (
         <div className="flex h-20" ref={menuRef}>

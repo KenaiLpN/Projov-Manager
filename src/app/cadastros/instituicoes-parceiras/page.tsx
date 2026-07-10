@@ -9,6 +9,7 @@ import TabelaInstituicoesParceiras, {
   InstituicaoParceira,
 } from "@/components/tabelas/tabelainstituicoesparceiras";
 import Pagination from "@/components/pagination";
+import { fetchCepAddress } from "@/services/cepService";
 interface ParceiroFormData {
   IpaDescricao: string;
   IpaNomeContato: string;
@@ -56,25 +57,18 @@ export default function InstituicoesParceirasPage() {
     confirmacao_senha: "",
   });
   const buscaCEP = async (cep: string) => {
-    const cepLimpo = cep.replace(/\D/g, "");
-    if (cepLimpo.length === 8) {
-      try {
-        const response = await fetch(
-          `https://viacep.com.br/ws/${cepLimpo}/json/`,
-        );
-        const data = await response.json();
-        if (!data.erro) {
-          setFormData((prev) => ({
-            ...prev,
-            IpaEndereco: data.logradouro,
-            IpaBairro: data.bairro,
-            IpaCidade: data.localidade,
-            IpaEstado: data.uf,
-          }));
-        }
-      } catch {
-        console.error("Erro ao buscar CEP");
-      }
+    try {
+      const address = await fetchCepAddress(cep);
+      if (!address) return;
+      setFormData((prev) => ({
+        ...prev,
+        IpaEndereco: address.logradouro,
+        IpaBairro: address.bairro,
+        IpaCidade: address.localidade,
+        IpaEstado: address.uf,
+      }));
+    } catch {
+      console.error("Erro ao buscar CEP");
     }
   };
   const openModalNew = () => {

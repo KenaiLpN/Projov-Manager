@@ -101,7 +101,9 @@ export default function PresencaTotalPeriodoPage() {
       student.IdAluno, student.NomeJovem, student.UnidadeParceiro,
       ...result.columns.flatMap((column) => {
         const total = student.totais[column.key];
-        return total ? [total.aulas, total.presencas, total.justificadas, total.faltas] : ["", "", "", ""];
+        return total
+          ? [total.aulas, total.presencas, total.justificadas, total.faltas].map(String)
+          : ["", "", "", ""];
       }),
     ]);
     const csv = [headers, ...rows].map((row) => row.map(csvCell).join(";")).join("\r\n");

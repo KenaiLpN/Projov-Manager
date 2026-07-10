@@ -8,6 +8,7 @@ import TabelaRegistroGI, {
   RegistroGI,
 } from "@/components/tabelas/tabelaregistrogi";
 import api from "@/services/api";
+import { fetchCepAddress } from "@/services/cepService";
 import { toast } from "react-hot-toast";
 
 interface RegistroGIFormData {
@@ -231,20 +232,16 @@ export default function CadRegistroGIPage() {
   };
 
   const buscaCEP = useCallback(async (cep: string) => {
-    const clean = cep.replace(/\D/g, "");
-    if (clean.length !== 8) return;
     try {
-      const res = await fetch(`/api/cep/${clean}`);
-      if (!res.ok) { toast.error("Erro ao consultar CEP."); return; }
-      const data = await res.json();
-      if (data.erro) { toast.error("CEP não encontrado."); return; }
+      const address = await fetchCepAddress(cep);
+      if (!address) { toast.error("CEP não encontrado."); return; }
       setFormData((prev) => {
         const next = {
           ...prev,
-          GIEndereco: data.logradouro ?? prev.GIEndereco,
-          GIBairro: data.bairro ?? prev.GIBairro,
-          GICidade: data.localidade ?? prev.GICidade,
-          GIUF: data.uf ?? prev.GIUF,
+          GIEndereco: address.logradouro || prev.GIEndereco,
+          GIBairro: address.bairro || prev.GIBairro,
+          GICidade: address.localidade || prev.GICidade,
+          GIUF: address.uf || prev.GIUF,
         };
         if (!editingId) localStorage.setItem(DRAFT_KEY, JSON.stringify(next));
         return next;
@@ -252,7 +249,7 @@ export default function CadRegistroGIPage() {
     } catch {
       toast.error("Não foi possível consultar o CEP.");
     }
-  }, []);
+  }, [editingId]);
 
   const handleDelete = (id: number) => {
     setItemToDelete(id);
