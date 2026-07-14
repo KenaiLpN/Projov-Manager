@@ -1,10 +1,25 @@
 "use client";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { Clock3, Eye, EyeOff, Headphones, LogIn, ShieldCheck, TicketCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock3,
+  Eye,
+  EyeOff,
+  Headphones,
+  LogIn,
+  ShieldCheck,
+  Sparkles,
+  TicketCheck,
+  UsersRound,
+} from "lucide-react";
 import { getSessionUserRole } from "@/utils/roles";
+import styles from "./login.module.css";
 
 type LoginAccessType = "USUARIO" | "APRENDIZ" | "EDUCADOR" | "EMPRESA";
+type LoginPortal = "prosis" | "chamados";
+type PortalTransitionPhase = "covering" | "uncovering" | null;
 
 const LOGIN_ACCESS_OPTIONS: {
   value: LoginAccessType;
@@ -37,6 +52,9 @@ function getChamadosRedirect(user: Record<string, unknown>) {
 }
 
 export default function LoginPage() {
+  const [activePortal, setActivePortal] = useState<LoginPortal>("prosis");
+  const [transitionTarget, setTransitionTarget] = useState<LoginPortal | null>(null);
+  const [transitionPhase, setTransitionPhase] = useState<PortalTransitionPhase>(null);
   const [UsuCodigo, setUsuCodigo] = useState("");
   const [senha, setSenha] = useState("");
   const [tipoAcesso, setTipoAcesso] = useState<LoginAccessType>("USUARIO");
@@ -67,6 +85,27 @@ export default function LoginPage() {
         : "Código do Usuário";
   const selectedAccessLabel =
     LOGIN_ACCESS_OPTIONS.find((option) => option.value === tipoAcesso)?.label ?? "acesso";
+
+  const isChamadosPortal = activePortal === "chamados";
+
+  function beginPortalTransition(target: LoginPortal) {
+    if (target === activePortal || transitionPhase) return;
+    setTransitionTarget(target);
+    setTransitionPhase("covering");
+  }
+
+  function handlePortalTransitionEnd() {
+    if (transitionPhase === "covering" && transitionTarget) {
+      setActivePortal(transitionTarget);
+      setTransitionPhase("uncovering");
+      return;
+    }
+
+    if (transitionPhase === "uncovering") {
+      setTransitionPhase(null);
+      setTransitionTarget(null);
+    }
+  }
 
   function handleAccessTypeChange(nextAccessType: LoginAccessType) {
     setTipoAcesso(nextAccessType);
@@ -416,213 +455,276 @@ export default function LoginPage() {
     );
   }
   return (
-    <main className="min-h-screen bg-[#0b1220] text-slate-100">
-      <div className="grid min-h-screen lg:grid-cols-2">
-        <section className="relative flex min-h-[44vh] items-center justify-center overflow-hidden bg-[#214875] px-6 py-10 sm:px-10 lg:min-h-screen">
+    <main
+      className={`relative min-h-[100svh] overflow-hidden text-slate-100 transition-colors duration-500 ${
+        isChamadosPortal ? "bg-[#715a08]" : "bg-[#08111f]"
+      }`}
+    >
+      <button
+        type="button"
+        aria-label={isChamadosPortal ? "Voltar ao login do ProSis" : "Abrir login de chamados"}
+        title={isChamadosPortal ? "Voltar ao ProSis" : "Acessar chamados"}
+        disabled={Boolean(transitionPhase)}
+        onClick={() => beginPortalTransition(isChamadosPortal ? "prosis" : "chamados")}
+        className="group absolute inset-y-0 left-0 z-40 flex w-6 cursor-pointer items-stretch disabled:cursor-wait"
+      >
+        <span
+          className={`block h-full w-2 shadow-[3px_0_18px_rgba(0,0,0,0.18)] transition-all duration-300 group-hover:w-3 ${
+            isChamadosPortal ? "bg-[#214875]" : "bg-[#f7c41f]"
+          }`}
+        />
+      </button>
+
+      <div className="grid min-h-[100svh] lg:grid-cols-2">
+        <section
+          className={`relative flex min-h-[38svh] items-center overflow-hidden px-10 py-16 transition-colors duration-500 sm:px-16 lg:min-h-[100svh] lg:px-[clamp(4rem,8vw,9rem)] ${
+            isChamadosPortal ? "bg-[#f7c41f] text-[#172033]" : "bg-[#78a7ef] text-white"
+          }`}
+        >
           <div
             aria-hidden="true"
-            className="absolute inset-0 opacity-[0.055] [background-image:linear-gradient(#061322_1px,transparent_1px),linear-gradient(90deg,#061322_1px,transparent_1px)] [background-size:44px_44px]"
+            className={`absolute inset-0 transition-opacity duration-500 ${
+              isChamadosPortal ? styles.supportTexture : styles.prosisTexture
+            }`}
           />
-          <form
-            onSubmit={handleChamadoLogin}
-            className="relative z-10 w-full max-w-md rounded-2xl border border-white/15 bg-white/10 p-7 shadow-2xl backdrop-blur-sm sm:p-8"
-          >
-            <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white">
-              <Headphones size={30} strokeWidth={2.1} />
-            </div>
+          <div
+            aria-hidden="true"
+            className={`absolute -left-24 top-[15%] h-72 w-72 rounded-full border ${
+              isChamadosPortal ? "border-[#172033]/10" : "border-white/15"
+            }`}
+          />
+          <div
+            aria-hidden="true"
+            className={`absolute bottom-[8%] right-[8%] h-44 w-44 rounded-full border ${
+              isChamadosPortal ? "border-[#172033]/10" : "border-white/15"
+            }`}
+          />
 
-            <div className="mb-7">
-              <p className="text-sm font-bold uppercase tracking-[0.22em] text-cyan-100">
-                Central de suporte
-              </p>
-              <h1 className="mt-3 text-3xl font-bold text-white">
-                Abertura de chamados
-              </h1>
-              <p className="hidden">
-                Um portal interno para registrar solicitações, acompanhar o dia de abertura e organizar a fila técnica sem depender do WhatsApp.
-              </p>
-            </div>
-
-            <div className="hidden">
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-                <TicketCheck className="mb-3 text-cyan-100" size={24} />
-                <p className="text-sm font-semibold text-white">Registro direto</p>
-                <p className="mt-1 text-xs leading-5 text-blue-100">Chamado com usuário, data e descrição.</p>
-              </div>
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-                <Clock3 className="mb-3 text-amber-100" size={24} />
-                <p className="text-sm font-semibold text-white">Fila por dia</p>
-                <p className="mt-1 text-xs leading-5 text-blue-100">Visualização diária para triagem do TI.</p>
-              </div>
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-                <ShieldCheck className="mb-3 text-emerald-100" size={24} />
-                <p className="text-sm font-semibold text-white">Acesso interno</p>
-                <p className="mt-1 text-xs leading-5 text-blue-100">Entrada por credenciais de usuário ativo.</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-blue-50">
-                  Login
-                </span>
-                <input
-                  type="text"
-                  placeholder="Codigo do usuario"
-                  value={chamadoLogin}
-                  disabled={chamadoLoading}
-                  onChange={(e) => {
-                    setChamadoLogin(e.target.value);
-                    setChamadoError("");
-                  }}
-                  className={`w-full rounded-xl border bg-white/95 p-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 ${
-                    chamadoError
-                      ? "border-red-300 focus:border-red-200"
-                      : "border-white/20 focus:border-cyan-100"
-                  }`}
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-blue-50">
-                  Senha
-                </span>
-                <div className="relative">
-                  <input
-                    type={showChamadoSenha ? "text" : "password"}
-                    placeholder="Sua senha"
-                    value={chamadoSenha}
-                    disabled={chamadoLoading}
-                    onChange={(e) => {
-                      setChamadoSenha(e.target.value);
-                      setChamadoError("");
-                    }}
-                    className={`w-full rounded-xl border bg-white/95 p-3 pr-11 text-slate-900 outline-none transition-all placeholder:text-slate-400 ${
-                      chamadoError
-                        ? "border-red-300 focus:border-red-200"
-                        : "border-white/20 focus:border-cyan-100"
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowChamadoSenha((value) => !value)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-800"
-                    tabIndex={-1}
-                  >
-                    {showChamadoSenha ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
+          <div className="relative z-10 max-w-2xl">
+            {isChamadosPortal ? (
+              <>
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#172033]/15 bg-[#172033]/8 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em]">
+                  <Headphones size={16} />
+                  Central de suporte
                 </div>
-              </label>
-
-              {chamadoError && (
-                <div className="rounded-lg border border-red-200/60 bg-red-950/35 px-3 py-2 text-center text-sm text-red-100">
-                  {chamadoError}
+                <h1 className="mt-7 max-w-xl text-4xl font-bold leading-[1.08] tracking-[-0.035em] sm:text-5xl lg:text-6xl">
+                  Seu pedido de ajuda, acompanhado do início ao fim.
+                </h1>
+                <p className="mt-6 max-w-xl text-base leading-7 text-[#273044]/80 sm:text-lg">
+                  Registre solicitações de forma simples, acompanhe o atendimento e mantenha cada etapa organizada em um só lugar.
+                </p>
+                <div className="mt-10 hidden grid-cols-3 gap-3 sm:grid">
+                  <div className="rounded-2xl border border-[#172033]/15 bg-white/20 p-4 backdrop-blur-sm">
+                    <TicketCheck size={21} />
+                    <p className="mt-3 text-sm font-bold">Registro rápido</p>
+                  </div>
+                  <div className="rounded-2xl border border-[#172033]/15 bg-white/20 p-4 backdrop-blur-sm">
+                    <Clock3 size={21} />
+                    <p className="mt-3 text-sm font-bold">Acompanhamento</p>
+                  </div>
+                  <div className="rounded-2xl border border-[#172033]/15 bg-white/20 p-4 backdrop-blur-sm">
+                    <ShieldCheck size={21} />
+                    <p className="mt-3 text-sm font-bold">Acesso interno</p>
+                  </div>
                 </div>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={chamadoLoading}
-              className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl p-3 font-semibold transition-colors ${
-                chamadoLoading
-                  ? "cursor-not-allowed bg-white/70 text-[#214875]"
-                  : "bg-white text-[#214875] hover:bg-cyan-50"
-              }`}
-            >
-              <TicketCheck size={18} />
-              {chamadoLoading ? "Entrando..." : "Entrar em chamados"}
-            </button>
-          </form>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] backdrop-blur-sm">
+                  <Sparkles size={16} />
+                  Gestão integrada
+                </div>
+                <h1 className="mt-7 max-w-xl text-4xl font-bold leading-[1.08] tracking-[-0.035em] sm:text-5xl lg:text-6xl">
+                  Conectando pessoas, oportunidades e resultados.
+                </h1>
+                <p className="mt-6 max-w-xl text-base leading-7 text-blue-50/90 sm:text-lg">
+                  O ProSis reúne a gestão do Programa Jovem Aprendiz em uma experiência segura, organizada e feita para cada perfil.
+                </p>
+                <div className="mt-10 hidden grid-cols-3 gap-3 sm:grid">
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+                    <UsersRound size={21} />
+                    <p className="mt-3 text-sm font-bold">Acesso por perfil</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+                    <ShieldCheck size={21} />
+                    <p className="mt-3 text-sm font-bold">Ambiente seguro</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+                    <Sparkles size={21} />
+                    <p className="mt-3 text-sm font-bold">Gestão simples</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </section>
 
-        <section className="flex min-h-[56vh] items-center justify-center px-6 py-10 sm:px-10 lg:min-h-screen">
-          <form
-            onSubmit={handleLogin}
-            className="w-full max-w-md rounded-2xl border border-slate-800 bg-[#121c2e] p-7 shadow-2xl sm:p-8"
+        <section
+          className={`relative flex min-h-[62svh] items-center justify-center px-6 pb-16 pt-28 transition-colors duration-500 sm:px-10 lg:min-h-[100svh] lg:py-20 ${
+            isChamadosPortal ? "bg-[#715a08]" : "bg-[#08111f]"
+          }`}
+        >
+          <div
+            aria-hidden="true"
+            className={`absolute inset-0 transition-opacity duration-500 ${
+              isChamadosPortal ? styles.supportRightGlow : styles.prosisRightGlow
+            }`}
+          />
+
+          <button
+            type="button"
+            disabled={Boolean(transitionPhase)}
+            onClick={() => beginPortalTransition(isChamadosPortal ? "prosis" : "chamados")}
+            className={`group absolute right-5 top-5 z-20 inline-flex h-12 items-center gap-2 rounded-full border px-5 text-sm font-bold shadow-lg backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 sm:right-8 sm:top-8 ${
+              isChamadosPortal
+                ? "border-[#9fc0f4]/55 bg-[#214875]/45 text-blue-50 hover:border-[#b7d0f8] hover:bg-[#214875]/70"
+                : "border-[#f7c41f]/70 bg-[#f7c41f]/8 text-[#f9d85e] hover:border-[#f7c41f] hover:bg-[#f7c41f]/15"
+            }`}
           >
-            <div className="mb-7">
-              <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#8ab4ff]">
-                ProSis
-              </p>
-              <h2 className="mt-3 text-3xl font-bold text-white">
-                Bem-vindo de volta
-              </h2>
-              <p className="mt-2 text-sm text-slate-400">
-                Gestão do Programa Jovem Aprendiz
-              </p>
-            </div>
+            {isChamadosPortal ? <ArrowLeft size={17} /> : <TicketCheck size={17} />}
+            <span>{isChamadosPortal ? "Voltar ao ProSis" : "Acessar chamados"}</span>
+            {!isChamadosPortal && (
+              <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+            )}
+          </button>
 
-            <div
-              aria-label="Tipo de acesso"
-              className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-slate-700 bg-[#0b1220] p-1"
+          {isChamadosPortal ? (
+            <form
+              onSubmit={handleChamadoLogin}
+              className="relative z-10 w-full max-w-md rounded-[1.75rem] border border-[#f7c41f]/25 bg-[#0b1220] p-7 shadow-[0_30px_80px_rgba(24,18,0,0.38)] sm:p-9"
             >
-              {LOGIN_ACCESS_OPTIONS.map((option) => {
-                const selected = tipoAcesso === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={selected}
-                    disabled={loading || option.disabled}
-                    onClick={() => handleAccessTypeChange(option.value)}
-                    className={`h-10 rounded-lg px-3 text-sm font-semibold transition-colors ${
-                      selected
-                        ? "bg-[#8ab4ff] text-[#07111f]"
-                        : option.disabled
-                          ? "cursor-not-allowed bg-[#121c2e] text-slate-500"
-                          : "bg-transparent text-slate-300 hover:bg-[#1a2a42] hover:text-white"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#f7c41f]/30 bg-[#f7c41f]/10 text-[#f7c41f] shadow-inner">
+                <Headphones size={28} strokeWidth={2.1} />
+              </div>
+              <div className="mb-7">
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#f7c41f]">
+                  Central de suporte
+                </p>
+                <h2 className="mt-3 text-3xl font-bold text-white">Abertura de chamados</h2>
+                <p className="mt-2 text-sm text-slate-400">Entre para registrar ou acompanhar uma solicitação.</p>
+              </div>
 
-            <div className="space-y-4">
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-slate-200">
-                  Identificação
-                </span>
-                <input
-                  type="text"
-                  placeholder={identifierPlaceholder}
-                  value={UsuCodigo}
-                  disabled={loading}
-                  onKeyDown={(e) => { if (loading) e.preventDefault(); }}
-                  onChange={(e) => {
-                    setUsuCodigo(e.target.value);
-                    setLoginError(false);
-                    setLoginErrorMessage("");
-                  }}
-                  className={`w-full rounded-xl border bg-[#101b2d] p-3 text-slate-100 outline-none transition-all placeholder:text-slate-500 ${
-                    loading
-                      ? "cursor-not-allowed border-slate-700 opacity-60"
-                      : loginError
-                        ? "border-red-400 focus:border-red-300"
-                        : "border-slate-700 focus:border-[#8ab4ff]"
-                  }`}
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-slate-200">
-                  Senha
-                </span>
-                <div className="relative">
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-200">Login</span>
                   <input
-                    type={showSenha ? "text" : "password"}
-                    placeholder="Sua senha"
-                    value={senha}
+                    type="text"
+                    autoComplete="username"
+                    placeholder="Código do usuário"
+                    value={chamadoLogin}
+                    disabled={chamadoLoading}
+                    onChange={(e) => {
+                      setChamadoLogin(e.target.value);
+                      setChamadoError("");
+                    }}
+                    className={`${styles.supportInput} w-full rounded-xl border p-3 outline-none transition-all placeholder:text-slate-400 ${
+                      chamadoError ? "border-red-400 focus:border-red-300" : "border-slate-200 focus:border-[#f7c41f]"
+                    }`}
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-200">Senha</span>
+                  <div className="relative">
+                    <input
+                      type={showChamadoSenha ? "text" : "password"}
+                      autoComplete="current-password"
+                      placeholder="Sua senha"
+                      value={chamadoSenha}
+                      disabled={chamadoLoading}
+                      onChange={(e) => {
+                        setChamadoSenha(e.target.value);
+                        setChamadoError("");
+                      }}
+                      className={`${styles.supportInput} w-full rounded-xl border p-3 pr-11 outline-none transition-all placeholder:text-slate-400 ${
+                        chamadoError ? "border-red-400 focus:border-red-300" : "border-slate-200 focus:border-[#f7c41f]"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      aria-label={showChamadoSenha ? "Ocultar senha" : "Mostrar senha"}
+                      onClick={() => setShowChamadoSenha((value) => !value)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-800"
+                    >
+                      {showChamadoSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </label>
+
+                {chamadoError && (
+                  <div className="rounded-xl border border-red-500/40 bg-red-950/45 px-3 py-2.5 text-center text-sm text-red-200">
+                    {chamadoError}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={chamadoLoading}
+                className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl p-3 font-bold transition-all duration-300 ${
+                  chamadoLoading
+                    ? "cursor-not-allowed bg-[#d8b33a] text-[#2d2508] opacity-70"
+                    : "bg-[#f7c41f] text-[#1d1909] shadow-[0_10px_28px_rgba(247,196,31,0.2)] hover:-translate-y-0.5 hover:bg-[#ffd54b]"
+                }`}
+              >
+                <TicketCheck size={18} />
+                {chamadoLoading ? "Entrando..." : "Entrar em chamados"}
+              </button>
+            </form>
+          ) : (
+            <form
+              onSubmit={handleLogin}
+              className="relative z-10 w-full max-w-md rounded-[1.75rem] border border-slate-700/70 bg-[#111c2e]/95 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:p-9"
+            >
+              <div className="mb-7">
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8ab4ff]">ProSis</p>
+                <h2 className="mt-3 text-3xl font-bold text-white">Bem-vindo de volta</h2>
+                <p className="mt-2 text-sm text-slate-400">Gestão do Programa Jovem Aprendiz</p>
+              </div>
+
+              <div
+                aria-label="Tipo de acesso"
+                className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-slate-700 bg-[#0b1220] p-1"
+              >
+                {LOGIN_ACCESS_OPTIONS.map((option) => {
+                  const selected = tipoAcesso === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={selected}
+                      disabled={loading || option.disabled}
+                      onClick={() => handleAccessTypeChange(option.value)}
+                      className={`h-10 rounded-lg px-3 text-sm font-semibold transition-all duration-200 ${
+                        selected
+                          ? "bg-[#8ab4ff] text-[#07111f] shadow-sm"
+                          : option.disabled
+                            ? "cursor-not-allowed bg-[#121c2e] text-slate-500"
+                            : "bg-transparent text-slate-300 hover:bg-[#1a2a42] hover:text-white"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-200">Identificação</span>
+                  <input
+                    type="text"
+                    autoComplete="username"
+                    placeholder={identifierPlaceholder}
+                    value={UsuCodigo}
                     disabled={loading}
                     onKeyDown={(e) => { if (loading) e.preventDefault(); }}
                     onChange={(e) => {
-                      setSenha(e.target.value);
+                      setUsuCodigo(e.target.value);
                       setLoginError(false);
                       setLoginErrorMessage("");
                     }}
-                    className={`w-full rounded-xl border bg-[#101b2d] p-3 pr-11 text-slate-100 outline-none transition-all placeholder:text-slate-500 ${
+                    className={`${styles.prosisInput} w-full rounded-xl border p-3 outline-none transition-all placeholder:text-slate-500 ${
                       loading
                         ? "cursor-not-allowed border-slate-700 opacity-60"
                         : loginError
@@ -630,91 +732,113 @@ export default function LoginPage() {
                           : "border-slate-700 focus:border-[#8ab4ff]"
                     }`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowSenha((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-white"
-                    tabIndex={-1}
-                  >
-                    {showSenha ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </label>
+                </label>
 
-              {loginError && (
-                <div className="rounded-lg border border-red-500/40 bg-red-950/40 px-3 py-2 text-center text-sm text-red-200">
-                  {loginErrorMessage || "Credenciais inválidas. Verifique seu usuário e senha."}
-                </div>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl p-3 font-semibold text-white transition-colors ${
-                loading
-                  ? "cursor-not-allowed bg-[#2d5d98]"
-                  : "cursor-pointer bg-[#244b7d] hover:bg-[#2d5d98]"
-              }`}
-            >
-              {loading ? (
-                <>
-                  <svg
-                    className="h-5 w-5 animate-spin text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12" cy="12" r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-200">Senha</span>
+                  <div className="relative">
+                    <input
+                      type={showSenha ? "text" : "password"}
+                      autoComplete="current-password"
+                      placeholder="Sua senha"
+                      value={senha}
+                      disabled={loading}
+                      onKeyDown={(e) => { if (loading) e.preventDefault(); }}
+                      onChange={(e) => {
+                        setSenha(e.target.value);
+                        setLoginError(false);
+                        setLoginErrorMessage("");
+                      }}
+                      className={`${styles.prosisInput} w-full rounded-xl border p-3 pr-11 outline-none transition-all placeholder:text-slate-500 ${
+                        loading
+                          ? "cursor-not-allowed border-slate-700 opacity-60"
+                          : loginError
+                            ? "border-red-400 focus:border-red-300"
+                            : "border-slate-700 focus:border-[#8ab4ff]"
+                      }`}
                     />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Entrando...
-                </>
-              ) : (
-                <>
-                  <LogIn size={18} />
-                  Entrar
-                </>
-              )}
-            </button>
+                    <button
+                      type="button"
+                      aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
+                      onClick={() => setShowSenha((value) => !value)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-white"
+                    >
+                      {showSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </label>
 
-            <button
-              type="button"
-              onClick={() => {
-                setForgotPasswordMode(true);
-                setLoginError(false);
-                setLoginErrorMessage("");
-                setForgotError("");
-                setForgotEmail("");
-                setUsuCodigo("");
-                setSenha("");
-              }}
-              className="mt-5 flex w-full justify-center text-sm font-medium text-slate-300 transition-colors hover:text-[#8ab4ff]"
-              id="lostpassword"
-            >
-              Esqueci minha senha
-            </button>
-          </form>
+                {loginError && (
+                  <div className="rounded-xl border border-red-500/40 bg-red-950/40 px-3 py-2.5 text-center text-sm text-red-200">
+                    {loginErrorMessage || "Credenciais inválidas. Verifique seu usuário e senha."}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl p-3 font-bold text-white transition-all duration-300 ${
+                  loading
+                    ? "cursor-not-allowed bg-[#2d5d98] opacity-70"
+                    : "cursor-pointer bg-[#244b7d] shadow-[0_10px_28px_rgba(36,75,125,0.28)] hover:-translate-y-0.5 hover:bg-[#3267a7]"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Entrando...
+                  </>
+                ) : (
+                  <>
+                    <LogIn size={18} />
+                    Entrar
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotPasswordMode(true);
+                  setLoginError(false);
+                  setLoginErrorMessage("");
+                  setForgotError("");
+                  setForgotEmail("");
+                  setUsuCodigo("");
+                  setSenha("");
+                }}
+                className="mt-5 flex w-full justify-center text-sm font-medium text-slate-300 transition-colors hover:text-[#8ab4ff]"
+                id="lostpassword"
+              >
+                Esqueci minha senha
+              </button>
+            </form>
+          )}
         </section>
       </div>
+
+      <div
+        aria-hidden="true"
+        onTransitionEnd={handlePortalTransitionEnd}
+        className={`${styles.portalWipe} ${
+          transitionPhase === "covering"
+            ? `${styles.portalWipeActive} ${styles.portalWipeCovering}`
+            : transitionPhase === "uncovering"
+              ? `${styles.portalWipeActive} ${styles.portalWipeUncovering}`
+              : ""
+        }`}
+        style={{
+          backgroundColor:
+            transitionTarget === "chamados" || (!transitionTarget && !isChamadosPortal)
+              ? "#f7c41f"
+              : "#214875",
+          transformOrigin: transitionPhase === "uncovering" ? "right center" : "left center",
+        }}
+      />
     </main>
   );
 }
