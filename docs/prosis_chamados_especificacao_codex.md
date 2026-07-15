@@ -434,9 +434,11 @@ Status amigáveis para o solicitante:
 
 A estrutura abaixo foi criada pensando em integração com um banco já existente do Procis.
 
-Como os nomes reais das tabelas atuais de usuários, departamentos e unidades podem ser diferentes, os campos de ID foram deixados como referências lógicas.
+O esquema foi adaptado à integração atual do ProSis:
 
-Recomenda-se adaptar os nomes conforme o banco real.
+- usuários são identificados por `CA_Usuarios.UsuCodigo` (`VARCHAR(50)`);
+- unidades são identificadas por `CA_Unidades.UniCodigo` (`INT`);
+- departamento permanece como referência lógica porque ainda não existe uma tabela correspondente no schema Prisma.
 
 Exemplos de tabelas já existentes que podem ser aproveitadas:
 
@@ -455,12 +457,13 @@ Campos principais:
 - ID do chamado;
 - Protocolo opcional;
 - Usuário solicitante;
-- Nome/e-mail do solicitante como snapshot;
+- Nome, e-mail e função do solicitante como snapshot;
 - Departamento;
 - Unidade;
 - Categoria;
 - Título;
 - Descrição;
+- Observação opcional;
 - Status;
 - Prioridade interna;
 - Técnico responsável;
@@ -473,14 +476,15 @@ CREATE TABLE chamados_tickets (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     protocolo VARCHAR(30) NULL,
 
-    solicitante_id BIGINT UNSIGNED NULL,
+    solicitante_id VARCHAR(50) NULL,
     solicitante_nome VARCHAR(150) NOT NULL,
     solicitante_email VARCHAR(180) NULL,
+    solicitante_funcao VARCHAR(100) NULL,
 
     departamento_id BIGINT UNSIGNED NULL,
     departamento_nome VARCHAR(150) NULL,
 
-    unidade_id BIGINT UNSIGNED NULL,
+    unidade_id INT NULL,
     unidade_nome VARCHAR(150) NULL,
 
     categoria_id BIGINT UNSIGNED NULL,
@@ -488,6 +492,7 @@ CREATE TABLE chamados_tickets (
 
     titulo VARCHAR(180) NOT NULL,
     descricao TEXT NOT NULL,
+    observacao TEXT NULL,
 
     status ENUM(
         'aberto',
@@ -500,13 +505,12 @@ CREATE TABLE chamados_tickets (
 
     prioridade_interna ENUM(
         'nao_classificada',
-        'baixa',
+        'minima',
         'media',
-        'alta',
-        'urgente'
+        'maxima'
     ) NOT NULL DEFAULT 'nao_classificada',
 
-    tecnico_responsavel_id BIGINT UNSIGNED NULL,
+    tecnico_responsavel_id VARCHAR(50) NULL,
     tecnico_responsavel_nome VARCHAR(150) NULL,
 
     origem ENUM('portal', 'admin') NOT NULL DEFAULT 'portal',
@@ -585,7 +589,10 @@ INSERT INTO chamados_categorias (nome, descricao) VALUES
 ('E-mail', 'Problemas com e-mail, Outlook, senha ou envio/recebimento'),
 ('Telefone/Ramal', 'Problemas com telefone, ramal ou comunicação interna'),
 ('Acesso/Login', 'Problemas de senha, login ou permissão'),
-('Outro', 'Problema não listado nas categorias anteriores');
+('Outro', 'Problema não listado nas categorias anteriores')
+ON DUPLICATE KEY UPDATE
+    descricao = VALUES(descricao),
+    ativo = 1;
 ```
 
 ---
@@ -611,12 +618,13 @@ CREATE TABLE chamados_historico (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     chamado_id BIGINT UNSIGNED NOT NULL,
 
-    usuario_id BIGINT UNSIGNED NULL,
+    usuario_id VARCHAR(50) NULL,
     usuario_nome VARCHAR(150) NULL,
     usuario_tipo VARCHAR(50) NULL,
 
     tipo_evento ENUM(
         'criado',
+        'editado',
         'status_alterado',
         'prioridade_alterada',
         'atribuicao',
@@ -666,7 +674,7 @@ CREATE TABLE chamados_anexos (
     chamado_id BIGINT UNSIGNED NOT NULL,
     historico_id BIGINT UNSIGNED NULL,
 
-    usuario_id BIGINT UNSIGNED NULL,
+    usuario_id VARCHAR(50) NULL,
     usuario_nome VARCHAR(150) NULL,
 
     nome_original VARCHAR(255) NOT NULL,
@@ -696,16 +704,41 @@ CREATE TABLE chamados_anexos (
 
 ---
 
+## Tabela de resoluções: chamados_resolucoes
+
+Registra a data/hora da resolução, o responsável técnico e a observação opcional, sem perder o histórico caso o chamado seja reaberto no futuro.
+
+```sql
+CREATE TABLE chamados_resolucoes (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    chamado_id BIGINT UNSIGNED NOT NULL,
+    usuario_id VARCHAR(50) NULL,
+    usuario_nome VARCHAR(150) NULL,
+    observacao TEXT NULL,
+    resolvido_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_resolucoes_chamado (chamado_id),
+    KEY idx_resolucoes_resolvido_em (resolvido_em),
+    CONSTRAINT fk_resolucoes_chamado
+        FOREIGN KEY (chamado_id)
+        REFERENCES chamados_tickets (id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+---
+
 # Fluxo técnico do chamado
 
 ## Abertura pelo solicitante
 
 1. Usuário entra em `/chamados/portal`.
 2. Clica em “Abrir novo chamado”.
-3. Preenche título, categoria, unidade, departamento, descrição e anexo opcional.
-4. Sistema cria registro em `chamados_tickets`.
-5. Sistema cria registro em `chamados_historico` com `tipo_evento = 'criado'`.
-6. Sistema mostra número do chamado.
+3. O modal preenche e bloqueia automaticamente nome, função e data/hora da abertura.
+4. O usuário seleciona o departamento e informa descrição e observação opcional.
+5. Sistema cria registro em `chamados_tickets`.
+6. Sistema cria registro em `chamados_historico` com `tipo_evento = 'criado'`.
+7. Sistema mostra número do chamado.
 
 Status inicial:
 
@@ -722,11 +755,10 @@ tecnico_responsavel_id = NULL
 1. Técnico acessa `/chamados/admin/dashboard`.
 2. Visualiza chamados abertos e não classificados.
 3. Abre o chamado.
-4. Define prioridade:
-   - baixa;
-   - media;
-   - alta;
-   - urgente.
+4. Define urgência, disponível somente para Técnico e Desenvolvedor:
+   - mínima;
+   - média;
+   - máxima.
 5. Pode assumir o chamado.
 6. Pode alterar status para:
    - em_analise;
@@ -846,10 +878,9 @@ Prioridade com cores:
 | Prioridade | Cor sugerida |
 |---|---|
 | nao_classificada | cinza |
-| baixa | verde |
-| media | azul |
-| alta | laranja |
-| urgente | vermelho |
+| minima | verde |
+| media | amarelo |
+| maxima | vermelho |
 
 ---
 
@@ -884,7 +915,8 @@ Criar inicialmente:
 - `chamados_tickets`;
 - `chamados_categorias`;
 - `chamados_historico`;
-- `chamados_anexos`.
+- `chamados_anexos`;
+- `chamados_resolucoes`.
 
 ---
 

@@ -1,0 +1,101 @@
+.searchInput,
+:global(html.dark) input.searchInput:not([type="checkbox"]):not([type="radio"]) {
+  border: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.searchInput:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.sidebarMotion {
+  transition:
+    width 220ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.urgencySelect {
+  cursor: pointer;
+  border: 1px solid transparent !important;
+  outline: none;
+}
+
+.urgencySelect:focus {
+  box-shadow: 0 0 0 3px rgb(247 196 31 / 18%) !important;
+}
+
+.urgencySelect:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.urgencyBadge {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.urgencyUndefined {
+  border-color: #cfd3cc !important;
+  background: #eceeea !important;
+  color: #60675e !important;
+}
+
+.urgencyMinima {
+  border-color: #86d6a8 !important;
+  background: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.urgencyMedia {
+  border-color: #e8c84e !important;
+  background: #fef3c7 !important;
+  color: #854d0e !important;
+}
+
+.urgencyMaxima {
+  border-color: #f0a5a5 !important;
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+.filterSelect {
+  height: 2.5rem;
+  border: 1px solid var(--ticket-filter-border) !important;
+  background: var(--ticket-filter-background) !important;
+  color: var(--ticket-filter-color) !important;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.filterSelect:focus {
+  border-color: #d2a300 !important;
+  box-shadow: 0 0 0 3px rgb(247 196 31 / 18%) !important;
+}
+
+.filterSelect.filterSelectLight {
+  --ticket-filter-border: #d4d7d0;
+  --ticket-filter-background: #ffffff;
+  --ticket-filter-color: #252a24;
+}
+
+.filterSelect.filterSelectDark {
+  --ticket-filter-border: #3a3f37;
+  --ticket-filter-background: #232720;
+  --ticket-filter-color: #f1f0e9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebarMotion {
+    transition-duration: 1ms;
+  }
+}

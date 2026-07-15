@@ -1,0 +1,43 @@
+.field {
+  width: 100%;
+  border: 1px solid var(--chamado-field-border) !important;
+  background: var(--chamado-field-background) !important;
+  color: var(--chamado-field-color) !important;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.field::placeholder {
+  color: var(--chamado-field-placeholder) !important;
+}
+
+.field:focus {
+  border-color: #d2a300 !important;
+  box-shadow: 0 0 0 3px rgb(247 196 31 / 18%) !important;
+}
+
+.field:read-only,
+.field:disabled {
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.field.light {
+  --chamado-field-border: #d1d5cd;
+  --chamado-field-background: #e7e9e4;
+  --chamado-field-color: #242823;
+  --chamado-field-placeholder: #777e75;
+  background: var(--chamado-field-background) !important;
+  border-color: var(--chamado-field-border) !important;
+  color: var(--chamado-field-color) !important;
+}
+
+.field.dark {
+  --chamado-field-border: #373c34;
+  --chamado-field-background: #20231e;
+  --chamado-field-color: #f1f0e9;
+  --chamado-field-placeholder: #959c91;
+  background: var(--chamado-field-background) !important;
+  border-color: var(--chamado-field-border) !important;
+  color: var(--chamado-field-color) !important;
+}

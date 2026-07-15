@@ -415,7 +415,7 @@ export default function LoginPage() {
                   setForgotEmail(e.target.value);
                   setForgotError("");
                 }}
-                className={`w-full p-3 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
+                className={`w-full p-3 rounded-xl -[#F3F4F6] border-2 outline-none ${
                   forgotError
                     ? "border-red-500 focus:border-red-500"
                     : "border-[#34495E] focus:border-blue-500"
@@ -561,7 +561,7 @@ export default function LoginPage() {
 
         <section
           className={`relative flex min-h-[62svh] items-center justify-center px-6 pb-16 pt-28 transition-colors duration-500 sm:px-10 lg:min-h-[100svh] lg:py-20 ${
-            isChamadosPortal ? "bg-[#715a08]" : "bg-[#08111f]"
+            isChamadosPortal ? "bg-[#ffffff]" : "bg-[#08111F]"
           }`}
         >
           <div
@@ -591,22 +591,26 @@ export default function LoginPage() {
           {isChamadosPortal ? (
             <form
               onSubmit={handleChamadoLogin}
-              className="relative z-10 w-full max-w-md rounded-[1.75rem] border border-[#f7c41f]/25 bg-[#0b1220] p-7 shadow-[0_30px_80px_rgba(24,18,0,0.38)] sm:p-9"
+              className="relative z-10 w-full max-w-md rounded-[1.75rem] bg-[#ffffff00] p-7  sm:p-9"
             >
-              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#f7c41f]/30 bg-[#f7c41f]/10 text-[#f7c41f] shadow-inner">
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#f7c41f] bg-[#f7c41f]/80 text-[#000000] shadow-inner">
                 <Headphones size={28} strokeWidth={2.1} />
               </div>
+
+
               <div className="mb-7">
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#f7c41f]">
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#000000]">
                   Central de suporte
                 </p>
-                <h2 className="mt-3 text-3xl font-bold text-white">Abertura de chamados</h2>
+                <h2 className="mt-3 text-3xl font-bold text-[#000000]">Abertura de chamados</h2>
                 <p className="mt-2 text-sm text-slate-400">Entre para registrar ou acompanhar uma solicitação.</p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-slate-200">Login</span>
+                  <span className="mb-1.5 block text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    Código do usuário
+                  </span>
                   <input
                     type="text"
                     autoComplete="username"
@@ -617,14 +621,16 @@ export default function LoginPage() {
                       setChamadoLogin(e.target.value);
                       setChamadoError("");
                     }}
-                    className={`${styles.supportInput} w-full rounded-xl border p-3 outline-none transition-all placeholder:text-slate-400 ${
-                      chamadoError ? "border-red-400 focus:border-red-300" : "border-slate-200 focus:border-[#f7c41f]"
+                    className={`${styles.supportInput} w-full py-2.5 text-base placeholder:text-slate-400 ${
+                      chamadoError ? styles.supportInputError : ""
                     }`}
                   />
                 </label>
 
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-slate-200">Senha</span>
+                  <span className="mb-1.5 block text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    Senha
+                  </span>
                   <div className="relative">
                     <input
                       type={showChamadoSenha ? "text" : "password"}
@@ -636,15 +642,15 @@ export default function LoginPage() {
                         setChamadoSenha(e.target.value);
                         setChamadoError("");
                       }}
-                      className={`${styles.supportInput} w-full rounded-xl border p-3 pr-11 outline-none transition-all placeholder:text-slate-400 ${
-                        chamadoError ? "border-red-400 focus:border-red-300" : "border-slate-200 focus:border-[#f7c41f]"
+                      className={`${styles.supportInput} w-full py-2.5 pr-10 text-base placeholder:text-slate-400 ${
+                        chamadoError ? styles.supportInputError : ""
                       }`}
                     />
                     <button
                       type="button"
                       aria-label={showChamadoSenha ? "Ocultar senha" : "Mostrar senha"}
                       onClick={() => setShowChamadoSenha((value) => !value)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-800"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-800"
                     >
                       {showChamadoSenha ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -664,7 +670,7 @@ export default function LoginPage() {
                 className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl p-3 font-bold transition-all duration-300 ${
                   chamadoLoading
                     ? "cursor-not-allowed bg-[#d8b33a] text-[#2d2508] opacity-70"
-                    : "bg-[#f7c41f] text-[#1d1909] shadow-[0_10px_28px_rgba(247,196,31,0.2)] hover:-translate-y-0.5 hover:bg-[#ffd54b]"
+                    : "bg-[#f7c41f] text-[#1d1909] shadow-[0_10px_28px_rgba(247,196,31,.2)] hover:-translate-y-0.5 hover:bg-[#ffd54b]"
                 }`}
               >
                 <TicketCheck size={18} />

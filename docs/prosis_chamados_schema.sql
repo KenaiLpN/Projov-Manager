@@ -1,6 +1,9 @@
 -- Schema MySQL — Módulo de Chamados de TI do Procis
 -- Charset recomendado: utf8mb4
--- Observação: adaptar nomes de tabelas/campos caso o banco atual do Procis já tenha tabelas de usuários, departamentos e unidades.
+-- Integração atual do ProSis:
+-- - identificadores de usuário usam CA_Usuarios.UsuCodigo (VARCHAR(50));
+-- - identificadores de unidade usam CA_Unidades.UniCodigo (INT);
+-- - departamento permanece como referência lógica, pois ainda não há tabela correspondente no schema Prisma.
 
 CREATE TABLE IF NOT EXISTS chamados_categorias (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -23,20 +26,24 @@ INSERT INTO chamados_categorias (nome, descricao) VALUES
 ('E-mail', 'Problemas com e-mail, Outlook, senha ou envio/recebimento'),
 ('Telefone/Ramal', 'Problemas com telefone, ramal ou comunicação interna'),
 ('Acesso/Login', 'Problemas de senha, login ou permissão'),
-('Outro', 'Problema não listado nas categorias anteriores');
+('Outro', 'Problema não listado nas categorias anteriores')
+ON DUPLICATE KEY UPDATE
+    descricao = VALUES(descricao),
+    ativo = 1;
 
 CREATE TABLE IF NOT EXISTS chamados_tickets (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     protocolo VARCHAR(30) NULL,
 
-    solicitante_id BIGINT UNSIGNED NULL,
+    solicitante_id VARCHAR(50) NULL,
     solicitante_nome VARCHAR(150) NOT NULL,
     solicitante_email VARCHAR(180) NULL,
+    solicitante_funcao VARCHAR(100) NULL,
 
     departamento_id BIGINT UNSIGNED NULL,
     departamento_nome VARCHAR(150) NULL,
 
-    unidade_id BIGINT UNSIGNED NULL,
+    unidade_id INT NULL,
     unidade_nome VARCHAR(150) NULL,
 
     categoria_id BIGINT UNSIGNED NULL,
@@ -44,6 +51,7 @@ CREATE TABLE IF NOT EXISTS chamados_tickets (
 
     titulo VARCHAR(180) NOT NULL,
     descricao TEXT NOT NULL,
+    observacao TEXT NULL,
 
     status ENUM(
         'aberto',
@@ -56,13 +64,12 @@ CREATE TABLE IF NOT EXISTS chamados_tickets (
 
     prioridade_interna ENUM(
         'nao_classificada',
-        'baixa',
+        'minima',
         'media',
-        'alta',
-        'urgente'
+        'maxima'
     ) NOT NULL DEFAULT 'nao_classificada',
 
-    tecnico_responsavel_id BIGINT UNSIGNED NULL,
+    tecnico_responsavel_id VARCHAR(50) NULL,
     tecnico_responsavel_nome VARCHAR(150) NULL,
 
     origem ENUM('portal', 'admin') NOT NULL DEFAULT 'portal',
@@ -94,12 +101,13 @@ CREATE TABLE IF NOT EXISTS chamados_historico (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     chamado_id BIGINT UNSIGNED NOT NULL,
 
-    usuario_id BIGINT UNSIGNED NULL,
+    usuario_id VARCHAR(50) NULL,
     usuario_nome VARCHAR(150) NULL,
     usuario_tipo VARCHAR(50) NULL,
 
     tipo_evento ENUM(
         'criado',
+        'editado',
         'status_alterado',
         'prioridade_alterada',
         'atribuicao',
@@ -139,7 +147,7 @@ CREATE TABLE IF NOT EXISTS chamados_anexos (
     chamado_id BIGINT UNSIGNED NOT NULL,
     historico_id BIGINT UNSIGNED NULL,
 
-    usuario_id BIGINT UNSIGNED NULL,
+    usuario_id VARCHAR(50) NULL,
     usuario_nome VARCHAR(150) NULL,
 
     nome_original VARCHAR(255) NOT NULL,
@@ -164,4 +172,20 @@ CREATE TABLE IF NOT EXISTS chamados_anexos (
         FOREIGN KEY (historico_id)
         REFERENCES chamados_historico (id)
         ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS chamados_resolucoes (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    chamado_id BIGINT UNSIGNED NOT NULL,
+    usuario_id VARCHAR(50) NULL,
+    usuario_nome VARCHAR(150) NULL,
+    observacao TEXT NULL,
+    resolvido_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_resolucoes_chamado (chamado_id),
+    KEY idx_resolucoes_resolvido_em (resolvido_em),
+    CONSTRAINT fk_resolucoes_chamado
+        FOREIGN KEY (chamado_id)
+        REFERENCES chamados_tickets (id)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

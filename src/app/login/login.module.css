@@ -41,13 +41,30 @@
 }
 
 .supportInput {
-  background-color: #f8fafc !important;
+  --support-input-border: #cbd5e1;
+
+  border: 0 !important;
+  border-bottom: 1px solid var(--support-input-border) !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
   color: #172033 !important;
+  outline: none !important;
+}
+
+.supportInput:focus {
+  --support-input-border: #172033;
+}
+
+.supportInputError,
+.supportInputError:focus {
+  --support-input-border: #f87171;
 }
 
 :global(html.dark) input.supportInput:not([type="checkbox"]):not([type="radio"]) {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--support-input-border) !important;
+  background-color: transparent !important;
   color: #172033 !important;
 }
 

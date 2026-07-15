@@ -1265,3 +1265,151 @@ GIContatoProjov            String? @db.VarChar(80)
 GIDialogo                  String? @db.VarChar(200)
 
 }
+
+enum ChamadoStatus {
+  aberto
+  em_analise
+  em_atendimento
+  pendente
+  resolvido
+  cancelado
+}
+
+enum ChamadoPrioridade {
+  nao_classificada
+  minima
+  media
+  maxima
+}
+
+enum ChamadoOrigem {
+  portal
+  admin
+}
+
+enum ChamadoEvento {
+  criado
+  editado
+  status_alterado
+  prioridade_alterada
+  atribuicao
+  comentario_interno
+  comentario_publico
+  anexo
+  resolucao
+  cancelamento
+  reabertura
+}
+
+model ChamadoCategoria {
+  id            BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  nome          String   @unique(map: "uk_chamados_categorias_nome") @db.VarChar(100)
+  descricao     String?  @db.VarChar(255)
+  ativo         Boolean  @default(true)
+  criado_em     DateTime @default(now()) @db.DateTime(0)
+  atualizado_em DateTime @default(now()) @updatedAt @db.DateTime(0)
+
+  @@map("chamados_categorias")
+}
+
+model ChamadoTicket {
+  id                       BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  protocolo                String?            @unique(map: "uk_chamados_protocolo") @db.VarChar(30)
+  solicitante_id           String?            @db.VarChar(50)
+  solicitante_nome         String             @db.VarChar(150)
+  solicitante_email        String?            @db.VarChar(180)
+  solicitante_funcao       String?            @db.VarChar(100)
+  departamento_id          BigInt?            @db.UnsignedBigInt
+  departamento_nome        String?            @db.VarChar(150)
+  unidade_id               Int?
+  unidade_nome             String?            @db.VarChar(150)
+  categoria_id             BigInt?            @db.UnsignedBigInt
+  categoria_nome           String?            @db.VarChar(100)
+  titulo                    String             @db.VarChar(180)
+  descricao                 String             @db.Text
+  observacao                String?            @db.Text
+  status                    ChamadoStatus      @default(aberto)
+  prioridade_interna       ChamadoPrioridade  @default(nao_classificada)
+  tecnico_responsavel_id   String?            @db.VarChar(50)
+  tecnico_responsavel_nome String?            @db.VarChar(150)
+  origem                    ChamadoOrigem      @default(portal)
+  aberto_em                 DateTime           @default(now()) @db.DateTime(0)
+  assumido_em               DateTime?          @db.DateTime(0)
+  prazo_sla_em              DateTime?          @db.DateTime(0)
+  resolvido_em              DateTime?          @db.DateTime(0)
+  cancelado_em              DateTime?          @db.DateTime(0)
+  ultima_interacao_em       DateTime?          @db.DateTime(0)
+  atualizado_em             DateTime           @default(now()) @updatedAt @db.DateTime(0)
+  deletado_em               DateTime?          @db.DateTime(0)
+  historicos                ChamadoHistorico[]
+  anexos                    ChamadoAnexo[]
+  resolucoes                ChamadoResolucao[]
+
+  @@index([status], map: "idx_chamados_status")
+  @@index([prioridade_interna], map: "idx_chamados_prioridade")
+  @@index([aberto_em], map: "idx_chamados_aberto_em")
+  @@index([departamento_id], map: "idx_chamados_departamento")
+  @@index([unidade_id], map: "idx_chamados_unidade")
+  @@index([solicitante_id], map: "idx_chamados_solicitante")
+  @@index([tecnico_responsavel_id, status], map: "idx_chamados_tecnico_status")
+  @@index([status, prioridade_interna], map: "idx_chamados_status_prioridade")
+  @@index([categoria_id], map: "idx_chamados_categoria")
+  @@map("chamados_tickets")
+}
+
+model ChamadoHistorico {
+  id                    BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  chamado_id            BigInt         @db.UnsignedBigInt
+  usuario_id            String?        @db.VarChar(50)
+  usuario_nome          String?        @db.VarChar(150)
+  usuario_tipo          String?        @db.VarChar(50)
+  tipo_evento           ChamadoEvento
+  status_anterior       String?        @db.VarChar(50)
+  status_novo           String?        @db.VarChar(50)
+  prioridade_anterior  String?        @db.VarChar(50)
+  prioridade_nova      String?        @db.VarChar(50)
+  comentario            String?        @db.Text
+  visivel_solicitante   Boolean        @default(false)
+  criado_em             DateTime       @default(now()) @db.DateTime(0)
+  chamado               ChamadoTicket  @relation(fields: [chamado_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_historico_chamado")
+  anexos                 ChamadoAnexo[]
+
+  @@index([chamado_id], map: "idx_historico_chamado")
+  @@index([tipo_evento], map: "idx_historico_tipo_evento")
+  @@index([criado_em], map: "idx_historico_criado_em")
+  @@map("chamados_historico")
+}
+
+model ChamadoAnexo {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  chamado_id       BigInt             @db.UnsignedBigInt
+  historico_id     BigInt?            @db.UnsignedBigInt
+  usuario_id       String?            @db.VarChar(50)
+  usuario_nome     String?            @db.VarChar(150)
+  nome_original    String             @db.VarChar(255)
+  nome_armazenado  String             @db.VarChar(255)
+  caminho_arquivo  String             @db.VarChar(500)
+  mime_type        String?            @db.VarChar(120)
+  tamanho_bytes    BigInt?            @db.UnsignedBigInt
+  criado_em        DateTime           @default(now()) @db.DateTime(0)
+  chamado          ChamadoTicket      @relation(fields: [chamado_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_anexos_chamado")
+  historico        ChamadoHistorico?  @relation(fields: [historico_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_anexos_historico")
+
+  @@index([chamado_id], map: "idx_anexos_chamado")
+  @@index([historico_id], map: "idx_anexos_historico")
+  @@map("chamados_anexos")
+}
+
+model ChamadoResolucao {
+  id             BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  chamado_id     BigInt         @db.UnsignedBigInt
+  usuario_id     String?        @db.VarChar(50)
+  usuario_nome   String?        @db.VarChar(150)
+  observacao     String?        @db.Text
+  resolvido_em   DateTime       @default(now()) @db.DateTime(0)
+  chamado        ChamadoTicket  @relation(fields: [chamado_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_resolucoes_chamado")
+
+  @@index([chamado_id], map: "idx_resolucoes_chamado")
+  @@index([resolvido_em], map: "idx_resolucoes_resolvido_em")
+  @@map("chamados_resolucoes")
+}

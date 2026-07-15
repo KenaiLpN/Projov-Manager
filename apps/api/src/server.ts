@@ -53,6 +53,7 @@ import { cronogramaRoutes } from "./routes/cronograma.routes";
 import { geracaoCronogramaRoutes } from "./routes/geracaoCronograma.routes";
 import { geracaoCronogramaSemestreRoutes } from "./routes/geracaoCronogramaSemestre.routes";
 import { empresaAprendizRoutes } from "./routes/empresaAprendiz.routes";
+import { chamadoRoutes } from "./routes/chamado.routes";
 import { participantessituacaoroutes,
         ativos_por_turma_routes,
         ativos_area_atuacao_routes,
@@ -510,6 +511,7 @@ app.register(cronogramaRoutes);
 app.register(geracaoCronogramaRoutes);
 app.register(geracaoCronogramaSemestreRoutes);
 app.register(empresaAprendizRoutes);
+app.register(chamadoRoutes);
 // Inclusão register rota para Estatistica de Participantes por Situação
 app.register(participantessituacaoroutes);
 app.register(ativos_por_turma_routes);
