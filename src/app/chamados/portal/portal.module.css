@@ -1,0 +1,10 @@
+.tableHead.tableHeadLight {
+  background-color: #edeee9 !important;
+  color: #697067 !important;
+}
+
+.tableHead.tableHeadDark,
+:global(html.dark) .tableHead.tableHeadDark {
+  background-color: #232720 !important;
+  color: #aeb4aa !important;
+}
