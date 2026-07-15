@@ -20,7 +20,7 @@
     "api:build": "npm --prefix apps/api run build",
     "api:start": "npm --prefix apps/api run start",
     "build:all": "npm run build:web && npm run api:build",
-    "railway:build": "npm ci --include=dev && npm --prefix apps/api ci --include=dev && npm run build:all"
+    "railway:build": "npm --prefix apps/api ci --include=dev && npm run build:all"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
