@@ -17,10 +17,14 @@ Na raiz do ProSis:
 npm run dev
 npm run dev:all
 npm run build
+npm run build:all
+npm start
 npm run lint
 ```
 
 Use `npm run dev` quando quiser subir apenas o front. Use `npm run dev:all` para subir front e API juntos em desenvolvimento local. O login local depende da API respondendo em `http://127.0.0.1:3333`.
+
+Depois de executar `npm run build:all`, `npm start` inicia o Next.js e a API juntos em modo de producao. O Next.js usa `PORT` (porta publica) e a API usa `API_PORT` (porta interna, padrao `3333`).
 
 API dentro do monorepo:
 
@@ -43,6 +47,8 @@ O arquivo real `.env` da API nao foi copiado para o repositorio. Use `apps/api/.
 
 ## Observacoes de deploy
 
-- O deploy atual do front pode continuar usando a raiz do repositorio.
-- A API deve ser configurada na Hostinger apontando para `apps/api`.
-- Em desenvolvimento, o front continua podendo chamar a API local em `http://127.0.0.1:3333`.
+- O deploy usa a raiz do repositorio e inicia front e API dentro do mesmo servico.
+- O navegador acessa apenas o Next.js. As chamadas para `/api/proxy/*` sao encaminhadas internamente para a API em `http://127.0.0.1:3333`.
+- `railway.json` instala e compila os dois projetos, inicia os dois processos e valida `/api/proxy/health` antes de publicar uma nova versao.
+- Nao e necessario configurar `NEXT_PUBLIC_API_URL` nem expor a porta da API publicamente.
+- O passo a passo completo esta em `docs/railway-deploy.md`.

@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 import path from "path";
-const isDev = process.env.NODE_ENV !== "production";
-const API_URL = isDev
-  ? "http://127.0.0.1:3333"
-  : process.env.NEXT_PUBLIC_API_URL?.trim() || "https://bot-api-ff.vercel.app";
+
+const apiPort = process.env.API_PORT?.trim() || "3333";
+const internalApiUrl =
+  process.env.INTERNAL_API_URL?.trim() || `http://127.0.0.1:${apiPort}`;
+
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   transpilePackages: ["primereact", "primeicons"],
@@ -40,7 +41,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/proxy/:path*",
-        destination: `${API_URL}/:path*`, // Local: http://localhost:3333/:path* | Prod: Vercel
+        destination: `${internalApiUrl}/:path*`,
       },
     ];
   },

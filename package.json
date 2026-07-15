@@ -11,14 +11,16 @@
     "dev:all": "concurrently -n web,api -c blue,green \"npm run dev:web\" \"npm run api:dev\"",
     "build": "next build",
     "build:web": "next build",
-    "start": "next start",
+    "start": "npm run start:all",
     "start:web": "next start",
+    "start:all": "node scripts/start-production.mjs",
     "lint": "eslint",
     "api:install": "npm --prefix apps/api install",
     "api:dev": "npm --prefix apps/api run dev",
     "api:build": "npm --prefix apps/api run build",
     "api:start": "npm --prefix apps/api run start",
-    "build:all": "npm run build && npm run api:build"
+    "build:all": "npm run build:web && npm run api:build",
+    "railway:build": "npm ci --include=dev && npm --prefix apps/api ci --include=dev && npm run build:all"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

@@ -117,12 +117,6 @@ function isEducadorAllowedPath(pathname: string): boolean {
 // ---------------------------------------------------------------------------
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV !== "production";
-  const apiUrl =
-    process.env.NEXT_PUBLIC_API_URL?.trim() || "https://bot-api-ff.vercel.app";
-
-  // Em dev, todas as chamadas passam pelo proxy /api/proxy → 'self' é suficiente.
-  // Em prod, o Axios pode chamar o backend diretamente.
-  const connectSrc = isDev ? "'self'" : `'self' ${apiUrl}`;
 
   const directives = [
     // Nega tudo por padrão; cada tipo de recurso é liberado explicitamente
@@ -139,8 +133,8 @@ function buildCsp(nonce: string): string {
     "img-src 'self' data:",
     // Fontes: servidas pela mesma origem (next/font baixa no build)
     "font-src 'self'",
-    // Conexões fetch/XHR/WebSocket
-    `connect-src ${connectSrc}`,
+    // Todas as chamadas HTTP passam pelo proxy de mesma origem do Next.js.
+    "connect-src 'self'",
     // Bloqueia carregamento em iframes (proteção contra clickjacking)
     "frame-ancestors 'none'",
     // Impede que <base> seja usada para redirecionar recursos

@@ -5,15 +5,13 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 function getDatasourceUrl() {
   const databaseUrl = process.env.DATABASE_URL?.trim();
-  if (!databaseUrl || !process.env.VERCEL) return databaseUrl;
+  const connectionLimit = process.env.DATABASE_CONNECTION_LIMIT?.trim();
+  if (!databaseUrl || !connectionLimit) return databaseUrl;
 
   try {
     const url = new URL(databaseUrl);
     if (!url.searchParams.has("connection_limit")) {
-      url.searchParams.set(
-        "connection_limit",
-        process.env.DATABASE_CONNECTION_LIMIT?.trim() || "1",
-      );
+      url.searchParams.set("connection_limit", connectionLimit);
     }
     return url.toString();
   } catch {

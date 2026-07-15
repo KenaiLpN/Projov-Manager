@@ -171,6 +171,9 @@ const ALLOWED_ORIGINS = new Set(
     "http://localhost:3000",
     "http://localhost:3001",
     process.env.FRONTEND_URL,
+    process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : undefined,
     "https://prosis.digital",
     "https://www.prosis.digital",
   ].filter(Boolean) as string[],
@@ -581,13 +584,13 @@ app.setErrorHandler((error: any, request, reply) => {
     : "Erro interno do servidor";
   reply.status(500).send({ message: msg });
 });
-if (!process.env.VERCEL) {
-  const port = Number(process.env.PORT) || 3333;
-  app.listen({ port, host: "0.0.0.0" }).then(() => {
+const port = Number(process.env.API_PORT || process.env.PORT) || 3333;
+
+app.listen({ port, host: "0.0.0.0" })
+  .then(() => {
     console.log(`HTTP Server running on port ${port}`);
+  })
+  .catch((error) => {
+    console.error("Falha ao iniciar o servidor HTTP da API:", error);
+    process.exit(1);
   });
-}
-export default async (req: any, res: any) => {
-  await app.ready();
-  app.server.emit("request", req, res);
-};

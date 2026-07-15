@@ -19,7 +19,7 @@ Node >= 22.0.0 required.
 
 ### API & Auth
 
-- `src/services/api.ts` — Axios instance. In dev, requests go through `/api/proxy` (Next.js rewrites to `http://127.0.0.1:3333`). In prod, requests go directly to `NEXT_PUBLIC_API_URL`.
+- `src/services/api.ts` — Axios instance. In dev and prod, requests use same-origin `/api/proxy`; Next.js rewrites them to the internal API at `http://127.0.0.1:3333` by default.
 - Auth uses a JWT cookie (`token`) for session and `localStorage` (`projov_user`) as a cached user object.
 - `src/components/PrivateLayout/index.tsx` enforces auth/role guards client-side. APRENDIZ users are restricted to their own profile page only.
 
