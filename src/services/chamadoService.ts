@@ -1,11 +1,12 @@
 import api from "./api";
 
 export const CHAMADO_DEPARTAMENTOS = [
-  "Comercial",
-  "Marketing",
-  "Aprendizagem",
-  "Projetos",
-  "Administração",
+ "Relações Empresariais",
+ "Administração",
+ "Aprendizagem",
+ "Capacitação",
+ "Projetos",
+ "DSO"
 ] as const;
 
 export type ChamadoDepartamento = (typeof CHAMADO_DEPARTAMENTOS)[number];
