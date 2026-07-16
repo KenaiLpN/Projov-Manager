@@ -23,7 +23,7 @@ type Props = {
 };
 
 const emptyForm: ChamadoFormData = {
-  departamento: "Comercial",
+  departamento: "Relações Empresariais",
   descricao: "",
   observacao: "",
 };
