@@ -149,7 +149,7 @@ export default function ChamadoFormModal({
                     departamento: event.target.value as ChamadoDepartamento,
                   }))
                 }
-                className={`${styles.field} ${styles[theme]} h-11 rounded-lg px-3 text-sm`}
+                className={`${styles.field} ${styles[theme]} h-11 cursor-pointer rounded-lg px-3 text-sm`}
               >
                 {CHAMADO_DEPARTAMENTOS.map((department) => (
                   <option key={department} value={department}>

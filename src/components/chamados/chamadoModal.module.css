@@ -16,7 +16,8 @@
   box-shadow: 0 0 0 3px rgb(247 196 31 / 18%) !important;
 }
 
-.field:read-only,
+input.field:read-only,
+textarea.field:read-only,
 .field:disabled {
   cursor: not-allowed;
   opacity: 0.78;
