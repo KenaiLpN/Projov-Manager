@@ -683,7 +683,7 @@ export default function ChamadosAdminDashboardPage() {
       </div>
 
       <ChamadoFormModal open={createModalOpen} mode="create" theme={theme} userName={user?.UsuNome || "Usuário autenticado"} userRole={roleLabel} openedAt={formatDateTime(createOpenedAt)} loading={submitting} onClose={() => setCreateModalOpen(false)} onSubmit={handleCreate} />
-      <ChamadoFormModal open={Boolean(editingTicket)} mode="edit" theme={theme} userName={editingTicket?.solicitante_nome || ""} userRole={editingTicket?.solicitante_funcao || "Não definido"} openedAt={editingTicket ? formatDateTime(editingTicket.aberto_em) : ""} initialValues={editingTicket ? { departamento: (editingTicket.departamento_nome || "Comercial") as ChamadoFormData["departamento"], descricao: editingTicket.descricao, observacao: editingTicket.observacao || "" } : undefined} loading={submitting} onClose={() => setEditingTicket(null)} onSubmit={handleEdit} />
+      <ChamadoFormModal open={Boolean(editingTicket)} mode="edit" theme={theme} userName={editingTicket?.solicitante_nome || ""} userRole={editingTicket?.solicitante_funcao || "Não definido"} openedAt={editingTicket ? formatDateTime(editingTicket.aberto_em) : ""} initialValues={editingTicket ? { departamento: (editingTicket.departamento_nome || "Relações Empresariais") as ChamadoFormData["departamento"], descricao: editingTicket.descricao, observacao: editingTicket.observacao || "" } : undefined} loading={submitting} onClose={() => setEditingTicket(null)} onSubmit={handleEdit} />
       <ChamadoResolveModal ticket={resolvingTicket} theme={theme} loading={submitting} onClose={() => setResolvingTicket(null)} onConfirm={handleResolve} />
     </main>
   );
