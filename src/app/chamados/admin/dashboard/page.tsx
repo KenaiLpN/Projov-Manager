@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ChamadoFormModal from "@/components/chamados/ChamadoFormModal";
+import ChamadoNotificationMenu from "@/components/chamados/ChamadoNotificationMenu";
 import ChamadoResolveModal from "@/components/chamados/ChamadoResolveModal";
 import {
   Chamado,
@@ -42,6 +43,12 @@ import {
   updateChamadoUrgencia,
 } from "@/services/chamadoService";
 import { getRoleLabel, getSessionUserRole } from "@/utils/roles";
+import {
+  ChamadoNotificationSound,
+  isChamadoNotificationSound,
+  playChamadoNotificationSound,
+  prepareChamadoNotificationAudio,
+} from "@/utils/chamadoNotificationSounds";
 import pageStyles from "./dashboard.module.css";
 
 type SessionUser = {
@@ -57,6 +64,19 @@ type UrgencyFilter = ChamadoUrgencia | "all";
 type DepartmentFilter = ChamadoFormData["departamento"] | "all";
 const CHAMADOS_THEME_STORAGE_KEY = "prosis-chamados-theme";
 const GLOBAL_THEME_STORAGE_KEY = "prosis-theme";
+const CHAMADOS_NOTIFICATIONS_STORAGE_KEY = "prosis-chamados-notifications";
+const CHAMADOS_REFRESH_INTERVAL = 10_000;
+
+type TicketLoadOptions = {
+  announceNew?: boolean;
+  showError?: boolean;
+  showLoading?: boolean;
+};
+
+type NotificationSettings = {
+  enabled: boolean;
+  sound: ChamadoNotificationSound;
+};
 
 function applyChamadosTheme(theme: ThemeMode) {
   document.documentElement.classList.toggle("dark", theme === "dark");
@@ -229,6 +249,16 @@ export default function ChamadosAdminDashboardPage() {
   const [resolvingTicket, setResolvingTicket] = useState<Chamado | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [urgencySavingId, setUrgencySavingId] = useState<number | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationSound, setNotificationSound] =
+    useState<ChamadoNotificationSound>("sino");
+  const knownTicketIdsRef = useRef<Set<number> | null>(null);
+  const currentUserIdRef = useRef("");
+  const ticketRequestInFlightRef = useRef(false);
+  const notificationSettingsRef = useRef<NotificationSettings>({
+    enabled: false,
+    sound: "sino",
+  });
   const styles = themes[theme];
   const isDark = theme === "dark";
   const isTicketView = activeView !== "Dashboard";
@@ -241,14 +271,49 @@ export default function ChamadosAdminDashboardPage() {
   const activeAdvancedFilterCount = [statusFilter, urgencyFilter, departmentFilter]
     .filter((value) => value !== "all").length;
 
-  const loadTickets = useCallback(async () => {
-    setLoadingTickets(true);
+  const loadTickets = useCallback(async ({
+    announceNew = false,
+    showError = true,
+    showLoading = true,
+  }: TicketLoadOptions = {}) => {
+    if (ticketRequestInFlightRef.current) return;
+
+    ticketRequestInFlightRef.current = true;
+    if (showLoading) setLoadingTickets(true);
     try {
-      setTickets(await listChamados());
+      const nextTickets = await listChamados();
+      const knownTicketIds = knownTicketIdsRef.current;
+      const newTickets = knownTicketIds
+        ? nextTickets.filter((ticket) => !knownTicketIds.has(ticket.id))
+        : [];
+
+      knownTicketIdsRef.current = new Set(nextTickets.map((ticket) => ticket.id));
+      setTickets(nextTickets);
+
+      if (announceNew && notificationSettingsRef.current.enabled) {
+        const externalNewTickets = newTickets.filter(
+          (ticket) =>
+            String(ticket.solicitante_id ?? "") !== currentUserIdRef.current,
+        );
+
+        if (externalNewTickets.length > 0) {
+          void playChamadoNotificationSound(notificationSettingsRef.current.sound);
+          const newestTicket = externalNewTickets[0];
+          toast.success(
+            externalNewTickets.length === 1
+              ? `Novo chamado de ${newestTicket.solicitante_nome}: ${newestTicket.protocolo || `#${newestTicket.id}`}`
+              : `${externalNewTickets.length} novos chamados foram abertos.`,
+            { duration: 5_000, icon: "🔔" },
+          );
+        }
+      }
     } catch (error) {
-      toast.error(chamadoErrorMessage(error, "Não foi possível carregar os chamados."));
+      if (showError) {
+        toast.error(chamadoErrorMessage(error, "Não foi possível carregar os chamados."));
+      }
     } finally {
-      setLoadingTickets(false);
+      ticketRequestInFlightRef.current = false;
+      if (showLoading) setLoadingTickets(false);
     }
   }, []);
 
@@ -256,6 +321,9 @@ export default function ChamadosAdminDashboardPage() {
     const sessionRaw = localStorage.getItem("projov_user");
     const chamadosTheme = localStorage.getItem(CHAMADOS_THEME_STORAGE_KEY);
     const globalTheme = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
+    const storedNotifications = localStorage.getItem(
+      CHAMADOS_NOTIFICATIONS_STORAGE_KEY,
+    );
     const preferredTheme =
       chamadosTheme === "light" || chamadosTheme === "dark"
         ? chamadosTheme
@@ -269,13 +337,64 @@ export default function ChamadosAdminDashboardPage() {
     applyChamadosTheme(preferredTheme);
     if (sessionRaw) {
       try {
-        setUser(JSON.parse(sessionRaw));
+        const sessionUser = JSON.parse(sessionRaw) as SessionUser;
+        currentUserIdRef.current = String(sessionUser.UsuCodigo ?? "");
+        setUser(sessionUser);
       } catch {
         localStorage.removeItem("projov_user");
       }
     }
+
+    if (storedNotifications) {
+      try {
+        const parsed = JSON.parse(storedNotifications) as Partial<NotificationSettings>;
+        const nextSettings: NotificationSettings = {
+          enabled: parsed.enabled === true,
+          sound: isChamadoNotificationSound(parsed.sound) ? parsed.sound : "sino",
+        };
+        notificationSettingsRef.current = nextSettings;
+        setNotificationsEnabled(nextSettings.enabled);
+        setNotificationSound(nextSettings.sound);
+      } catch {
+        localStorage.removeItem(CHAMADOS_NOTIFICATIONS_STORAGE_KEY);
+      }
+    }
+
     void loadTickets();
   }, [loadTickets]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      void loadTickets({ announceNew: true, showError: false, showLoading: false });
+    }, CHAMADOS_REFRESH_INTERVAL);
+
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") {
+        void loadTickets({ announceNew: true, showError: false, showLoading: false });
+      }
+    }
+
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [loadTickets]);
+
+  useEffect(() => {
+    function unlockNotificationAudio() {
+      if (notificationSettingsRef.current.enabled) {
+        void prepareChamadoNotificationAudio();
+      }
+    }
+
+    window.addEventListener("pointerdown", unlockNotificationAudio, { once: true });
+    window.addEventListener("keydown", unlockNotificationAudio, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlockNotificationAudio);
+      window.removeEventListener("keydown", unlockNotificationAudio);
+    };
+  }, []);
 
   const visibleTickets = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
@@ -343,6 +462,30 @@ export default function ChamadosAdminDashboardPage() {
     });
   }
 
+  function saveNotificationSettings(settings: NotificationSettings) {
+    notificationSettingsRef.current = settings;
+    localStorage.setItem(
+      CHAMADOS_NOTIFICATIONS_STORAGE_KEY,
+      JSON.stringify(settings),
+    );
+  }
+
+  function handleNotificationsEnabledChange(enabled: boolean) {
+    setNotificationsEnabled(enabled);
+    saveNotificationSettings({
+      ...notificationSettingsRef.current,
+      enabled,
+    });
+  }
+
+  function handleNotificationSoundChange(sound: ChamadoNotificationSound) {
+    setNotificationSound(sound);
+    saveNotificationSettings({
+      ...notificationSettingsRef.current,
+      sound,
+    });
+  }
+
   function toggleTicketSort() {
     setSortDirection((currentDirection) =>
       currentDirection === "asc" ? "desc" : "asc",
@@ -373,6 +516,11 @@ export default function ChamadosAdminDashboardPage() {
     setSubmitting(true);
     try {
       const created = await createChamado(data);
+      if (knownTicketIdsRef.current) {
+        knownTicketIdsRef.current.add(created.id);
+      } else {
+        knownTicketIdsRef.current = new Set([created.id]);
+      }
       setTickets((current) => [created, ...current]);
       setCreateModalOpen(false);
       toast.success(`${created.protocolo || "Chamado"} aberto com sucesso.`);
@@ -446,6 +594,14 @@ export default function ChamadosAdminDashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ChamadoNotificationMenu
+              enabled={notificationsEnabled}
+              selectedSound={notificationSound}
+              isDark={isDark}
+              buttonClassName={styles.button}
+              onEnabledChange={handleNotificationsEnabledChange}
+              onSoundChange={handleNotificationSoundChange}
+            />
             <button type="button" onClick={toggleTheme} aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"} title={isDark ? "Modo claro" : "Modo escuro"} className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${styles.button}`}>
               {isDark ? <Sun size={18} strokeWidth={1.8} /> : <Moon size={18} strokeWidth={1.8} />}
             </button>
@@ -544,7 +700,7 @@ export default function ChamadosAdminDashboardPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => void loadTickets()}
+                  onClick={() => void loadTickets({ announceNew: true })}
                   disabled={loadingTickets}
                   className={`flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition-colors ${styles.button}`}
                 >
