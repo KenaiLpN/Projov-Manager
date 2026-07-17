@@ -736,12 +736,28 @@ export async function authRoutes(app: FastifyInstance) {
           try {
             await sendResetPasswordEmail(target.email, resetLink);
           } catch (mailError) {
+            request.log.error(
+              {
+                event: "password_reset_email_failed",
+                tipoAcesso,
+                error: mailError instanceof Error ? mailError.message : String(mailError),
+              },
+              "Falha ao enviar e-mail de recuperação",
+            );
             logger.error("Falha ao enviar e-mail de recuperação", { email, tipoAcesso });
           }
         }
         // Resposta uniforme — não confirma se o e-mail existe
         return reply.status(200).send({ message: "Se o e-mail estiver cadastrado, você receberá as instruções." });
       } catch (error) {
+        request.log.error(
+          {
+            event: "forgot_password_failed",
+            tipoAcesso,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Erro no forgot-password",
+        );
         console.error("Erro no forgot-password:", error);
         return reply.status(500).send({ message: "Erro interno no servidor." });
       }

@@ -1,18 +1,83 @@
-import nodemailer from 'nodemailer';
-export const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.hostinger.com',
-  port: Number(process.env.SMTP_PORT) || 465, 
-  secure: true, // true para 465, false para outras portas (ex: 587)
-  auth: {
-    user: process.env.SMTP_USER || 'contato@seusite.com', 
-    pass: process.env.SMTP_PASS || 'SuaSenha123*',      
-  },
-});
+import nodemailer from "nodemailer";
+
+const SMTP_PLACEHOLDERS = [
+  "exemplo",
+  "example",
+  "seusite",
+  "seudominio",
+  "seu-dominio",
+  "change-me",
+  "substitua",
+  "suasenha",
+];
+
+function readRequiredSmtpVariable(name: "SMTP_HOST" | "SMTP_USER" | "SMTP_PASS") {
+  const value = process.env[name]?.trim();
+
+  if (!value) {
+    throw new Error(`Configuração SMTP incompleta: defina ${name}.`);
+  }
+
+  const normalizedValue = value.toLowerCase();
+  if (SMTP_PLACEHOLDERS.some((placeholder) => normalizedValue.includes(placeholder))) {
+    throw new Error(`Configuração SMTP inválida: ${name} ainda contém um valor de exemplo.`);
+  }
+
+  return value;
+}
+
+function getSmtpConfiguration() {
+  const host = readRequiredSmtpVariable("SMTP_HOST");
+  const user = readRequiredSmtpVariable("SMTP_USER");
+  const pass = readRequiredSmtpVariable("SMTP_PASS");
+  const port = Number(process.env.SMTP_PORT?.trim() || "465");
+
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+    throw new Error("Configuração SMTP inválida: SMTP_PORT deve ser uma porta válida.");
+  }
+
+  return { host, port, user, pass };
+}
+
+function smtpErrorDetails(error: unknown) {
+  if (!(error instanceof Error)) {
+    return { message: String(error) };
+  }
+
+  const smtpError = error as Error & {
+    code?: string;
+    command?: string;
+    responseCode?: number;
+  };
+
+  return {
+    name: smtpError.name,
+    message: smtpError.message,
+    code: smtpError.code,
+    command: smtpError.command,
+    responseCode: smtpError.responseCode,
+  };
+}
+
 export async function sendResetPasswordEmail(to: string, resetLink: string) {
+  const { host, port, user, pass } = getSmtpConfiguration();
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+    connectionTimeout: 15_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 30_000,
+  });
+
   try {
     const info = await transporter.sendMail({
-      from: `"ProSis" <${process.env.SMTP_USER || 'contato@seusite.com'}>`, 
-      to, 
+      from: {
+        name: process.env.SMTP_FROM_NAME?.trim() || "ProSis",
+        address: user,
+      },
+      to,
       subject: "Recuperação de Senha - ProSis",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -37,10 +102,13 @@ export async function sendResetPasswordEmail(to: string, resetLink: string) {
         </div>
       `,
     });
+
     console.log("E-mail de recuperação enviado:", info.messageId);
     return true;
   } catch (error) {
-    console.error("Erro ao enviar e-mail de recuperação:", error);
+    console.error("Erro ao enviar e-mail de recuperação:", smtpErrorDetails(error));
     throw error;
+  } finally {
+    transporter.close();
   }
 }
