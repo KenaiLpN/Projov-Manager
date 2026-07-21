@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CircleCheckBig,
   Clock3,
   Inbox,
   LoaderCircle,
   LogOut,
+  MessageCircleMore,
   Moon,
   Pencil,
   Plus,
@@ -14,7 +15,9 @@ import {
   TicketCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import ChamadoConversationModal from "@/components/chamados/ChamadoConversationModal";
 import ChamadoFormModal from "@/components/chamados/ChamadoFormModal";
+import ChamadoNotificationMenu from "@/components/chamados/ChamadoNotificationMenu";
 import portalStyles from "./portal.module.css";
 import {
   Chamado,
@@ -27,8 +30,10 @@ import {
   updateChamado,
 } from "@/services/chamadoService";
 import { getRoleLabel, getSessionUserRole } from "@/utils/roles";
+import { useChamadoNotifications } from "@/hooks/useChamadoNotifications";
 
 type SessionUser = {
+  UsuCodigo?: string | null;
   UsuNome?: string | null;
   UsuTipo?: string | null;
 };
@@ -97,7 +102,7 @@ const statusLabels: Record<ChamadoStatus, string> = {
   aberto: "Aberto",
   em_analise: "Em análise",
   em_atendimento: "Em atendimento",
-  pendente: "Pendente",
+  pendente: "Aguardando seu teste",
   resolvido: "Resolvido",
   cancelado: "Cancelado",
 };
@@ -162,6 +167,8 @@ export default function ChamadosPortalPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(new Date());
   const [editingTicket, setEditingTicket] = useState<Chamado | null>(null);
+  const [conversationTicket, setConversationTicket] = useState<Chamado | null>(null);
+  const ticketRequestInFlightRef = useRef(false);
 
   const styles = themes[theme];
   const isDark = theme === "dark";
@@ -178,16 +185,25 @@ export default function ChamadosPortalPage() {
   );
   const visibleTickets = activeView === "ativos" ? activeTickets : resolvedTickets;
 
-  const loadTickets = useCallback(async () => {
-    setLoadingTickets(true);
+  const loadTickets = useCallback(async (showLoading = true) => {
+    if (ticketRequestInFlightRef.current) return;
+    ticketRequestInFlightRef.current = true;
+    if (showLoading) setLoadingTickets(true);
     try {
       setTickets(await listChamados());
     } catch (error) {
       toast.error(chamadoErrorMessage(error, "Não foi possível carregar seus chamados."));
     } finally {
-      setLoadingTickets(false);
+      ticketRequestInFlightRef.current = false;
+      if (showLoading) setLoadingTickets(false);
     }
   }, []);
+
+  const { settings: notificationSettings, setSettings: setNotificationSettings } =
+    useChamadoNotifications({
+      userId: user?.UsuCodigo,
+      onExternalEvent: () => void loadTickets(false),
+    });
 
   useEffect(() => {
     const sessionRaw = localStorage.getItem("projov_user");
@@ -260,6 +276,15 @@ export default function ChamadosPortalPage() {
     }
   }
 
+  function handleTicketUpdated(updated: Chamado) {
+    setTickets((current) =>
+      current.map((ticket) => (ticket.id === updated.id ? updated : ticket)),
+    );
+    setConversationTicket((current) =>
+      current?.id === updated.id ? updated : current,
+    );
+  }
+
   async function handleLogout() {
     localStorage.removeItem("projov_user");
     await fetch("/api/auth/logout", { method: "POST" });
@@ -285,6 +310,12 @@ export default function ChamadosPortalPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <ChamadoNotificationMenu
+              settings={notificationSettings}
+              isDark={isDark}
+              buttonClassName={styles.button}
+              onSettingsChange={setNotificationSettings}
+            />
             <button
               type="button"
               onClick={toggleTheme}
@@ -375,7 +406,7 @@ export default function ChamadosPortalPage() {
             </div>
             <button
               type="button"
-              onClick={() => void loadTickets()}
+              onClick={() => void loadTickets(true)}
               disabled={loadingTickets}
               className={`flex h-9 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${styles.button}`}
             >
@@ -489,6 +520,16 @@ export default function ChamadosPortalPage() {
                         )}
                       </td>
                       <td className="px-5 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setConversationTicket(ticket)}
+                            title="Abrir conversa"
+                            aria-label={`Abrir conversa de ${ticket.protocolo || `chamado ${ticket.id}`}`}
+                            className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${styles.button}`}
+                          >
+                            <MessageCircleMore size={16} />
+                          </button>
                         {!isClosed(ticket) ? (
                           <button
                             type="button"
@@ -499,8 +540,9 @@ export default function ChamadosPortalPage() {
                             <Pencil size={16} />
                           </button>
                         ) : (
-                          <span className={styles.muted}>—</span>
+                          null
                         )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -534,6 +576,7 @@ export default function ChamadosPortalPage() {
             ? {
                 departamento: (editingTicket.departamento_nome ||
                   "Comercial") as ChamadoFormData["departamento"],
+                patrimonio_codigo: editingTicket.patrimonio_codigo || "",
                 descricao: editingTicket.descricao,
                 observacao: editingTicket.observacao || "",
               }
@@ -542,6 +585,14 @@ export default function ChamadosPortalPage() {
         loading={submitting}
         onClose={() => setEditingTicket(null)}
         onSubmit={handleEdit}
+      />
+      <ChamadoConversationModal
+        ticket={conversationTicket}
+        theme={theme}
+        currentUserId={user?.UsuCodigo}
+        canManage={false}
+        onClose={() => setConversationTicket(null)}
+        onTicketUpdated={handleTicketUpdated}
       />
     </main>
   );

@@ -92,6 +92,7 @@ export async function prepareChamadoNotificationAudio() {
 
 export async function playChamadoNotificationSound(
   sound: ChamadoNotificationSound,
+  volume = 1,
 ) {
   try {
     const context = getAudioContext();
@@ -105,6 +106,9 @@ export async function playChamadoNotificationSound(
     const startTime = context.currentTime + 0.02;
     let finishTime = startTime;
 
+    const normalizedVolume = Math.min(1, Math.max(0, volume));
+    if (normalizedVolume === 0) return false;
+
     soundTones[sound].forEach((tone) => {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
@@ -114,7 +118,10 @@ export async function playChamadoNotificationSound(
       oscillator.type = tone.wave;
       oscillator.frequency.setValueAtTime(tone.frequency, toneStart);
       gain.gain.setValueAtTime(0.0001, toneStart);
-      gain.gain.exponentialRampToValueAtTime(tone.volume, toneStart + 0.015);
+      gain.gain.exponentialRampToValueAtTime(
+        Math.max(0.0001, tone.volume * normalizedVolume),
+        toneStart + 0.015,
+      );
       gain.gain.exponentialRampToValueAtTime(0.0001, toneEnd);
 
       oscillator.connect(gain);

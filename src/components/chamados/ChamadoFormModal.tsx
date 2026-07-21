@@ -24,6 +24,7 @@ type Props = {
 
 const emptyForm: ChamadoFormData = {
   departamento: "Relações Empresariais",
+  patrimonio_codigo: "",
   descricao: "",
   observacao: "",
 };
@@ -174,6 +175,25 @@ export default function ChamadoFormModal({
               </div>
             </label>
           </div>
+
+          <label className="block space-y-2">
+            <span className={`text-sm font-semibold ${label}`}>
+              Número do patrimônio <span className={muted}>(opcional)</span>
+            </span>
+            <input
+              type="text"
+              value={form.patrimonio_codigo || ""}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  patrimonio_codigo: event.target.value,
+                }))
+              }
+              maxLength={60}
+              placeholder="Ex.: 0002, NOTE-002 ou PAT-2026-15"
+              className={`${styles.field} ${styles[theme]} h-11 w-full rounded-lg px-3 text-sm`}
+            />
+          </label>
 
           <label className="block space-y-2">
             <span className={`text-sm font-semibold ${label}`}>Descrição do problema</span>

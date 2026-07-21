@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS chamados_tickets (
 
     departamento_id BIGINT UNSIGNED NULL,
     departamento_nome VARCHAR(150) NULL,
+    patrimonio_codigo VARCHAR(60) NULL,
 
     unidade_id INT NULL,
     unidade_nome VARCHAR(150) NULL,
@@ -90,6 +91,7 @@ CREATE TABLE IF NOT EXISTS chamados_tickets (
     KEY idx_chamados_prioridade (prioridade_interna),
     KEY idx_chamados_aberto_em (aberto_em),
     KEY idx_chamados_departamento (departamento_id),
+    KEY idx_chamados_patrimonio (patrimonio_codigo),
     KEY idx_chamados_unidade (unidade_id),
     KEY idx_chamados_solicitante (solicitante_id),
     KEY idx_chamados_tecnico_status (tecnico_responsavel_id, status),

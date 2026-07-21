@@ -31,6 +31,41 @@ export type ChamadoResolucao = {
   resolvido_em: string;
 };
 
+export type ChamadoConversationMessage = {
+  id: number;
+  chamado_id: number;
+  usuario_id?: string | null;
+  usuario_nome?: string | null;
+  usuario_tipo?: string | null;
+  tipo_evento: "comentario_publico" | "resolucao";
+  status_anterior?: string | null;
+  status_novo?: string | null;
+  comentario?: string | null;
+  criado_em: string;
+};
+
+export type ChamadoNotificationCategory =
+  | "abertura"
+  | "mensagem"
+  | "resolucao";
+
+export type ChamadoNotificationEvent = ChamadoConversationMessage & {
+  categoria: ChamadoNotificationCategory;
+  chamado: Pick<
+    Chamado,
+    | "id"
+    | "protocolo"
+    | "solicitante_id"
+    | "solicitante_nome"
+    | "tecnico_responsavel_id"
+  >;
+};
+
+export type ChamadoNotificationFeed = {
+  data: ChamadoNotificationEvent[];
+  cursor: number;
+};
+
 export type Chamado = {
   id: number;
   protocolo?: string | null;
@@ -39,6 +74,7 @@ export type Chamado = {
   solicitante_email?: string | null;
   solicitante_funcao?: string | null;
   departamento_nome?: string | null;
+  patrimonio_codigo?: string | null;
   titulo: string;
   descricao: string;
   observacao?: string | null;
@@ -54,15 +90,20 @@ export type Chamado = {
 
 export type ChamadoFormData = {
   departamento: ChamadoDepartamento;
+  patrimonio_codigo?: string;
   descricao: string;
   observacao?: string;
 };
 
 type ApiData<T> = { data: T };
 
-export async function listChamados(search?: string) {
+export async function listChamados(search?: string, patrimonio?: string) {
+  const params = {
+    ...(search?.trim() ? { search: search.trim() } : {}),
+    ...(patrimonio?.trim() ? { patrimonio: patrimonio.trim() } : {}),
+  };
   const response = await api.get<ApiData<Chamado[]>>("chamados", {
-    params: search?.trim() ? { search: search.trim() } : undefined,
+    params: Object.keys(params).length > 0 ? params : undefined,
   });
   return response.data.data;
 }
@@ -96,6 +137,42 @@ export async function resolveChamado(id: number, observacao?: string) {
   return response.data.data;
 }
 
+export async function listChamadoConversation(id: number) {
+  const response = await api.get<ApiData<ChamadoConversationMessage[]>>(
+    `chamados/${id}/conversa`,
+  );
+  return response.data.data;
+}
+
+export async function sendChamadoMessage(
+  id: number,
+  data: {
+    mensagem: string;
+    enviar_solucao_teste?: boolean;
+    problema_persiste?: boolean;
+  },
+) {
+  const response = await api.post<
+    ApiData<{ ticket: Chamado; message: ChamadoConversationMessage }>
+  >(`chamados/${id}/mensagens`, data);
+  return response.data.data;
+}
+
+export async function confirmChamadoSolution(id: number) {
+  const response = await api.post<ApiData<Chamado>>(
+    `chamados/${id}/confirmar-solucao`,
+  );
+  return response.data.data;
+}
+
+export async function listChamadoNotifications(after?: number) {
+  const response = await api.get<ChamadoNotificationFeed>(
+    "chamados/notificacoes",
+    { params: after === undefined ? undefined : { after } },
+  );
+  return response.data;
+}
+
 export function chamadoErrorMessage(error: unknown, fallback: string) {
   if (
     typeof error === "object" &&
@@ -110,4 +187,3 @@ export function chamadoErrorMessage(error: unknown, fallback: string) {
 
   return fallback;
 }
-

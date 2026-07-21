@@ -1,47 +1,70 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, BellOff, Check, Play, Volume2 } from "lucide-react";
+import type { CSSProperties } from "react";
+import { Bell, BellOff, Play, Volume2 } from "lucide-react";
+import {
+  ChamadoNotificationCategory,
+} from "@/services/chamadoService";
 import {
   CHAMADO_NOTIFICATION_SOUNDS,
   ChamadoNotificationSound,
   playChamadoNotificationSound,
   prepareChamadoNotificationAudio,
 } from "@/utils/chamadoNotificationSounds";
+import {
+  ChamadoNotificationSettings,
+} from "@/hooks/useChamadoNotifications";
+import sliderStyles from "./chamadoNotificationMenu.module.css";
 
-type ChamadoNotificationMenuProps = {
-  enabled: boolean;
-  selectedSound: ChamadoNotificationSound;
+type Props = {
+  settings: ChamadoNotificationSettings;
   isDark: boolean;
   buttonClassName: string;
-  onEnabledChange: (enabled: boolean) => void;
-  onSoundChange: (sound: ChamadoNotificationSound) => void;
+  onSettingsChange: (settings: ChamadoNotificationSettings) => void;
 };
 
+const channels: Array<{
+  id: ChamadoNotificationCategory;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "abertura",
+    label: "Abertura de chamado",
+    description: "Quando um novo chamado visível for aberto.",
+  },
+  {
+    id: "mensagem",
+    label: "Mensagem da conversa",
+    description: "Quando a outra pessoa responder no chamado.",
+  },
+  {
+    id: "resolucao",
+    label: "Resolução do chamado",
+    description: "Quando uma solução for aceita ou o chamado for concluído.",
+  },
+];
+
 export default function ChamadoNotificationMenu({
-  enabled,
-  selectedSound,
+  settings,
   isDark,
   buttonClassName,
-  onEnabledChange,
-  onSoundChange,
-}: ChamadoNotificationMenuProps) {
+  onSettingsChange,
+}: Props) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-
     function handlePointerDown(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     }
-
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
-
     document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -50,20 +73,22 @@ export default function ChamadoNotificationMenu({
     };
   }, [open]);
 
-  async function previewSound(sound: ChamadoNotificationSound) {
+  async function preview(
+    sound: ChamadoNotificationSound,
+    volume: number,
+  ) {
     await prepareChamadoNotificationAudio();
-    await playChamadoNotificationSound(sound);
+    await playChamadoNotificationSound(sound, volume);
   }
 
-  async function toggleNotifications() {
-    const nextEnabled = !enabled;
-    onEnabledChange(nextEnabled);
-    if (nextEnabled) await previewSound(selectedSound);
-  }
-
-  function selectSound(sound: ChamadoNotificationSound) {
-    onSoundChange(sound);
-    void previewSound(sound);
+  function updateChannel(
+    channel: ChamadoNotificationCategory,
+    update: Partial<ChamadoNotificationSettings[ChamadoNotificationCategory]>,
+  ) {
+    onSettingsChange({
+      ...settings,
+      [channel]: { ...settings[channel], ...update },
+    });
   }
 
   const panelClass = isDark
@@ -71,8 +96,11 @@ export default function ChamadoNotificationMenu({
     : "border-[#d9dbd4] bg-white text-[#252a24] shadow-black/15";
   const mutedClass = isDark ? "text-[#a4aaa0]" : "text-[#6f756d]";
   const itemClass = isDark
-    ? "border-[#363b33] bg-[#232720] hover:border-[#6e612d] hover:bg-[#292d26]"
-    : "border-[#e2e4de] bg-[#fafaf7] hover:border-[#dec358] hover:bg-[#fffaf0]";
+    ? "border-[#363b33] bg-[#232720]"
+    : "border-[#e2e4de] bg-[#fafaf7]";
+  const fieldClass = isDark
+    ? "border-[#4a5046] bg-[#191c17] text-[#f1f0e9]"
+    : "border-[#d0d4cc] bg-white text-[#252a24]";
 
   return (
     <div ref={menuRef} className="relative">
@@ -81,15 +109,12 @@ export default function ChamadoNotificationMenu({
         onClick={() => setOpen((current) => !current)}
         aria-label="Configurar notificações sonoras"
         aria-expanded={open}
-        title={enabled ? "Notificações sonoras ativadas" : "Notificações sonoras desativadas"}
+        title={settings.enabled ? "Notificações sonoras ativadas" : "Notificações sonoras desativadas"}
         className={`relative flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${buttonClassName}`}
       >
-        {enabled ? <Bell size={18} strokeWidth={1.9} /> : <BellOff size={18} strokeWidth={1.8} />}
-        {enabled && (
-          <span
-            aria-hidden="true"
-            className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-current bg-emerald-500"
-          />
+        {settings.enabled ? <Bell size={18} /> : <BellOff size={18} />}
+        {settings.enabled && (
+          <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-current bg-emerald-500" />
         )}
       </button>
 
@@ -97,13 +122,13 @@ export default function ChamadoNotificationMenu({
         <div
           role="dialog"
           aria-label="Preferências de notificações"
-          className={`absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl border p-4 shadow-2xl ${panelClass}`}
+          className={`absolute right-0 z-50 mt-2 max-h-[min(42rem,calc(100vh-6rem))] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border p-4 shadow-2xl ${panelClass}`}
         >
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-bold">Notificações de chamados</p>
               <p className={`mt-1 text-xs leading-5 ${mutedClass}`}>
-                A fila procura novos chamados automaticamente a cada 10 segundos.
+                Configure o efeito e o volume de cada atualização.
               </p>
             </div>
             <Volume2 size={18} className="mt-0.5 shrink-0 text-[#b38200]" />
@@ -112,70 +137,104 @@ export default function ChamadoNotificationMenu({
           <button
             type="button"
             role="switch"
-            aria-checked={enabled}
-            onClick={() => void toggleNotifications()}
-            className={`mt-4 flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-colors ${itemClass}`}
+            aria-checked={settings.enabled}
+            onClick={() => {
+              const enabled = !settings.enabled;
+              onSettingsChange({ ...settings, enabled });
+              if (enabled) {
+                void preview(settings.abertura.sound, settings.abertura.volume);
+              }
+            }}
+            className={`mt-4 flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left ${itemClass}`}
           >
             <span>
-              <span className="block text-sm font-semibold">Tocar ao receber chamado</span>
+              <span className="block text-sm font-semibold">Ativar sons</span>
               <span className={`mt-0.5 block text-xs ${mutedClass}`}>
-                {enabled ? "Ativado" : "Desativado"}
+                {settings.enabled ? "Ativado" : "Desativado"}
               </span>
             </span>
-            <span
-              aria-hidden="true"
-              className={`relative h-6 w-11 rounded-full transition-colors ${enabled ? "bg-emerald-500" : isDark ? "bg-[#4a5046]" : "bg-[#c8ccc4]"}`}
-            >
-              <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-6" : "translate-x-1"}`} />
+            <span className={`relative h-6 w-11 rounded-full ${settings.enabled ? "bg-emerald-500" : isDark ? "bg-[#4a5046]" : "bg-[#c8ccc4]"}`}>
+              <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${settings.enabled ? "translate-x-6" : "translate-x-1"}`} />
             </span>
           </button>
 
-          <fieldset className="mt-4">
-            <legend className={`mb-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] ${mutedClass}`}>
-              Escolha o som
-            </legend>
-            <div className="space-y-2">
-              {CHAMADO_NOTIFICATION_SOUNDS.map((sound) => {
-                const selected = selectedSound === sound.id;
-                return (
-                  <div
-                    key={sound.id}
-                    className={`flex items-center gap-2 rounded-lg border p-2 transition-colors ${itemClass} ${selected ? "ring-2 ring-[#f7c41f]/45" : ""}`}
-                  >
+          <div className="mt-4 space-y-3">
+            {channels.map((channel) => {
+              const selected = settings[channel.id];
+              return (
+                <section key={channel.id} className={`rounded-lg border p-3 ${itemClass}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold">{channel.label}</h3>
+                      <p className={`mt-0.5 text-xs leading-5 ${mutedClass}`}>
+                        {channel.description}
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => selectSound(sound.id)}
-                      className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-1 py-1 text-left"
+                      onClick={() => void preview(selected.sound, selected.volume)}
+                      aria-label={`Ouvir prévia de ${channel.label}`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${fieldClass}`}
                     >
-                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${selected ? "border-[#d2a300] bg-[#f7c41f] text-[#241e08]" : isDark ? "border-[#687064]" : "border-[#aeb4aa]"}`}>
-                        {selected && <Check size={13} strokeWidth={3} />}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold">{sound.label}</span>
-                        <span className={`mt-0.5 block text-xs ${mutedClass}`}>
-                          {sound.description}
-                        </span>
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void previewSound(sound.id)}
-                      aria-label={`Ouvir prévia: ${sound.label}`}
-                      title={`Ouvir ${sound.label}`}
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${itemClass}`}
-                    >
-                      <Play size={15} fill="currentColor" />
+                      <Play size={14} fill="currentColor" />
                     </button>
                   </div>
-                );
-              })}
-            </div>
-          </fieldset>
+
+                  <label className="mt-3 block">
+                    <span className={`text-[0.68rem] font-bold uppercase tracking-[0.12em] ${mutedClass}`}>
+                      Efeito sonoro
+                    </span>
+                    <select
+                      value={selected.sound}
+                      onChange={(event) =>
+                        updateChannel(channel.id, {
+                          sound: event.target.value as ChamadoNotificationSound,
+                        })
+                      }
+                      className={`mt-1 h-10 w-full rounded-lg border px-3 text-sm ${fieldClass}`}
+                    >
+                      {CHAMADO_NOTIFICATION_SOUNDS.map((sound) => (
+                        <option key={sound.id} value={sound.id}>{sound.label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="mt-3 block">
+                    <span className="flex items-center justify-between gap-3">
+                      <span className={`text-[0.68rem] font-bold uppercase tracking-[0.12em] ${mutedClass}`}>
+                        Volume
+                      </span>
+                      <span className={`text-xs font-semibold ${mutedClass}`}>
+                        {Math.round(selected.volume * 100)}%
+                      </span>
+                    </span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      value={Math.round(selected.volume * 100)}
+                      onChange={(event) =>
+                        updateChannel(channel.id, {
+                          volume: Number(event.target.value) / 100,
+                        })
+                      }
+                      style={
+                        {
+                          "--slider-progress": `${Math.round(selected.volume * 100)}%`,
+                          "--slider-track": isDark ? "#343930" : "#d7d9d2",
+                        } as CSSProperties
+                      }
+                      className={`mt-2 ${sliderStyles.volumeSlider}`}
+                    />
+                  </label>
+                </section>
+              );
+            })}
+          </div>
 
           <p className={`mt-4 border-t pt-3 text-xs leading-5 ${isDark ? "border-[#363b33]" : "border-[#e2e4de]"} ${mutedClass}`}>
-            Chamados abertos por você não emitem som. A preferência fica salva neste navegador.
+            Eventos feitos pelo próprio usuário não emitem som. As preferências ficam salvas neste navegador.
           </p>
         </div>
       )}

@@ -1321,6 +1321,7 @@ model ChamadoTicket {
   solicitante_funcao       String?            @db.VarChar(100)
   departamento_id          BigInt?            @db.UnsignedBigInt
   departamento_nome        String?            @db.VarChar(150)
+  patrimonio_codigo        String?            @db.VarChar(60)
   unidade_id               Int?
   unidade_nome             String?            @db.VarChar(150)
   categoria_id             BigInt?            @db.UnsignedBigInt
@@ -1349,6 +1350,7 @@ model ChamadoTicket {
   @@index([prioridade_interna], map: "idx_chamados_prioridade")
   @@index([aberto_em], map: "idx_chamados_aberto_em")
   @@index([departamento_id], map: "idx_chamados_departamento")
+  @@index([patrimonio_codigo], map: "idx_chamados_patrimonio")
   @@index([unidade_id], map: "idx_chamados_unidade")
   @@index([solicitante_id], map: "idx_chamados_solicitante")
   @@index([tecnico_responsavel_id, status], map: "idx_chamados_tecnico_status")

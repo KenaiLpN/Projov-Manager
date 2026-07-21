@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LoaderCircle,
   LogOut,
+  MessageCircleMore,
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
@@ -26,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import ChamadoConversationModal from "@/components/chamados/ChamadoConversationModal";
 import ChamadoFormModal from "@/components/chamados/ChamadoFormModal";
 import ChamadoNotificationMenu from "@/components/chamados/ChamadoNotificationMenu";
 import ChamadoResolveModal from "@/components/chamados/ChamadoResolveModal";
@@ -43,12 +45,7 @@ import {
   updateChamadoUrgencia,
 } from "@/services/chamadoService";
 import { getRoleLabel, getSessionUserRole } from "@/utils/roles";
-import {
-  ChamadoNotificationSound,
-  isChamadoNotificationSound,
-  playChamadoNotificationSound,
-  prepareChamadoNotificationAudio,
-} from "@/utils/chamadoNotificationSounds";
+import { useChamadoNotifications } from "@/hooks/useChamadoNotifications";
 import pageStyles from "./dashboard.module.css";
 
 type SessionUser = {
@@ -64,18 +61,11 @@ type UrgencyFilter = ChamadoUrgencia | "all";
 type DepartmentFilter = ChamadoFormData["departamento"] | "all";
 const CHAMADOS_THEME_STORAGE_KEY = "prosis-chamados-theme";
 const GLOBAL_THEME_STORAGE_KEY = "prosis-theme";
-const CHAMADOS_NOTIFICATIONS_STORAGE_KEY = "prosis-chamados-notifications";
 const CHAMADOS_REFRESH_INTERVAL = 10_000;
 
 type TicketLoadOptions = {
-  announceNew?: boolean;
   showError?: boolean;
   showLoading?: boolean;
-};
-
-type NotificationSettings = {
-  enabled: boolean;
-  sound: ChamadoNotificationSound;
 };
 
 function applyChamadosTheme(theme: ThemeMode) {
@@ -106,7 +96,7 @@ const statusLabels: Record<ChamadoStatus, string> = {
   aberto: "Aberto",
   em_analise: "Em análise",
   em_atendimento: "Em atendimento",
-  pendente: "Pendente",
+  pendente: "Aguardando teste",
   resolvido: "Resolvido",
   cancelado: "Cancelado",
 };
@@ -211,6 +201,10 @@ function isClosed(ticket: Chamado) {
   return ticket.status === "resolvido" || ticket.status === "cancelado";
 }
 
+function normalizePatrimonioCode(value?: string | null) {
+  return value?.replace(/\s+/g, "").toLocaleUpperCase("pt-BR") ?? "";
+}
+
 function urgencyClass(urgency: ChamadoUrgencia) {
   return {
     nao_classificada: pageStyles.urgencyUndefined,
@@ -242,23 +236,16 @@ export default function ChamadosAdminDashboardPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<UrgencyFilter>("all");
   const [departmentFilter, setDepartmentFilter] = useState<DepartmentFilter>("all");
+  const [patrimonioFilter, setPatrimonioFilter] = useState("");
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createOpenedAt, setCreateOpenedAt] = useState(new Date());
   const [editingTicket, setEditingTicket] = useState<Chamado | null>(null);
+  const [conversationTicket, setConversationTicket] = useState<Chamado | null>(null);
   const [resolvingTicket, setResolvingTicket] = useState<Chamado | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [urgencySavingId, setUrgencySavingId] = useState<number | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [notificationSound, setNotificationSound] =
-    useState<ChamadoNotificationSound>("sino");
-  const knownTicketIdsRef = useRef<Set<number> | null>(null);
-  const currentUserIdRef = useRef("");
   const ticketRequestInFlightRef = useRef(false);
-  const notificationSettingsRef = useRef<NotificationSettings>({
-    enabled: false,
-    sound: "sino",
-  });
   const styles = themes[theme];
   const isDark = theme === "dark";
   const isTicketView = activeView !== "Dashboard";
@@ -268,11 +255,12 @@ export default function ChamadosAdminDashboardPage() {
   const filterSelectTheme = isDark
     ? pageStyles.filterSelectDark
     : pageStyles.filterSelectLight;
-  const activeAdvancedFilterCount = [statusFilter, urgencyFilter, departmentFilter]
-    .filter((value) => value !== "all").length;
+  const activeAdvancedFilterCount =
+    [statusFilter, urgencyFilter, departmentFilter].filter(
+      (value) => value !== "all",
+    ).length + (patrimonioFilter.trim() ? 1 : 0);
 
   const loadTickets = useCallback(async ({
-    announceNew = false,
     showError = true,
     showLoading = true,
   }: TicketLoadOptions = {}) => {
@@ -281,32 +269,7 @@ export default function ChamadosAdminDashboardPage() {
     ticketRequestInFlightRef.current = true;
     if (showLoading) setLoadingTickets(true);
     try {
-      const nextTickets = await listChamados();
-      const knownTicketIds = knownTicketIdsRef.current;
-      const newTickets = knownTicketIds
-        ? nextTickets.filter((ticket) => !knownTicketIds.has(ticket.id))
-        : [];
-
-      knownTicketIdsRef.current = new Set(nextTickets.map((ticket) => ticket.id));
-      setTickets(nextTickets);
-
-      if (announceNew && notificationSettingsRef.current.enabled) {
-        const externalNewTickets = newTickets.filter(
-          (ticket) =>
-            String(ticket.solicitante_id ?? "") !== currentUserIdRef.current,
-        );
-
-        if (externalNewTickets.length > 0) {
-          void playChamadoNotificationSound(notificationSettingsRef.current.sound);
-          const newestTicket = externalNewTickets[0];
-          toast.success(
-            externalNewTickets.length === 1
-              ? `Novo chamado de ${newestTicket.solicitante_nome}: ${newestTicket.protocolo || `#${newestTicket.id}`}`
-              : `${externalNewTickets.length} novos chamados foram abertos.`,
-            { duration: 5_000, icon: "🔔" },
-          );
-        }
-      }
+      setTickets(await listChamados());
     } catch (error) {
       if (showError) {
         toast.error(chamadoErrorMessage(error, "Não foi possível carregar os chamados."));
@@ -317,13 +280,17 @@ export default function ChamadosAdminDashboardPage() {
     }
   }, []);
 
+  const { settings: notificationSettings, setSettings: setNotificationSettings } =
+    useChamadoNotifications({
+      userId: user?.UsuCodigo,
+      onExternalEvent: () =>
+        void loadTickets({ showError: false, showLoading: false }),
+    });
+
   useEffect(() => {
     const sessionRaw = localStorage.getItem("projov_user");
     const chamadosTheme = localStorage.getItem(CHAMADOS_THEME_STORAGE_KEY);
     const globalTheme = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
-    const storedNotifications = localStorage.getItem(
-      CHAMADOS_NOTIFICATIONS_STORAGE_KEY,
-    );
     const preferredTheme =
       chamadosTheme === "light" || chamadosTheme === "dark"
         ? chamadosTheme
@@ -338,25 +305,9 @@ export default function ChamadosAdminDashboardPage() {
     if (sessionRaw) {
       try {
         const sessionUser = JSON.parse(sessionRaw) as SessionUser;
-        currentUserIdRef.current = String(sessionUser.UsuCodigo ?? "");
         setUser(sessionUser);
       } catch {
         localStorage.removeItem("projov_user");
-      }
-    }
-
-    if (storedNotifications) {
-      try {
-        const parsed = JSON.parse(storedNotifications) as Partial<NotificationSettings>;
-        const nextSettings: NotificationSettings = {
-          enabled: parsed.enabled === true,
-          sound: isChamadoNotificationSound(parsed.sound) ? parsed.sound : "sino",
-        };
-        notificationSettingsRef.current = nextSettings;
-        setNotificationsEnabled(nextSettings.enabled);
-        setNotificationSound(nextSettings.sound);
-      } catch {
-        localStorage.removeItem(CHAMADOS_NOTIFICATIONS_STORAGE_KEY);
       }
     }
 
@@ -365,12 +316,12 @@ export default function ChamadosAdminDashboardPage() {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      void loadTickets({ announceNew: true, showError: false, showLoading: false });
+      void loadTickets({ showError: false, showLoading: false });
     }, CHAMADOS_REFRESH_INTERVAL);
 
     function refreshWhenVisible() {
       if (document.visibilityState === "visible") {
-        void loadTickets({ announceNew: true, showError: false, showLoading: false });
+        void loadTickets({ showError: false, showLoading: false });
       }
     }
 
@@ -381,23 +332,9 @@ export default function ChamadosAdminDashboardPage() {
     };
   }, [loadTickets]);
 
-  useEffect(() => {
-    function unlockNotificationAudio() {
-      if (notificationSettingsRef.current.enabled) {
-        void prepareChamadoNotificationAudio();
-      }
-    }
-
-    window.addEventListener("pointerdown", unlockNotificationAudio, { once: true });
-    window.addEventListener("keydown", unlockNotificationAudio, { once: true });
-    return () => {
-      window.removeEventListener("pointerdown", unlockNotificationAudio);
-      window.removeEventListener("keydown", unlockNotificationAudio);
-    };
-  }, []);
-
   const visibleTickets = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
+    const normalizedPatrimonio = normalizePatrimonioCode(patrimonioFilter);
     const filteredTickets = tickets.filter((ticket) => {
       if (activeView === "Não atribuídos" && ticket.tecnico_responsavel_id) return false;
       if (
@@ -408,8 +345,18 @@ export default function ChamadosAdminDashboardPage() {
       if (statusFilter !== "all" && ticket.status !== statusFilter) return false;
       if (urgencyFilter !== "all" && ticket.prioridade_interna !== urgencyFilter) return false;
       if (departmentFilter !== "all" && ticket.departamento_nome !== departmentFilter) return false;
+      if (
+        normalizedPatrimonio &&
+        normalizePatrimonioCode(ticket.patrimonio_codigo) !== normalizedPatrimonio
+      ) return false;
       if (!normalizedSearch) return true;
-      return [ticket.protocolo, ticket.solicitante_nome, ticket.departamento_nome, ticket.descricao]
+      return [
+        ticket.protocolo,
+        ticket.solicitante_nome,
+        ticket.departamento_nome,
+        ticket.patrimonio_codigo,
+        ticket.descricao,
+      ]
         .some((value) => value?.toLocaleLowerCase("pt-BR").includes(normalizedSearch));
     });
 
@@ -423,6 +370,7 @@ export default function ChamadosAdminDashboardPage() {
   }, [
     activeView,
     departmentFilter,
+    patrimonioFilter,
     search,
     sortDirection,
     statusFilter,
@@ -462,30 +410,6 @@ export default function ChamadosAdminDashboardPage() {
     });
   }
 
-  function saveNotificationSettings(settings: NotificationSettings) {
-    notificationSettingsRef.current = settings;
-    localStorage.setItem(
-      CHAMADOS_NOTIFICATIONS_STORAGE_KEY,
-      JSON.stringify(settings),
-    );
-  }
-
-  function handleNotificationsEnabledChange(enabled: boolean) {
-    setNotificationsEnabled(enabled);
-    saveNotificationSettings({
-      ...notificationSettingsRef.current,
-      enabled,
-    });
-  }
-
-  function handleNotificationSoundChange(sound: ChamadoNotificationSound) {
-    setNotificationSound(sound);
-    saveNotificationSettings({
-      ...notificationSettingsRef.current,
-      sound,
-    });
-  }
-
   function toggleTicketSort() {
     setSortDirection((currentDirection) =>
       currentDirection === "asc" ? "desc" : "asc",
@@ -496,6 +420,17 @@ export default function ChamadosAdminDashboardPage() {
     setStatusFilter("all");
     setUrgencyFilter("all");
     setDepartmentFilter("all");
+    setPatrimonioFilter("");
+  }
+
+  function openPatrimonioHistory(patrimonio: string) {
+    setSearch("");
+    setStatusFilter("all");
+    setUrgencyFilter("all");
+    setDepartmentFilter("all");
+    setPatrimonioFilter(patrimonio);
+    setActiveView("Todos os chamados");
+    setAdvancedFiltersOpen(true);
   }
 
   function toggleTicketMenu() {
@@ -516,11 +451,6 @@ export default function ChamadosAdminDashboardPage() {
     setSubmitting(true);
     try {
       const created = await createChamado(data);
-      if (knownTicketIdsRef.current) {
-        knownTicketIdsRef.current.add(created.id);
-      } else {
-        knownTicketIdsRef.current = new Set([created.id]);
-      }
       setTickets((current) => [created, ...current]);
       setCreateModalOpen(false);
       toast.success(`${created.protocolo || "Chamado"} aberto com sucesso.`);
@@ -574,6 +504,15 @@ export default function ChamadosAdminDashboardPage() {
     }
   }
 
+  function handleTicketUpdated(updated: Chamado) {
+    setTickets((current) =>
+      current.map((ticket) => (ticket.id === updated.id ? updated : ticket)),
+    );
+    setConversationTicket((current) =>
+      current?.id === updated.id ? updated : current,
+    );
+  }
+
   async function handleLogout() {
     localStorage.removeItem("projov_user");
     await fetch("/api/auth/logout", { method: "POST" });
@@ -595,12 +534,10 @@ export default function ChamadosAdminDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <ChamadoNotificationMenu
-              enabled={notificationsEnabled}
-              selectedSound={notificationSound}
+              settings={notificationSettings}
               isDark={isDark}
               buttonClassName={styles.button}
-              onEnabledChange={handleNotificationsEnabledChange}
-              onSoundChange={handleNotificationSoundChange}
+              onSettingsChange={setNotificationSettings}
             />
             <button type="button" onClick={toggleTheme} aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"} title={isDark ? "Modo claro" : "Modo escuro"} className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${styles.button}`}>
               {isDark ? <Sun size={18} strokeWidth={1.8} /> : <Moon size={18} strokeWidth={1.8} />}
@@ -675,7 +612,11 @@ export default function ChamadosAdminDashboardPage() {
             <div className={`flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4 ${styles.queueToolbar}`}>
               <div>
                 <h3 className={`font-semibold ${styles.queueTitle}`}>
-                  {activeView === "Dashboard" ? "Fila de chamados" : activeView}
+                  {patrimonioFilter.trim()
+                    ? `Histórico do patrimônio ${normalizePatrimonioCode(patrimonioFilter)}`
+                    : activeView === "Dashboard"
+                      ? "Fila de chamados"
+                      : activeView}
                 </h3>
                 <p className={`mt-1 text-xs ${styles.muted}`}>
                   {visibleTickets.length} chamado(s), {sortDirection
@@ -700,7 +641,7 @@ export default function ChamadosAdminDashboardPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => void loadTickets({ announceNew: true })}
+                  onClick={() => void loadTickets()}
                   disabled={loadingTickets}
                   className={`flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition-colors ${styles.button}`}
                 >
@@ -728,7 +669,7 @@ export default function ChamadosAdminDashboardPage() {
                   )}
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <label className="space-y-1.5">
                     <span className={`text-xs font-semibold ${styles.filterLabel}`}>Status</span>
                     <select
@@ -740,7 +681,7 @@ export default function ChamadosAdminDashboardPage() {
                       <option value="aberto">Aberto</option>
                       <option value="em_analise">Em análise</option>
                       <option value="em_atendimento">Em atendimento</option>
-                      <option value="pendente">Pendente</option>
+                      <option value="pendente">Aguardando teste</option>
                       <option value="resolvido">Resolvido</option>
                       <option value="cancelado">Cancelado</option>
                     </select>
@@ -774,13 +715,27 @@ export default function ChamadosAdminDashboardPage() {
                       ))}
                     </select>
                   </label>
+
+                  <label className="space-y-1.5">
+                    <span className={`text-xs font-semibold ${styles.filterLabel}`}>
+                      Patrimônio exato
+                    </span>
+                    <input
+                      type="text"
+                      value={patrimonioFilter}
+                      onChange={(event) => setPatrimonioFilter(event.target.value)}
+                      maxLength={60}
+                      placeholder="Ex.: NOTE-002"
+                      className={`${pageStyles.filterSelect} ${filterSelectTheme} w-full rounded-lg px-3 text-sm`}
+                    />
+                  </label>
                 </div>
               </div>
             )}
 
             <div className="overflow-x-auto">
-              <div role="table" aria-label="Lista de chamados" className="min-w-[1050px]">
-                <div role="row" className={`grid grid-cols-[130px_minmax(280px,1.7fr)_150px_175px_150px_105px] border-b px-5 py-3 text-[0.68rem] font-bold uppercase tracking-[0.1em] ${styles.queueColumns}`}>
+              <div role="table" aria-label="Lista de chamados" className="min-w-[1250px]">
+                <div role="row" className={`grid grid-cols-[130px_minmax(280px,1.7fr)_150px_135px_175px_150px_140px] border-b px-5 py-3 text-[0.68rem] font-bold uppercase tracking-[0.1em] ${styles.queueColumns}`}>
                   <div
                     role="columnheader"
                     aria-sort={sortDirection === "asc" ? "ascending" : sortDirection === "desc" ? "descending" : "none"}
@@ -803,6 +758,7 @@ export default function ChamadosAdminDashboardPage() {
                   </div>
                   <span role="columnheader" className="pl-5">Solicitante e problema</span>
                   <span role="columnheader">Departamento</span>
+                  <span role="columnheader">Patrimônio</span>
                   <span role="columnheader">Abertura</span>
                   <span role="columnheader">Urgência</span>
                   <span role="columnheader" className="text-right">Ações</span>
@@ -812,7 +768,7 @@ export default function ChamadosAdminDashboardPage() {
                 ) : visibleTickets.length === 0 ? (
                   <div role="row" className="flex min-h-52 items-center justify-center px-5 py-12"><div role="cell" className={`flex flex-col items-center text-center ${styles.empty}`}><div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-full ${styles.emptyIcon}`}><Inbox size={20} /></div><p className={`font-semibold ${styles.queueTitle}`}>Nenhum chamado para exibir</p><p className="mt-1 max-w-sm text-sm">Abra um novo chamado ou altere o filtro da fila para visualizar outros registros.</p></div></div>
                 ) : visibleTickets.map((ticket) => (
-                  <div key={ticket.id} role="row" className={`relative grid grid-cols-[130px_minmax(280px,1.7fr)_150px_175px_150px_105px] items-center border-b px-5 py-4 text-sm transition-colors last:border-b-0 ${styles.queueRow}`}>
+                  <div key={ticket.id} role="row" className={`relative grid grid-cols-[130px_minmax(280px,1.7fr)_150px_135px_175px_150px_140px] items-center border-b px-5 py-4 text-sm transition-colors last:border-b-0 ${styles.queueRow}`}>
                     <span
                       aria-hidden="true"
                       className={`absolute inset-y-0 left-0 w-[3px] ${urgencyBarClass(ticket.prioridade_interna)}`}
@@ -820,6 +776,20 @@ export default function ChamadosAdminDashboardPage() {
                     <div role="cell"><p className={`font-bold ${styles.queueTitle}`}>{ticket.protocolo || `#${ticket.id}`}</p><span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[0.68rem] font-bold ${ticket.status === "resolvido" ? "bg-emerald-100 text-emerald-700" : isDark ? "bg-[#302b19] text-[#f7c41f]" : "bg-[#fff4c2] text-[#765500]"}`}>{statusLabels[ticket.status]}</span></div>
                     <div role="cell" className="min-w-0 pl-5 pr-5"><p className={`truncate font-semibold ${styles.queueTitle}`}>{ticket.solicitante_nome}{ticket.solicitante_funcao && <span className={`ml-2 text-xs font-normal ${styles.muted}`}>{ticket.solicitante_funcao}</span>}</p><p className={`mt-1 line-clamp-2 text-xs leading-5 ${styles.muted}`} title={ticket.descricao}>{ticket.descricao}</p></div>
                     <span role="cell" className={styles.queueTitle}>{ticket.departamento_nome || "—"}</span>
+                    <div role="cell">
+                      {ticket.patrimonio_codigo ? (
+                        <button
+                          type="button"
+                          onClick={() => openPatrimonioHistory(ticket.patrimonio_codigo!)}
+                          title={`Ver histórico do patrimônio ${ticket.patrimonio_codigo}`}
+                          className="rounded-md bg-[#f7c41f]/15 px-2 py-1 text-xs font-bold text-[#9a6a00] transition-colors hover:bg-[#f7c41f]/25 dark:text-[#f7c41f]"
+                        >
+                          {ticket.patrimonio_codigo}
+                        </button>
+                      ) : (
+                        <span className={styles.muted}>—</span>
+                      )}
+                    </div>
                     <span role="cell" className={`text-xs ${styles.muted}`}>{formatDateTime(ticket.aberto_em)}</span>
                     <div role="cell">
                       {canManage && !isClosed(ticket) ? (
@@ -827,6 +797,7 @@ export default function ChamadosAdminDashboardPage() {
                       ) : <span className={`${pageStyles.urgencyBadge} ${urgencyClass(ticket.prioridade_interna)}`}>{urgencyLabels[ticket.prioridade_interna]}</span>}
                     </div>
                     <div role="cell" className="flex justify-end gap-2">
+                      <button type="button" onClick={() => setConversationTicket(ticket)} title="Abrir conversa" aria-label={`Abrir conversa de ${ticket.protocolo || `chamado ${ticket.id}`}`} className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${styles.button}`}><MessageCircleMore size={16} /></button>
                       {!isClosed(ticket) && <button type="button" onClick={() => setEditingTicket(ticket)} title="Editar chamado" aria-label={`Editar ${ticket.protocolo || `chamado ${ticket.id}`}`} className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${styles.button}`}><Pencil size={16} /></button>}
                       {canManage && !isClosed(ticket) && <button type="button" onClick={() => setResolvingTicket(ticket)} title="Resolver chamado" aria-label={`Resolver ${ticket.protocolo || `chamado ${ticket.id}`}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 text-white transition-colors hover:bg-emerald-700"><Check size={17} strokeWidth={2.5} /></button>}
                     </div>
@@ -839,7 +810,8 @@ export default function ChamadosAdminDashboardPage() {
       </div>
 
       <ChamadoFormModal open={createModalOpen} mode="create" theme={theme} userName={user?.UsuNome || "Usuário autenticado"} userRole={roleLabel} openedAt={formatDateTime(createOpenedAt)} loading={submitting} onClose={() => setCreateModalOpen(false)} onSubmit={handleCreate} />
-      <ChamadoFormModal open={Boolean(editingTicket)} mode="edit" theme={theme} userName={editingTicket?.solicitante_nome || ""} userRole={editingTicket?.solicitante_funcao || "Não definido"} openedAt={editingTicket ? formatDateTime(editingTicket.aberto_em) : ""} initialValues={editingTicket ? { departamento: (editingTicket.departamento_nome || "Relações Empresariais") as ChamadoFormData["departamento"], descricao: editingTicket.descricao, observacao: editingTicket.observacao || "" } : undefined} loading={submitting} onClose={() => setEditingTicket(null)} onSubmit={handleEdit} />
+      <ChamadoFormModal open={Boolean(editingTicket)} mode="edit" theme={theme} userName={editingTicket?.solicitante_nome || ""} userRole={editingTicket?.solicitante_funcao || "Não definido"} openedAt={editingTicket ? formatDateTime(editingTicket.aberto_em) : ""} initialValues={editingTicket ? { departamento: (editingTicket.departamento_nome || "Relações Empresariais") as ChamadoFormData["departamento"], patrimonio_codigo: editingTicket.patrimonio_codigo || "", descricao: editingTicket.descricao, observacao: editingTicket.observacao || "" } : undefined} loading={submitting} onClose={() => setEditingTicket(null)} onSubmit={handleEdit} />
+      <ChamadoConversationModal ticket={conversationTicket} theme={theme} currentUserId={user?.UsuCodigo} canManage={canManage} onClose={() => setConversationTicket(null)} onTicketUpdated={handleTicketUpdated} />
       <ChamadoResolveModal ticket={resolvingTicket} theme={theme} loading={submitting} onClose={() => setResolvingTicket(null)} onConfirm={handleResolve} />
     </main>
   );
