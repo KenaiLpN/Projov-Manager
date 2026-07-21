@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import ChamadoConversationModal from "@/components/chamados/ChamadoConversationModal";
 import ChamadoFormModal from "@/components/chamados/ChamadoFormModal";
 import ChamadoNotificationMenu from "@/components/chamados/ChamadoNotificationMenu";
+import ChamadoUpdateRoadmapModal from "@/components/chamados/ChamadoUpdateRoadmapModal";
 import portalStyles from "./portal.module.css";
 import {
   Chamado,
@@ -315,6 +316,11 @@ export default function ChamadosPortalPage() {
               isDark={isDark}
               buttonClassName={styles.button}
               onSettingsChange={setNotificationSettings}
+            />
+            <ChamadoUpdateRoadmapModal
+              audience="solicitante"
+              theme={theme}
+              buttonClassName={styles.button}
             />
             <button
               type="button"

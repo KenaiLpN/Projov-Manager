@@ -31,6 +31,7 @@ import ChamadoConversationModal from "@/components/chamados/ChamadoConversationM
 import ChamadoFormModal from "@/components/chamados/ChamadoFormModal";
 import ChamadoNotificationMenu from "@/components/chamados/ChamadoNotificationMenu";
 import ChamadoResolveModal from "@/components/chamados/ChamadoResolveModal";
+import ChamadoUpdateRoadmapModal from "@/components/chamados/ChamadoUpdateRoadmapModal";
 import {
   Chamado,
   CHAMADO_DEPARTAMENTOS,
@@ -538,6 +539,11 @@ export default function ChamadosAdminDashboardPage() {
               isDark={isDark}
               buttonClassName={styles.button}
               onSettingsChange={setNotificationSettings}
+            />
+            <ChamadoUpdateRoadmapModal
+              audience="tecnico"
+              theme={theme}
+              buttonClassName={styles.button}
             />
             <button type="button" onClick={toggleTheme} aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"} title={isDark ? "Modo claro" : "Modo escuro"} className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${styles.button}`}>
               {isDark ? <Sun size={18} strokeWidth={1.8} /> : <Moon size={18} strokeWidth={1.8} />}
