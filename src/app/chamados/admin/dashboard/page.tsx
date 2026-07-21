@@ -671,7 +671,7 @@ export default function ChamadosAdminDashboardPage() {
 
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <label className="space-y-1.5">
-                    <span className={`text-xs font-semibold ${styles.filterLabel}`}>Status</span>
+                    <span className={`text-xs font-semibold ${styles.filterLabel}`}>Statuss</span>
                     <select
                       value={statusFilter}
                       onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
