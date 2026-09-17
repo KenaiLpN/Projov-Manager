@@ -12,7 +12,7 @@
     "dev:check": "node scripts/check-development.mjs",
     "build": "npm run api:ci && npm run build:all",
     "build:web": "next build",
-    "start": "npm run start:all",
+    "start": "node scripts/start-production.mjs",
     "start:web": "next start",
     "start:all": "node scripts/start-production.mjs",
     "lint": "eslint",
