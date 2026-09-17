@@ -22,7 +22,9 @@ npm start
 npm run lint
 ```
 
-Use `npm run dev` quando quiser subir apenas o front. Use `npm run dev:all` para subir front e API juntos em desenvolvimento local. O login local depende da API respondendo em `http://127.0.0.1:3333`.
+Use `npm run dev` (ou `npm run dev:all`) para verificar a configuracao e subir front e API juntos. Use `npm run dev:web` para subir apenas o front. O login local depende da API respondendo em `http://127.0.0.1:3333`. Se um dos processos encerrar, o outro tambem sera encerrado.
+
+As dependencias sao separadas: execute `npm ci` na raiz e `npm run api:install`. Configure `apps/api/.env` antes de iniciar. Veja `docs/CONTEXTO_PROSIS.md` para o contexto atualizado e o diagnostico de setembro de 2026.
 
 Depois de executar `npm run build:all`, `npm start` inicia o Next.js e a API juntos em modo de producao. O Next.js usa `PORT` (porta publica) e a API usa `API_PORT` (porta interna, padrao `3333`).
 

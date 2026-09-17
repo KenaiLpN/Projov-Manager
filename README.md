@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ProSis — Gestão do Programa Jovem Aprendiz
 
-## Getting Started
+Sistema de gestão de aprendizes, rotinas pedagógicas, empresas parceiras e chamados internos de TI. Front-end Next.js na raiz; API Fastify/Prisma/MySQL em `apps/api`.
 
-First, run the development server:
+## Começar localmente
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Requisito: Node.js 22 ou superior. Abra esta pasta inteira no VS Code.
+
+```powershell
+npm ci
+npm run api:install
+Copy-Item apps/api/.env.example apps/api/.env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Execute a cópia apenas se `apps/api/.env` ainda não existir. Preencha `DATABASE_URL`, `JWT_SECRET` e `COOKIE_SECRET` com a configuração real. Para portas padrão, o front usa automaticamente `http://127.0.0.1:3333`; se necessário, configure `.env.local` na raiz usando `.env.example`. O segredo `LOGIN_PROXY_SECRET`, quando usado, deve ser igual nos dois projetos.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Acesse `http://localhost:3000`. Esse comando verifica a configuração e inicia os dois serviços. `npm run dev:web` inicia só o front; `npm run api:dev` inicia só a API. As dependências possuem dois arquivos de lock e não são npm workspaces.
 
-## Learn More
+## Referências
 
-To learn more about Next.js, take a look at the following resources:
+- [Contexto atual do produto e diagnóstico local](docs/CONTEXTO_PROSIS.md)
+- [Estrutura do monorepo](docs/monorepo.md)
+- [Deploy no Railway via GitHub](docs/railway-deploy.md)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`npm run build:all` compila ambos; `npm start` executa os dois em produção. Nesse modo, configure as variáveis no ambiente da hospedagem. O healthcheck `/api/proxy/health` verifica comunicação com a API, mas não consulta o MySQL.

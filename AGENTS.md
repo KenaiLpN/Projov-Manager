@@ -2,10 +2,14 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-09-17). API-specific guidance is in `apps/api/AGENTS.md`; older deployment notes there are historical, while the current deployment configuration is `railway.json`.
+
 ## Commands
 
 ```bash
-npm run dev      # Start development server
+npm run dev      # Check configuration and start BOTH Next.js and Fastify
+npm run dev:web  # Start only Next.js (login still requires the API)
+npm run api:install # Install the API's separate dependencies
 npm run build    # Production build
 npm run start    # Start production server
 npm run lint     # ESLint
@@ -20,7 +24,7 @@ Node >= 22.0.0 required.
 ### API & Auth
 
 - `src/services/api.ts` — Axios instance. In dev and prod, requests use same-origin `/api/proxy`; Next.js rewrites them to the internal API at `http://127.0.0.1:3333` by default.
-- Auth uses a JWT cookie (`token`) for session and `localStorage` (`projov_user`) as a cached user object.
+- Login uses `POST /api/auth/login` in Next.js, which forwards to Fastify `POST /login` and sets the HTTP-only JWT cookie (`token`). `localStorage` (`projov_user`) caches user display data.
 - `src/components/PrivateLayout/index.tsx` enforces auth/role guards client-side. APRENDIZ users are restricted to their own profile page only.
 
 ### Role System
