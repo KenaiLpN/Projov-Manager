@@ -80,17 +80,26 @@ Não copie o `.env` da API inteiro para a raiz: `PORT=3333` pode causar conflito
 - Lint e sintaxe do novo `scripts/check-development.mjs`: aprovados. A checagem detectou configuração ausente e, depois, os valores de exemplo no `.env` criado durante a sessão.
 - Teste com processos locais temporários e segredos exclusivos do teste: `GET http://127.0.0.1:3333/health` -> 200; `GET http://127.0.0.1:3000/api/proxy/health` -> 200; `POST /api/auth/login` com `{}` -> 400 da validação da API. Os processos de teste foram encerrados.
 - Após o usuário preencher o `.env`, a conexão MySQL real foi validada em 17/09/2026 pelo Prisma com `SELECT 1`. Uma consulta somente de leitura a `information_schema.tables` identificou 89 tabelas no banco configurado. Nenhum dado foi alterado ou credencial exibida.
-- O login completo ainda não foi testado. A falha de `dev:check` foi identificada: os segredos estavam duplicados nos dois `.env`, e os exemplos no fim sobrescreviam os valores preenchidos no início. As duplicatas foram removidas preservando os valores iniciais; `npm run dev:check` passou.
+- O responsável confirmou login local bem-sucedido após configurar o ambiente. A falha de `dev:check` foi identificada: os segredos estavam duplicados nos dois `.env`, e os exemplos no fim sobrescreviam os valores preenchidos no início. As duplicatas foram removidas preservando os valores iniciais; `npm run dev:check` passou.
 
 ## Deploy e documentos históricos
 
-O código atual contém `railway.json` e `scripts/start-production.mjs`: front e API no mesmo serviço, API em porta interna, MySQL separado. `npm run railway:build` instala/compila; `npm start` inicia ambos. GitHub fornece o repositório para o deploy; a configuração externa da hospedagem não foi inspecionada nesta revisão.
+O responsável confirmou que o deploy atual é na **Hostinger via GitHub**. Veja `docs/hostinger-deploy.md`. `scripts/start-production.mjs` inicia front e API no mesmo serviço, API em porta interna, MySQL separado. `npm run build` agora instala as dependências da API e compila ambos; antes compilava apenas o front. `npm start` inicia ambos. O painel da hospedagem ainda precisa ser conferido para garantir que execute esse start, preserve os arquivos da API e forneça as variáveis de ambiente.
 
-`docs/railway-deploy.md` descreve esse fluxo. Referências à API em repositório irmão, Vercel ou Hostinger em documentos antigos são históricas. O plano de refatoração antigo cita build ignorando erros, mas esses ajustes não constam no `next.config.ts` atual. O portal de chamados já tem código; seu plano inicial não representa sozinho o estado implementado.
+`railway.json` e `docs/railway-deploy.md` representam uma alternativa de hospedagem; não configuram a Hostinger. Referências à API em repositório irmão ou Vercel em documentos antigos são históricas. O plano de refatoração antigo cita build ignorando erros, mas esses ajustes não constam no `next.config.ts` atual. O portal de chamados já tem código; seu plano inicial não representa sozinho o estado implementado.
+
+### Revisão do deploy e dependências em 17/09/2026
+
+- O responsável relatou 503 em `/api/auth/login` no domínio publicado. A leitura pública confirmou `/login` com 200 e `/api/proxy/health` com 500. A API interna está indisponível para o front publicado; a causa exata requer comandos/variáveis/logs do hPanel.
+- Next.js e eslint-config-next atualizados para 15.5.25, Sharp para 0.35.4 e js-yaml para 4.3.2. Também foram aplicadas correções compatíveis indicadas por `npm audit fix` nos dois locks, sem `--force`.
+- Overrides de Sharp e js-yaml fixam versões mínimas corrigidas; na API, o override de Undici 7.29.1 corrige a versão exata antiga exigida por `@scalar/json-magic`.
+- `npm audit` retornou zero vulnerabilidades conhecidas nos dois pacotes após a atualização. Isso não constitui auditoria completa da lógica da aplicação.
+- O login agora tem timeout de 15 segundos e registra apenas o código/tipo do erro de conexão no servidor, sem URL, segredos ou corpo da requisição.
+- Validação após as atualizações: `npm run build` aprovado (instalação pelo lock da API, build Next.js com lint/tipos e build TypeScript da API); Sharp 0.35.4 converteu PNG para WebP; inicializador real de produção retornou 200 nos dois healthchecks e 400 no login com payload vazio. O supervisor também encerrou o front quando a API foi interrompida no teste. Os testes de produção usaram segredos temporários e não consultaram MySQL.
 
 ## Pendências para homologação e continuidade
 
-- Concluir teste de login real e navegação autenticada. A conexão MySQL e a checagem de configuração já foram validadas.
+- Conferir comandos de build/start e variáveis no hPanel; publicar as alterações e validar login no domínio. O login local foi confirmado pelo responsável.
 - Repetir `/health` direto e via `/api/proxy/health` com o ambiente real. Esses endpoints não testam MySQL.
 - Validar cada perfil e seus dados autorizados com contas de teste apropriadas.
 - Executar build dos dois projetos antes do próximo deploy.

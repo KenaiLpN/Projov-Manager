@@ -28,6 +28,8 @@ As dependencias sao separadas: execute `npm ci` na raiz e `npm run api:install`.
 
 Depois de executar `npm run build:all`, `npm start` inicia o Next.js e a API juntos em modo de producao. O Next.js usa `PORT` (porta publica) e a API usa `API_PORT` (porta interna, padrao `3333`).
 
+No deploy, use `npm run build`: esse comando instala as dependencias da API antes de compilar os dois projetos. `npm run build:web` compila apenas o front. A hospedagem atual informada e Hostinger; veja `docs/hostinger-deploy.md`. O arquivo `railway.json` nao configura o hPanel.
+
 API dentro do monorepo:
 
 ```bash

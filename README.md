@@ -24,6 +24,7 @@ Acesse `http://localhost:3000`. Esse comando verifica a configuração e inicia 
 
 - [Contexto atual do produto e diagnóstico local](docs/CONTEXTO_PROSIS.md)
 - [Estrutura do monorepo](docs/monorepo.md)
+- [Deploy na Hostinger via GitHub](docs/hostinger-deploy.md)
 - [Deploy no Railway via GitHub](docs/railway-deploy.md)
 
-`npm run build:all` compila ambos; `npm start` executa os dois em produção. Nesse modo, configure as variáveis no ambiente da hospedagem. O healthcheck `/api/proxy/health` verifica comunicação com a API, mas não consulta o MySQL.
+`npm run build` instala as dependências da API e compila ambos; `npm run build:all` apenas compila, com as dependências já instaladas. `npm start` executa os dois em produção. Configure as variáveis no painel da hospedagem: os `.env` locais não são enviados pelo Git. O healthcheck `/api/proxy/health` verifica comunicação com a API, mas não consulta o MySQL.

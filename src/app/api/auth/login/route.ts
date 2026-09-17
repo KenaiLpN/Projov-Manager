@@ -26,8 +26,14 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers,
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),
     });
-  } catch {
+  } catch (error) {
+    // Registre somente o tipo/codigo, nunca URL, credenciais ou corpo do login.
+    const failure = error as { name?: string; cause?: { code?: string } };
+    console.error("[auth/login] API interna indisponivel", {
+      code: failure?.cause?.code ?? failure?.name ?? "UNKNOWN",
+    });
     return NextResponse.json(
       { message: "Erro ao conectar com o servidor." },
       { status: 503 }

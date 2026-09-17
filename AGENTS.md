@@ -2,7 +2,7 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
-Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-09-17). API-specific guidance is in `apps/api/AGENTS.md`; older deployment notes there are historical, while the current deployment configuration is `railway.json`.
+Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-09-17). API-specific guidance is in `apps/api/AGENTS.md`; older deployment notes there are historical. The user confirmed Hostinger hosting via GitHub: see `docs/hostinger-deploy.md`. `railway.json` is an alternative provider configuration, not the current Hostinger settings.
 
 ## Commands
 
@@ -10,7 +10,7 @@ Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo set
 npm run dev      # Check configuration and start BOTH Next.js and Fastify
 npm run dev:web  # Start only Next.js (login still requires the API)
 npm run api:install # Install the API's separate dependencies
-npm run build    # Production build
+npm run build    # Install API dependencies and build BOTH packages
 npm run start    # Start production server
 npm run lint     # ESLint
 ```

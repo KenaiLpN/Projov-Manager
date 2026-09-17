@@ -29,6 +29,11 @@
     "ws": "^8.14.0",
     "zod": "^4.1.13"
   },
+  "overrides": {
+    "@scalar/json-magic": {
+      "undici": "^7.29.1"
+    }
+  },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",

@@ -13,7 +13,7 @@ const apiEntry = path.join(apiDir, "dist", "server.js");
 for (const entry of [nextEntry, apiEntry]) {
   if (!existsSync(entry)) {
     console.error(`[startup] Arquivo de producao nao encontrado: ${entry}`);
-    console.error("[startup] Execute npm run build:all antes de iniciar.");
+    console.error("[startup] Execute npm run build para instalar e compilar front e API antes de iniciar.");
     process.exit(1);
   }
 }
@@ -61,6 +61,7 @@ function startProcess(name, args, env, cwd = rootDir) {
     cwd,
     env,
     stdio: "inherit",
+    windowsHide: true,
   });
 
   children.set(name, child);
