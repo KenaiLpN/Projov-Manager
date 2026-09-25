@@ -1,101 +1,107 @@
-import { spawn } from "node:child_process";
+import { fork } from "node:child_process";
 import { existsSync } from "node:fs";
+import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const webPort = process.env.PORT?.trim() || "3000";
-const apiPort = process.env.API_PORT?.trim() || "3333";
-const apiDir = path.join(rootDir, "apps", "api");
-const nextEntry = path.join(rootDir, "node_modules", "next", "dist", "bin", "next");
-const apiEntry = path.join(apiDir, "dist", "server.js");
-
-for (const entry of [nextEntry, apiEntry]) {
-  if (!existsSync(entry)) {
-    console.error(`[startup] Arquivo de producao nao encontrado: ${entry}`);
-    console.error("[startup] Execute npm run build para instalar e compilar front e API antes de iniciar.");
-    process.exit(1);
+const webPort = Number(process.env.PORT?.trim() || "3000");
+const apiPort = Number(process.env.API_PORT?.trim() || "3333");
+for (const port of [webPort, apiPort]) {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("[startup] Porta invalida.");
+}
+if (webPort === apiPort) throw new Error("[startup] PORT e API_PORT devem ser diferentes.");
+for (const entry of [".next/BUILD_ID", "apps/api/dist/server.js"]) {
+  if (!existsSync(path.join(rootDir, entry))) throw new Error(`[startup] Arquivo de producao nao encontrado: ${entry}. Execute npm run build.`);
+}
+process.env.NODE_ENV = "production";
+let nextApp;
+let handler;
+let apiChild;
+let stopping = false;
+let ready = false;
+const server = createServer(async (req, res) => {
+  if (!ready || stopping) {
+    res.writeHead(503, { "Content-Type": "text/plain; charset=utf-8", "Retry-After": "2" });
+    res.end("Aplicacao iniciando. Tente novamente em instantes.");
+    return;
   }
+  try { await handler(req, res); }
+  catch (error) {
+    console.error("[startup] Falha ao atender requisicao:", error);
+    if (!res.headersSent) res.writeHead(500);
+    res.end();
+  }
+});
+async function shutdown(code) {
+  if (stopping) return;
+  stopping = true;
+  ready = false;
+  const deadline = setTimeout(() => {
+    apiChild?.kill("SIGKILL");
+    process.exit(code);
+  }, 10000);
+  const apiStopped = new Promise((resolve) => {
+    if (!apiChild || apiChild.exitCode !== null || apiChild.signalCode !== null) return resolve();
+    apiChild.once("close", resolve);
+    apiChild.kill("SIGTERM");
+  });
+  await Promise.allSettled([
+    new Promise((resolve) => server.close(resolve)), apiStopped, nextApp?.close(),
+  ]);
+  clearTimeout(deadline);
+  process.exit(code);
 }
-
-if (webPort === apiPort) {
-  console.error(`[startup] PORT e API_PORT nao podem usar a mesma porta (${webPort}).`);
-  process.exit(1);
-}
-
-const baseEnv = { ...process.env, NODE_ENV: "production" };
-const children = new Map();
-let shuttingDown = false;
-let requestedExitCode = 0;
-
-function stopChildren(signal = "SIGTERM") {
-  for (const child of children.values()) {
-    if (child.exitCode === null && child.signalCode === null) {
-      child.kill(signal);
+process.on("SIGTERM", () => void shutdown(0));
+process.on("SIGINT", () => void shutdown(0));
+server.on("error", (error) => {
+  console.error("[startup] Falha no servidor publico:", error);
+  void shutdown(1);
+});
+// Hostinger precisa observar listen() no processo do arquivo de entrada.
+// Durante a preparacao do Next, as requisicoes recebem 503 temporario.
+server.listen(webPort, "0.0.0.0", () => {
+  console.log(`[startup] Servidor publico no processo principal, porta ${webPort}.`);
+  void initialize().catch((error) => {
+    console.error("[startup] Falha na inicializacao:", error);
+    void shutdown(1);
+  });
+});
+async function initialize() {
+  console.log("[startup] Iniciando API Fastify...");
+  apiChild = fork(path.join(rootDir, "scripts/run-api-production.mjs"), [], {
+    cwd: path.join(rootDir, "apps/api"),
+    env: { ...process.env, API_PORT: String(apiPort) },
+    stdio: ["ignore", "inherit", "inherit", "ipc"], windowsHide: true,
+  });
+  apiChild.on("error", (error) => {
+    console.error("[startup] Falha no processo da API:", error);
+    void shutdown(1);
+  });
+  apiChild.on("close", (code, signal) => {
+    if (!stopping) {
+      console.error(`[startup] API encerrada inesperadamente (codigo=${code}, sinal=${signal}).`);
+      void shutdown(1);
     }
+  });
+  const { default: next } = await import("next");
+  if (stopping) return;
+  console.log("[startup] Preparando Next.js no processo principal...");
+  nextApp = next({ dev: false, dir: rootDir, hostname: "0.0.0.0", port: webPort, httpServer: server });
+  await nextApp.prepare();
+  handler = nextApp.getRequestHandler();
+  const deadline = Date.now() + 30000;
+  while (!stopping && Date.now() < deadline) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${apiPort}/health`, { signal: AbortSignal.timeout(1000) });
+      const health = await response.json();
+      if (response.ok && health.status === "API Online") {
+        ready = true;
+        console.log("[startup] Next.js e API Fastify prontos.");
+        return;
+      }
+    } catch { /* A API pode ainda estar carregando os modulos. */ }
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
+  if (!stopping) throw new Error("API nao respondeu ao healthcheck em 30 segundos.");
 }
-
-function finishWhenStopped() {
-  if (shuttingDown && children.size === 0) {
-    process.exit(requestedExitCode);
-  }
-}
-
-function shutdown(exitCode, signal = "SIGTERM") {
-  if (shuttingDown) return;
-
-  shuttingDown = true;
-  requestedExitCode = exitCode;
-  stopChildren(signal);
-
-  setTimeout(() => {
-    stopChildren("SIGKILL");
-    process.exit(requestedExitCode);
-  }, 10_000).unref();
-}
-
-function startProcess(name, args, env, cwd = rootDir) {
-  console.log(`[startup] Iniciando ${name}...`);
-  const child = spawn(process.execPath, args, {
-    cwd,
-    env,
-    stdio: "inherit",
-    windowsHide: true,
-  });
-
-  children.set(name, child);
-
-  child.on("error", (error) => {
-    console.error(`[startup] Falha ao iniciar ${name}:`, error);
-    shutdown(1);
-  });
-
-  child.on("close", (code, signal) => {
-    children.delete(name);
-
-    if (!shuttingDown) {
-      console.error(
-        `[startup] ${name} foi encerrado inesperadamente ` +
-          `(codigo=${code ?? "null"}, sinal=${signal ?? "null"}).`,
-      );
-      shutdown(code && code > 0 ? code : 1);
-    }
-
-    finishWhenStopped();
-  });
-}
-
-startProcess(
-  "Next.js",
-  [nextEntry, "start", "--hostname", "0.0.0.0", "--port", webPort],
-  baseEnv,
-);
-
-startProcess("API Fastify", [apiEntry], {
-  ...baseEnv,
-  API_PORT: apiPort,
-}, apiDir);
-
-process.on("SIGTERM", () => shutdown(0, "SIGTERM"));
-process.on("SIGINT", () => shutdown(0, "SIGINT"));

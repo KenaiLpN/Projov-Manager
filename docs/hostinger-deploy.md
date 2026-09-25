@@ -20,7 +20,7 @@ Em 17/09/2026, o site público respondeu 200 em `/login` e 500 em `/api/proxy/he
 | Porta web | 3000, ou `PORT` fornecida pela plataforma |
 | Porta interna da API | `API_PORT=3333` |
 
-O build padrão agora instala as dependências da API com `npm ci --include=dev` e compila os dois pacotes. Antes, `npm run build` compilava apenas Next.js. `npm start` executa `scripts/start-production.mjs`, que inicia Next.js e Fastify e encerra ambos se um deles falhar.
+O build padrão instala as dependências da API pelo script `api:install` e compila os dois pacotes. `npm start` executa `scripts/start-production.mjs`: o servidor HTTP público e o Next ficam no processo principal; Fastify fica em um processo filho com IPC. Falha na inicialização ou queda da API encerra a aplicação.
 
 `next start`, `npm run start:web` ou um `server.js` gerado apenas para o Next.js não iniciam a API. `railway.json` não configura a Hostinger. Caso o preset Next.js do painel ignore o start personalizado ou publique apenas `.next`, será necessário ajustar o tipo/configuração da aplicação Node.js no painel para preservar e executar os dois pacotes. Não assumir que o preset faz isso automaticamente.
 
@@ -63,3 +63,15 @@ Alterações locais não confirmam correção do ambiente publicado: é necessá
 `npm run build` passou após as atualizações de segurança. `npm audit` retornou zero vulnerabilidades conhecidas na raiz e na API. O inicializador de produção foi testado: healthcheck da API e do proxy com HTTP 200, login com payload vazio rejeitado pela API com HTTP 400 e encerramento do front após queda da API. Não houve autenticação com usuário real nesse teste, nem consulta ou alteração no banco.
 
 Next.js/eslint-config-next: 15.5.25; Sharp: 0.35.4; js-yaml: 4.3.2. Os locks também incluem correções compatíveis para as outras dependências apontadas pela auditoria. A correção mínima de Next.js para o problema AVIF está descrita no [aviso oficial](https://github.com/vercel/next.js/security/advisories/GHSA-2xp9-vwfh-vxw4); consulte também as versões [Sharp 0.35.4](https://github.com/lovell/sharp/releases/tag/v0.35.4) e [js-yaml 4.3.2](https://github.com/nodeca/js-yaml/releases/tag/4.3.2).
+
+## Ajuste de inicializacao em 24/09/2026
+
+O log da Hostinger confirmou que o supervisor antigo iniciava os dois processos, mas a plataforma informava `App did not call listen() within 3 seconds` e as novas tentativas encontravam a porta 3000 ocupada. O inicializador agora chama `http.Server.listen()` no processo principal antes de importar/preparar o Next. Durante a preparacao responde 503 com Retry-After; libera as requisicoes depois de preparar Next e verificar o healthcheck da API.
+
+Fastify roda pelo auxiliar `scripts/run-api-production.mjs`, ligado por IPC. Quando o pai encerra abruptamente, a desconexao IPC encerra a API. Falha da API encerra tambem o servidor publico.
+
+No hPanel: preset Other, Node 22.x, raiz ./, build npm run build, arquivo de entrada scripts/start-production.mjs. O deploy observado preservou os arquivos da API com diretorio de saida vazio. Manter vazio para esta configuracao; nao selecionar apenas .next. Publicar os dois arquivos de scripts. Reiniciar pelo painel apos o deploy; processos antigos podem exigir limpeza pelo suporte se EADDRINUSE persistir. Nao executar comandos para matar processos de outros sites.
+
+Mensagem esperada: `[startup] Next.js e API Fastify prontos.` Validar /login, /api/proxy/health e login real apos o deploy. A compatibilidade com o supervisor Hostinger ainda precisa ser confirmada no ambiente publicado. O servidor customizado usa a API documentada do Next e deixa de usar next start; nao configurar output standalone.
+
+Validacao local do ajuste: sintaxe dos dois scripts e git diff --check aprovados. Build isolado do Next aprovado. Teste de producao com API ja compilada: /login, /api/proxy/health e /health HTTP 200; login com corpo vazio HTTP 400, sem autenticar nem consultar banco. Encerramento forcado do pai liberou as portas publica e interna, comprovando encerramento da API via IPC. Regeneracao Prisma durante build: bloqueada por EPERM no DLL Windows em uso; nao foi necessario alterar schema ou API. Validacao do supervisor Hostinger e login real permanecem pendentes apos publicacao.

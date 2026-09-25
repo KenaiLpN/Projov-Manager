@@ -107,3 +107,7 @@ O responsável confirmou que o deploy atual é na **Hostinger via GitHub**. Veja
 - Definir com o responsável a próxima prioridade funcional. Não interpretar propostas antigas como novo escopo autorizado.
 
 Atualize este arquivo ao mudar arquitetura, inicialização, autenticação, hospedagem ou prioridade do produto. Nunca registre senhas, tokens ou dados pessoais aqui.
+
+### Inicializacao Hostinger em 24/09/2026
+
+O log enviado confirmou Next e Fastify iniciando, seguido de `App did not call listen() within 3 seconds` e EADDRINUSE em reinicios. Ajustado scripts/start-production.mjs para abrir o HTTP publico no proprio processo e preparar Next via servidor customizado. API executada pelo auxiliar scripts/run-api-production.mjs com encerramento ao perder IPC com o pai. Ver docs/hostinger-deploy.md para configuracao Other e validacao pendente do deploy. package.json ja tinha alteracao local anterior e foi preservado.

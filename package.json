@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "npm run dev:all",
     "dev:web": "next dev",
-    "dev:all": "npm run dev:check && concurrently --kill-others -n web,api -c blue,green \"npm run dev:web\" \"npm run api:dev\"",
+    "dev:all": "npm run dev:check && concurrently --kill-others -n web,api -c blue,red \"npm run dev:web\" \"npm run api:dev\"",
     "dev:check": "node scripts/check-development.mjs",
     "build": "npm run api:install && npm run build:all",
     "build:web": "next build",
