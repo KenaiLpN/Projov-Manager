@@ -1,3 +1,5 @@
+> Atualizacao em 25/09/2026: o responsavel confirmou login em producao e comunicacao com MySQL apos o ajuste do inicializador. Novas correcoes de validacao/sessao estao em docs/REVISAO_2026-09-25.md e ainda precisam de deploy. Os trechos de diagnostico abaixo registram o historico.
+
 # Deploy do ProSis na Hostinger
 
 Atualizado em 17/09/2026. A hospedagem atual informada pelo responsável é a Hostinger, com deploy pelo GitHub. O login local foi confirmado pelo responsável. As configurações do hPanel ainda precisam ser conferidas no ambiente publicado.

@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
@@ -47,7 +48,7 @@ export default function CadOrientadoresPage() {
   async function fetchUnidades() {
     try {
       const response = await api.get("/unidades-parceiro?limit=100");
-      setUnidades(response.data.data);
+      setUnidades(validateArray(response.data.data));
     } catch (err) {
       console.error("Erro ao carregar unidades:", err);
     }
@@ -58,7 +59,7 @@ export default function CadOrientadoresPage() {
       const response = await api.get(
         `/orientadores?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
       );
-      setLista(response.data.data);
+      setLista(validateArray(response.data.data));
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
       console.error(err);

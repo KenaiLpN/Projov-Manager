@@ -2,7 +2,7 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
-Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-09-17). API-specific guidance is in `apps/api/AGENTS.md`; older deployment notes there are historical. The user confirmed Hostinger hosting via GitHub: see `docs/hostinger-deploy.md`. `railway.json` is an alternative provider configuration, not the current Hostinger settings.
+Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-09-25). API-specific guidance is in `apps/api/AGENTS.md`; older deployment notes there are historical. The user confirmed Hostinger hosting via GitHub: see `docs/hostinger-deploy.md`. `railway.json` is an alternative provider configuration, not the current Hostinger settings.
 
 ## Commands
 
@@ -64,4 +64,4 @@ Most pages follow a consistent pattern:
 
 ### Type Conventions
 
-Domain entity types live in `src/types/index.ts`. API wrapper types (`DefaultResponse`) live in `src/types/api.ts`. Service functions use `AxiosResponse<DefaultResponse<T>>` for typed responses with `data` and `meta` (pagination).
+Domain entity types live in `src/types/index.ts`. `src/types/api.ts` contains a non-generic message/success response. Paginated responses and direct arrays currently coexist. Use `src/utils/apiResponse.ts` for structural validation and domain schemas for item validation; do not assume every response has the same envelope.

@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 import { useState, useEffect } from "react";
 import { EstatSidebar } from "@/components/estatsidebar";
 import api from "@/services/api";
@@ -22,7 +23,7 @@ export default function ListaAprendizPorParceiro() {
     setLoading(true);
     try {
       const response = await api.get("/estatisticaaprendiz/porparceiro");
-      setData(response.data);
+      setData(validateArray(response.data));
     } catch (error) {
       console.error(error);
       toast.error("Erro ao carregar relatório.");

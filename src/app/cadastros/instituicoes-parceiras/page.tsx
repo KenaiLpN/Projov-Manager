@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
@@ -122,7 +123,7 @@ export default function InstituicoesParceirasPage() {
       const response = await api.get(
         `/instituicoes-parceiras?page=${pagina}&limit=10${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`,
       );
-      setLista(response.data.data);
+      setLista(validateArray(response.data.data));
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
       console.error(err);

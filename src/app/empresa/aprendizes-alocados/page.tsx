@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, Download, Eye, Search, Users } from "lucide-react";
@@ -402,7 +403,7 @@ export default function AprendizesAlocadosPage() {
       const response = await api.get("/empresa/aprendizes-alocados", {
         params: { page, limit: 10, search: appliedSearch || undefined },
       });
-      setRows(response.data.data);
+      setRows(validateArray(response.data.data));
       setTotal(response.data.meta.total);
       setTotalPages(response.data.meta.totalPages);
     } catch {

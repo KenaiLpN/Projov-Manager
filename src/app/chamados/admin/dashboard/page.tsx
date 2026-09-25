@@ -232,6 +232,7 @@ export default function ChamadosAdminDashboardPage() {
   const [activeView, setActiveView] = useState<QueueView>("Dashboard");
   const [tickets, setTickets] = useState<Chamado[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
+  const [ticketLoadError, setTicketLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -271,7 +272,9 @@ export default function ChamadosAdminDashboardPage() {
     if (showLoading) setLoadingTickets(true);
     try {
       setTickets(await listChamados());
+      setTicketLoadError(null);
     } catch (error) {
+      setTicketLoadError("Não foi possível atualizar os chamados. Os dados exibidos podem estar desatualizados.");
       if (showError) {
         toast.error(chamadoErrorMessage(error, "Não foi possível carregar os chamados."));
       }
@@ -522,6 +525,11 @@ export default function ChamadosAdminDashboardPage() {
 
   return (
     <main className={`min-h-screen transition-colors ${styles.page}`}>
+      {ticketLoadError && (
+        <div role="alert" className="border-b border-amber-400 bg-amber-50 p-3 text-center text-sm text-amber-950">
+          {ticketLoadError}
+        </div>
+      )}
       <header className={`border-b transition-colors ${styles.header}`}>
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">

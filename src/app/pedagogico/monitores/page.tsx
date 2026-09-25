@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
@@ -89,7 +90,7 @@ export default function MonitoresFuncionariosPage() {
     setLoading(true);
     try {
       const resp = await api.get(`/educadores?page=${p}&limit=10&search=${s}`);
-      setLista(resp.data.data);
+      setLista(validateArray(resp.data.data));
       setTotalPages(resp.data.meta.totalPages);
       setError(null);
     } catch (err: unknown) {

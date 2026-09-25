@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
@@ -54,7 +55,7 @@ export default function CursosPage() {
       const response = await api.get(
         `/cursos?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
       );
-      setLista(response.data.data);
+      setLista(validateArray(response.data.data));
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
       console.error(err);

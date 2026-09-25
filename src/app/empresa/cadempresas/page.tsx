@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
@@ -74,7 +75,7 @@ export default function CadEmpresasPage() {
   async function fetchRamos() {
     try {
       const response = await api.get("/ramos-atividade?limit=100");
-      setRamos(response.data.data);
+      setRamos(validateArray(response.data.data));
     } catch (err) {
       console.error("Erro ao carregar ramos:", err);
     }
@@ -85,7 +86,7 @@ export default function CadEmpresasPage() {
       const response = await api.get(
         `/parceiros?page=${pagina}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
       );
-      setLista(response.data.data);
+      setLista(validateArray(response.data.data));
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
       console.error(err);

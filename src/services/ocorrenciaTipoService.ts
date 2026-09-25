@@ -1,3 +1,4 @@
+import { validatePaginatedResponse } from "@/utils/apiResponse";
 import api from "./api";
 export interface OcorrenciaTipo {
   OcoCodigo: number;
@@ -21,7 +22,7 @@ export const getAllOcorrenciaTipos = async (
   const response = await api.get<OcorrenciaTipoResponse>(
     `/tipo-ocorrencia?page=${page}&limit=${limit}&search=${searchString}`,
   );
-  return response.data;
+  return validatePaginatedResponse(response.data);
 };
 export const createOcorrenciaTipo = async (data: Partial<OcorrenciaTipo>) => {
   const response = await api.post<OcorrenciaTipo>("/tipo-ocorrencia", data);

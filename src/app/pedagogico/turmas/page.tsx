@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 import { useState, useEffect, useCallback } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
@@ -117,7 +118,7 @@ export default function TurmasPage() {
       const response = await api.get(
         `/turmas?page=${pagina}&limit=10${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`,
       );
-      setLista(response.data.data);
+      setLista(validateArray(response.data.data));
       setTotalPages(response.data.meta.totalPages);
       setError(null);
     } catch {

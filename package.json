@@ -17,6 +17,7 @@
     "start:web": "next start",
     "start:all": "node scripts/start-production.mjs",
     "lint": "eslint",
+    "test:regression": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/response-validation.test.ts",
     "api:install": "npm --prefix apps/api install",
     "api:ci": "npm --prefix apps/api ci --include=dev",
     "api:dev": "npm --prefix apps/api run dev",

@@ -1,6 +1,6 @@
 # Estrutura Monorepo ProSis
 
-Data da migracao inicial: 10/07/2026
+Data da migracao inicial: 10/07/2026. Revisado em 25/09/2026.
 
 ## Estrutura
 
@@ -55,4 +55,6 @@ O arquivo real `.env` da API nao foi copiado para o repositorio. Use `apps/api/.
 - O navegador acessa apenas o Next.js. As chamadas para `/api/proxy/*` sao encaminhadas internamente para a API em `http://127.0.0.1:3333`.
 - `railway.json` instala e compila os dois projetos, inicia os dois processos e valida `/api/proxy/health` antes de publicar uma nova versao.
 - Nao e necessario configurar `NEXT_PUBLIC_API_URL` nem expor a porta da API publicamente.
-- O passo a passo completo esta em `docs/railway-deploy.md`.
+- O passo a passo atual esta em `docs/hostinger-deploy.md`; Railway e alternativa historica.
+- Em producao, Next usa o processo principal e Fastify e filho ligado por IPC.
+- Testes de regressao: `npm run test:regression`. Mapa de arquivos: `docs/MAPA_CODIGO.md`.

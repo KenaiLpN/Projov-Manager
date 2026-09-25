@@ -42,20 +42,20 @@ Every resource follows this 3-layer pattern with dedicated files in:
 ### Key Infrastructure (`src/lib/`)
 
 - **`prisma.ts`** — Singleton Prisma client (reuses global instance in dev to avoid connection pool exhaustion)
-- **`baseService.ts`** — Abstract base class providing generic paginated `getAll`, `getById`, `create`, `update`, `delete` — most services extend this
+- **`baseService.ts`** — Abstract base class providing generic paginated `getAll`, `getById`, `create`, `update`, `delete` — currently only GrauParentescoService extends this
 - **`nextId.ts`** — Generates sequential IDs via `MAX(column)` for tables without auto-increment (many tables use this pattern instead of auto-increment)
 
 ### Authentication
 
-JWT tokens are issued at `POST /login` and stored in HTTP-only cookies. The `@fastify/jwt` plugin verifies them on protected routes. Two user types: `APRENDIZ` (apprentice-facing) and admin system users.
+JWT tokens are issued at `POST /login` and stored in HTTP-only cookies. The `@fastify/jwt` plugin verifies them on protected routes. Four login types: USUARIO, APRENDIZ, EDUCADOR and EMPRESA. Session claims must pass lib/sessionClaims.ts after JWT signature verification. Recovery tokens are not sessions.
 
 ### Deployment
 
-Supports both local Fastify server and **Vercel serverless** — `vercel.json` routes all requests to `src/server.ts`. The `server.ts` exports the Fastify app for Vercel and also calls `listen()` for local use.
+Current deployment is Hostinger Node.js Other via GitHub. Root scripts/start-production.mjs serves Next in the main process; scripts/run-api-production.mjs runs the compiled API as an IPC child. src/server.ts calls listen(); older Vercel notes are historical. See ../../docs/hostinger-deploy.md.
 
 ### API Documentation
 
-Swagger UI is available at `/docs` when running locally (registered via `@fastify/swagger` and `@scalar/fastify-api-reference`).
+Swagger/Scalar dependencies exist, but current server.ts does not register a /docs UI. Do not assume installed packages imply active endpoints.
 
 ### Database Schema
 

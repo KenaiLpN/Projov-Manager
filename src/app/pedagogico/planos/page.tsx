@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 import { useState, useEffect, useCallback } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import Modal from "@/components/modal";
@@ -79,7 +80,7 @@ export default function PlanosPage() {
       const resp = await api.get(
         `/plano-curricular?page=${pagina}&limit=10${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`
       );
-      setLista(resp.data.data);
+      setLista(validateArray(resp.data.data));
       setTotalPages(resp.data.meta.totalPages);
       setError(null);
     } catch {

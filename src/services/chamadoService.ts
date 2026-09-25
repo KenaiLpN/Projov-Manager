@@ -1,4 +1,7 @@
 import api from "./api";
+import { z } from "zod";
+import { getApiErrorMessage } from "@/utils/apiError";
+import { chamadoResponseSchema, conversationResponseSchema, notificationsResponseSchema, parseChamadoResponse } from "./chamadoResponse";
 
 export const CHAMADO_DEPARTAMENTOS = [
  "Relações Empresariais",
@@ -49,7 +52,8 @@ export type ChamadoNotificationCategory =
   | "mensagem"
   | "resolucao";
 
-export type ChamadoNotificationEvent = ChamadoConversationMessage & {
+export type ChamadoNotificationEvent = Omit<ChamadoConversationMessage, "tipo_evento"> & {
+  tipo_evento: ChamadoConversationMessage["tipo_evento"] | "criado";
   categoria: ChamadoNotificationCategory;
   chamado: Pick<
     Chamado,
@@ -105,17 +109,17 @@ export async function listChamados(search?: string, patrimonio?: string) {
   const response = await api.get<ApiData<Chamado[]>>("chamados", {
     params: Object.keys(params).length > 0 ? params : undefined,
   });
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: z.array(chamadoResponseSchema) }), response.data).data;
 }
 
 export async function createChamado(data: ChamadoFormData) {
   const response = await api.post<ApiData<Chamado>>("chamados", data);
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: chamadoResponseSchema }), response.data).data;
 }
 
 export async function updateChamado(id: number, data: ChamadoFormData) {
   const response = await api.patch<ApiData<Chamado>>(`chamados/${id}`, data);
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: chamadoResponseSchema }), response.data).data;
 }
 
 export async function updateChamadoUrgencia(
@@ -126,7 +130,7 @@ export async function updateChamadoUrgencia(
     `chamados/${id}/urgencia`,
     { urgencia },
   );
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: chamadoResponseSchema }), response.data).data;
 }
 
 export async function resolveChamado(id: number, observacao?: string) {
@@ -134,14 +138,14 @@ export async function resolveChamado(id: number, observacao?: string) {
     `chamados/${id}/resolver`,
     { observacao },
   );
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: chamadoResponseSchema }), response.data).data;
 }
 
 export async function listChamadoConversation(id: number) {
   const response = await api.get<ApiData<ChamadoConversationMessage[]>>(
     `chamados/${id}/conversa`,
   );
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: z.array(conversationResponseSchema) }), response.data).data;
 }
 
 export async function sendChamadoMessage(
@@ -155,14 +159,14 @@ export async function sendChamadoMessage(
   const response = await api.post<
     ApiData<{ ticket: Chamado; message: ChamadoConversationMessage }>
   >(`chamados/${id}/mensagens`, data);
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: z.object({ ticket: chamadoResponseSchema, message: conversationResponseSchema }) }), response.data).data;
 }
 
 export async function confirmChamadoSolution(id: number) {
   const response = await api.post<ApiData<Chamado>>(
     `chamados/${id}/confirmar-solucao`,
   );
-  return response.data.data;
+  return parseChamadoResponse(z.object({ data: chamadoResponseSchema }), response.data).data;
 }
 
 export async function listChamadoNotifications(after?: number) {
@@ -170,20 +174,7 @@ export async function listChamadoNotifications(after?: number) {
     "chamados/notificacoes",
     { params: after === undefined ? undefined : { after } },
   );
-  return response.data;
+  return parseChamadoResponse(notificationsResponseSchema, response.data);
 }
 
-export function chamadoErrorMessage(error: unknown, fallback: string) {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "response" in error
-  ) {
-    const response = (error as {
-      response?: { data?: { message?: string } };
-    }).response;
-    if (response?.data?.message) return response.data.message;
-  }
-
-  return fallback;
-}
+export const chamadoErrorMessage = getApiErrorMessage;

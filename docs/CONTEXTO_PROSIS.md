@@ -1,6 +1,6 @@
 # Contexto atual do ProSis
 
-Atualizado em 17/09/2026 a partir do código local. Este documento é o ponto de retomada do desenvolvimento; planos antigos não são prova de que uma funcionalidade esteja concluída. Nome no código: ProSis; repositório/pasta: Projov-Manager.
+Atualizado em 25/09/2026 a partir do código local e do relato de login em produção. Este documento é o ponto de retomada do desenvolvimento; planos antigos não são prova de que uma funcionalidade esteja concluída. Nome no código: ProSis; repositório/pasta: Projov-Manager.
 
 ## Proposta do produto
 
@@ -84,7 +84,7 @@ Não copie o `.env` da API inteiro para a raiz: `PORT=3333` pode causar conflito
 
 ## Deploy e documentos históricos
 
-O responsável confirmou que o deploy atual é na **Hostinger via GitHub**. Veja `docs/hostinger-deploy.md`. `scripts/start-production.mjs` inicia front e API no mesmo serviço, API em porta interna, MySQL separado. `npm run build` agora instala as dependências da API e compila ambos; antes compilava apenas o front. `npm start` inicia ambos. O painel da hospedagem ainda precisa ser conferido para garantir que execute esse start, preserve os arquivos da API e forneça as variáveis de ambiente.
+O responsável confirmou que o deploy atual é na **Hostinger via GitHub**. Veja `docs/hostinger-deploy.md`. `scripts/start-production.mjs` inicia front e API no mesmo serviço, API em porta interna, MySQL separado. `npm run build` agora instala as dependências da API e compila ambos; antes compilava apenas o front. `npm start` inicia ambos. A Hostinger está usando Other com scripts/start-production.mjs; o responsável confirmou login e comunicação com MySQL em 25/09/2026. O servidor público roda no processo principal e Fastify em filho com IPC.
 
 `railway.json` e `docs/railway-deploy.md` representam uma alternativa de hospedagem; não configuram a Hostinger. Referências à API em repositório irmão ou Vercel em documentos antigos são históricas. O plano de refatoração antigo cita build ignorando erros, mas esses ajustes não constam no `next.config.ts` atual. O portal de chamados já tem código; seu plano inicial não representa sozinho o estado implementado.
 
@@ -99,7 +99,7 @@ O responsável confirmou que o deploy atual é na **Hostinger via GitHub**. Veja
 
 ## Pendências para homologação e continuidade
 
-- Conferir comandos de build/start e variáveis no hPanel; publicar as alterações e validar login no domínio. O login local foi confirmado pelo responsável.
+- Login em produção confirmado pelo responsável em 25/09/2026. Publicar e homologar as novas validações de resposta e sessão desta revisão.
 - Repetir `/health` direto e via `/api/proxy/health` com o ambiente real. Esses endpoints não testam MySQL.
 - Validar cada perfil e seus dados autorizados com contas de teste apropriadas.
 - Executar build dos dois projetos antes do próximo deploy.
@@ -111,3 +111,11 @@ Atualize este arquivo ao mudar arquitetura, inicialização, autenticação, hos
 ### Inicializacao Hostinger em 24/09/2026
 
 O log enviado confirmou Next e Fastify iniciando, seguido de `App did not call listen() within 3 seconds` e EADDRINUSE em reinicios. Ajustado scripts/start-production.mjs para abrir o HTTP publico no proprio processo e preparar Next via servidor customizado. API executada pelo auxiliar scripts/run-api-production.mjs com encerramento ao perder IPC com o pai. Ver docs/hostinger-deploy.md para configuracao Other e validacao pendente do deploy. package.json ja tinha alteracao local anterior e foi preservado.
+
+## Revisão de 25/09/2026
+
+- Documentação navegável de todo o código em [MAPA_CODIGO.md](MAPA_CODIGO.md).
+- Refatoração anterior confirmada como parcial: oito páginas usam useCrud, apenas GrauParentescoService herda BaseService; componentes de chamados e serviço de CEP já existem. Veja [plano-refatoracao.md](plano-refatoracao.md).
+- Respostas inválidas agora são rejeitadas antes de substituir listas em chamados e nos pontos legados revisados. useCrud preserva dados anteriores em falhas; painel técnico exibe aviso. Contratos completos de todos os módulos ainda são uma evolução futura.
+- Claims de sessão validadas após assinatura JWT para impedir uso de token de reset como sessão. Demais riscos e decisões de permissão estão em [auditoria-seguranca.md](auditoria-seguranca.md).
+- Comando npm run test:regression; detalhes de arquivos, testes e limitações em [REVISAO_2026-09-25.md](REVISAO_2026-09-25.md).

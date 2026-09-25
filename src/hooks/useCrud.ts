@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { validatePaginatedResponse } from "@/utils/apiResponse";
 interface UseCrudOptions {
   endpoint: string;
   limit?: number;
@@ -21,8 +22,10 @@ export function useCrud<T, FormType = object>({ endpoint, limit = 10 }: UseCrudO
     null,
   );
   const [deleting, setDeleting] = useState<boolean>(false);
+  const requestVersion = useRef(0);
   const fetchData = useCallback(
     async (pagina: number, searchTerm: string = "") => {
+      const version = ++requestVersion.current;
       setLoading(true);
       try {
         const queryParams = new URLSearchParams({
@@ -33,15 +36,16 @@ export function useCrud<T, FormType = object>({ endpoint, limit = 10 }: UseCrudO
           queryParams.append("search", searchTerm); 
         }
         const response = await api.get(`${endpoint}?${queryParams.toString()}`);
-        setLista(response.data.data ?? []);
-        setTotalPages(response.data.meta?.totalPages ?? 1);
+        const data = validatePaginatedResponse(response.data);
+        if (version !== requestVersion.current) return;
+        setLista(data.data);
+        setTotalPages(Math.max(1, data.meta.totalPages));
         setError(null);
       } catch (err) {
-        console.error(`Erro ao buscar ${endpoint}:`, err);
-        setError("Falha ao carregar dados.");
-        setLista([]);
+        if (version !== requestVersion.current) return;
+        setError(getApiErrorMessage(err, "Falha ao carregar dados."));
       } finally {
-        setLoading(false);
+        if (version === requestVersion.current) setLoading(false);
       }
     },
     [endpoint, limit],

@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { AcessoSidebar } from "@/components/acessosidebar";
@@ -39,7 +40,7 @@ export default function DesignarFuncoesPage() {
     setLoading(true);
     try {
       const resp = await api.get(`/users?page=${p}&limit=10&search=${s}`);
-      setLista(resp.data.data);
+      setLista(validateArray(resp.data.data));
       setTotalPages(resp.data.meta.totalPages);
       setError(null);
     } catch (err) {

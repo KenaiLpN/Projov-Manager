@@ -1,4 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import type {} from "@fastify/jwt";
 
 export type RoleCode =
   | "A"

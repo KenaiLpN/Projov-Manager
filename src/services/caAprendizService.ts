@@ -1,3 +1,4 @@
+import { validatePaginatedResponse } from "@/utils/apiResponse";
 import api from "./api";
 import { CA_Aprendiz, CA_AprendizListResponse, CA_AprendizStats } from "@/types";
 
@@ -13,7 +14,7 @@ export const getAll = async (
   if (filter)          params.append("filter", filter);
   if (advancedFilter)  params.append("advancedFilter", advancedFilter);
   const response = await api.get<CA_AprendizListResponse>(`/ca-aprendiz?${params}`);
-  return response.data;
+  return validatePaginatedResponse(response.data);
 };
 
 export const getStats = async (): Promise<CA_AprendizStats> => {

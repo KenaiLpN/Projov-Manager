@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { PedagogicoSidebar } from "@/components/pedagogicosidebar";
 import api from "@/services/api";
@@ -37,7 +38,7 @@ export default function ListaJovensCargaHorariaPage() {
       const response = await api.get("/relatorio/carga_horaria_final", {
         params: { startDate, endDate },
       });
-      setData(response.data);
+      setData(validateArray(response.data));
     } catch (error) {
       console.error(error);
       toast.error("Erro ao carregar relatório.");

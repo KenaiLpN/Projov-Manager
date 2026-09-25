@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect, useCallback } from "react";
 import { EmpSidebar } from "@/components/empsidebar";
@@ -119,7 +120,7 @@ export default function CadRegistroGIPage() {
       });
       if (searchTerm) params.append("search", searchTerm);
       const response = await api.get(`/registro-gi?${params.toString()}`);
-      setLista(response.data.data);
+      setLista(validateArray(response.data.data));
       setTotalPages(response.data.meta.totalPages);
       setError(null);
     } catch (err) {

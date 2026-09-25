@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 /* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
 import { useState, useEffect } from "react";
 import { CadSidebar } from "@/components/cadsidebar";
@@ -79,7 +80,7 @@ export default function CadCliPage() {
       const response = await api.get(
         `/users?page=${paginaParaBuscar}&limit=10${searchTerm ? `&search=${searchTerm}` : ""}`,
       );
-      setUsuarios(response.data.data);
+      setUsuarios(validateArray(response.data.data));
       setTotalPages(response.data.meta.totalPages);
     } catch (err) {
       console.error(err);

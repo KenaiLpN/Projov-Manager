@@ -1,3 +1,4 @@
+import { parseSessionClaims } from "./lib/sessionClaims";
 import { fastify, FastifyReply, FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
@@ -256,7 +257,7 @@ app.decorate(
       if (!token) {
         return reply.status(401).send({ message: "Token não encontrado." });
       }
-      const decoded = app.jwt.verify(token);
+      const decoded = parseSessionClaims(app.jwt.verify(token));
       request.user = decoded as {
         sub: string;
         nome: string;
@@ -445,7 +446,7 @@ app.addHook("onRequest", async (request: FastifyRequest, reply: FastifyReply) =>
     if (!token) {
       return reply.status(401).send({ message: "Não autorizado." });
     }
-    const decoded = app.jwt.verify(token);
+    const decoded = parseSessionClaims(app.jwt.verify(token));
     request.user = decoded as {
       sub: string;
       nome: string;

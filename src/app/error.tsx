@@ -21,8 +21,8 @@ export default function Error({
         Ops! Algo deu errado.
       </h2>
       <p className="mt-2 text-gray-600">
-        Houve um erro ao carregar esta parte do sistema. Isso geralmente
-        acontece após uma atualização.
+        Não foi possível exibir esta parte do sistema. Recarregue a página.
+        Se o problema continuar, informe o erro ao suporte.
       </p>
       <button
         onClick={() => window.location.reload()}

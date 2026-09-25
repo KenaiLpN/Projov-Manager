@@ -1,4 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
+const loginResponseSchema = z.object({
+  token: z.string().min(1),
+  message: z.string(),
+  user: z.object({
+    UsuCodigo: z.string().min(1), UsuNome: z.string(),
+    UsuEmail: z.string().nullable().optional(), UsuTipo: z.string().nullable().optional(),
+    TokenTipo: z.string(), TipoAcesso: z.string(),
+  }),
+});
 
 const apiPort = process.env.API_PORT?.trim() || "3333";
 const BACKEND_URL =
@@ -40,17 +51,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const data = await backendRes.json();
-
-  if (!backendRes.ok) {
-    return NextResponse.json(data, { status: backendRes.status });
+  let data: unknown;
+  try {
+    data = await backendRes.json();
+  } catch {
+    return NextResponse.json({ message: "Resposta inválida do servidor de autenticação." }, { status: 502 });
   }
 
-  const { token, user, message } = data as {
-    token: string;
-    user: object;
-    message: string;
-  };
+  if (!backendRes.ok) {
+    const failure = z.object({ message: z.string(), code: z.string().optional() }).safeParse(data);
+    return NextResponse.json(failure.success ? failure.data : { message: "Falha no servidor de autenticação." }, { status: backendRes.status });
+  }
+
+  const parsed = loginResponseSchema.safeParse(data);
+  if (!parsed.success) {
+    return NextResponse.json({ message: "Resposta inválida do servidor de autenticação." }, { status: 502 });
+  }
+  const { token, user, message } = parsed.data;
 
   const response = NextResponse.json({ user, message });
 

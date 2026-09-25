@@ -1,4 +1,5 @@
 "use client";
+import { validateArray } from "@/utils/apiResponse";
 import { useState, useEffect } from "react";
 import { EstatSidebar } from "@/components/estatsidebar";
 import api from "@/services/api";
@@ -70,7 +71,7 @@ export default function ListaJovensCargaHorariaPage() {
         setLoading(true);
         try {
           const response = await api.get("/participantessituacao/ativos_por_turma");
-          setData(response.data);
+          setData(validateArray(response.data));
         } catch (error) {
           console.error(error);
           toast.error("Erro ao carregar relatório.");
@@ -85,7 +86,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/ativos_por_area_atuacao");
-        setData(response.data);
+        setData(validateArray(response.data));
       } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {
@@ -99,7 +100,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/ativos_por_cidade");
-        setData(response.data);
+        setData(validateArray(response.data));
     } catch {
         toast.error("Erro ao carregar cidades.");
       } finally {
@@ -112,7 +113,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/desligados_por_periodo");
-        setData(response.data);
+        setData(validateArray(response.data));
       } catch {
         toast.error("Erro ao carregar desligados.");
       } finally {
@@ -126,7 +127,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/desligados_por_motivo");
-        setData(response.data);
+        setData(validateArray(response.data));
       } catch {
         toast.error("Erro ao carregar desligados.");
       } finally {
@@ -140,7 +141,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/alocacao_no_periodo");
-        setData(response.data);
+        setData(validateArray(response.data));
       } catch {
         toast.error("Erro ao carregar Periodo.");
       } finally {
@@ -154,7 +155,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/ativos_por_unidade");
-        setData(response.data);
+        setData(validateArray(response.data));
       } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {
@@ -168,7 +169,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/tipo_pagamento");
-        setData(response.data);
+        setData(validateArray(response.data));
       } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {
@@ -182,7 +183,7 @@ export default function ListaJovensCargaHorariaPage() {
       setData([]); 
       try {
         const response = await api.get("/participantessituacao/conheceu_projov");
-        setData(response.data);
+        setData(validateArray(response.data));
       } catch {
         toast.error("Erro ao carregar áreas.");
       } finally {

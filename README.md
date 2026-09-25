@@ -20,6 +20,15 @@ npm run dev
 
 Acesse `http://localhost:3000`. Esse comando verifica a configuração e inicia os dois serviços. `npm run dev:web` inicia só o front; `npm run api:dev` inicia só a API. As dependências possuem dois arquivos de lock e não são npm workspaces.
 
+## Acompanhar e entender o código
+
+- [Mapa navegável de todos os arquivos](docs/MAPA_CODIGO.md)
+- [Revisão de 25/09: mudanças e testes](docs/REVISAO_2026-09-25.md)
+- [Refatoração: o que existe e o que falta](docs/plano-refatoracao.md)
+- [Revisão de segurança atual](docs/auditoria-seguranca.md)
+
+Execute `npm run test:regression` depois de instalar as dependências dos dois pacotes. Para atualizar o inventário: `node scripts/generate-code-map.mjs`.
+
 ## Referências
 
 - [Contexto atual do produto e diagnóstico local](docs/CONTEXTO_PROSIS.md)
