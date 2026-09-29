@@ -18,6 +18,7 @@
     "start:all": "node scripts/start-production.mjs",
     "lint": "eslint",
     "test:regression": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/response-validation.test.ts",
+    "test:startup": "node --test tests/api-healthcheck.test.mjs",
     "api:install": "npm --prefix apps/api install",
     "api:ci": "npm --prefix apps/api ci --include=dev",
     "api:dev": "npm --prefix apps/api run dev",

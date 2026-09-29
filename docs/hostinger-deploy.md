@@ -2,6 +2,18 @@
 
 # Deploy do ProSis na Hostinger
 
+## Diagnostico de 29/09/2026: API ouvindo, healthcheck falhando
+
+Os logs desta data mostram Fastify ouvindo na porta 3333, seguido de `API nao respondeu ao healthcheck em 30 segundos`. Diferentemente do incidente anterior com `EADDRINUSE`, este trecho nao comprova disputa pela porta. Os varios enderecos `Server listening` correspondem as interfaces do host ao escutar em `0.0.0.0`; nao comprovam processos duplicados.
+
+O supervisor descartava erros de conexao, status HTTP e falhas de leitura do JSON. Foi substituida a consulta via fetch global por `scripts/api-healthcheck.mjs`, usando HTTP nativo para `127.0.0.1`, com limite total de tempo e de tamanho da resposta. Isso isola a consulta de alteracoes do fetch pelo framework, mas nao prova que tais alteracoes causaram o incidente. A liberacao do site continua exigindo HTTP 200 e `status: API Online`.
+
+O log agora informa `Next.js preparado; verificando API...` e o motivo de falha, sem corpo de resposta, segredos ou mensagens arbitrarias. Exemplos: `ECONNREFUSED`, `TIMEOUT`, `HTTP_403`, `HTTP_503`, `INVALID_JSON` e `UNEXPECTED_PAYLOAD`. O 503 de inicializacao inclui `Cache-Control: no-store`.
+
+Publicar o novo auxiliar junto com o inicializador e reimplantar com as configuracoes atuais. Nao trocar portas apenas por este log. Se o erro persistir, coletar `Healthcheck da API pendente` e o erro final para distinguir bloqueio HTTP, falha de conexao e resposta incorreta. Sem esse resultado, a causa do healthcheck em producao continua pendente.
+
+Validacao local: `npm run test:startup` (10 testes), sintaxe do inicializador e compilacao TypeScript da API aprovadas. A API real compilada respondeu ao novo healthcheck com um DATABASE_URL ficticio e inacessivel; nenhuma consulta ao banco ou autenticacao real foi feita. Desconectar IPC encerrou a API e liberou a porta. O erro especifico da Hostinger nao foi reproduzido localmente; a correcao em producao depende de novo deploy e validacao.
+
 Atualizado em 17/09/2026. A hospedagem atual informada pelo responsável é a Hostinger, com deploy pelo GitHub. O login local foi confirmado pelo responsável. As configurações do hPanel ainda precisam ser conferidas no ambiente publicado.
 
 ## Por que o login publicado pode retornar 503

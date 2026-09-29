@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkApiHealth } from "./api-healthcheck.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const webPort = Number(process.env.PORT?.trim() || "3000");
@@ -22,7 +23,7 @@ let stopping = false;
 let ready = false;
 const server = createServer(async (req, res) => {
   if (!ready || stopping) {
-    res.writeHead(503, { "Content-Type": "text/plain; charset=utf-8", "Retry-After": "2" });
+    res.writeHead(503, { "Content-Type": "text/plain; charset=utf-8", "Retry-After": "2", "Cache-Control": "no-store" });
     res.end("Aplicacao iniciando. Tente novamente em instantes.");
     return;
   }
@@ -90,18 +91,22 @@ async function initialize() {
   nextApp = next({ dev: false, dir: rootDir, hostname: "0.0.0.0", port: webPort, httpServer: server });
   await nextApp.prepare();
   handler = nextApp.getRequestHandler();
+  console.log(`[startup] Next.js preparado; verificando API em 127.0.0.1:${apiPort}/health.`);
   const deadline = Date.now() + 30000;
+  let lastFailure;
   while (!stopping && Date.now() < deadline) {
-    try {
-      const response = await fetch(`http://127.0.0.1:${apiPort}/health`, { signal: AbortSignal.timeout(1000) });
-      const health = await response.json();
-      if (response.ok && health.status === "API Online") {
-        ready = true;
-        console.log("[startup] Next.js e API Fastify prontos.");
-        return;
-      }
-    } catch { /* A API pode ainda estar carregando os modulos. */ }
+    const health = await checkApiHealth(apiPort, Math.min(1000, deadline - Date.now()));
+    if (stopping) return;
+    if (health.ok) {
+      ready = true;
+      console.log("[startup] Next.js e API Fastify prontos.");
+      return;
+    }
+    if (health.reason !== lastFailure) {
+      lastFailure = health.reason;
+      console.warn(`[startup] Healthcheck da API pendente: ${lastFailure}.`);
+    }
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  if (!stopping) throw new Error("API nao respondeu ao healthcheck em 30 segundos.");
+  if (!stopping) throw new Error(`API nao ficou saudavel em 30 segundos (ultimo resultado: ${lastFailure}).`);
 }

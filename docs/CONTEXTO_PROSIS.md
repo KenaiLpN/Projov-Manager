@@ -1,5 +1,9 @@
 # Contexto atual do ProSis
 
+### Incidente de inicializacao em 29/09/2026
+
+Logs atuais mostram API ouvindo em 3333 e falha na verificacao HTTP de /health apos 30 segundos; nao repetem o EADDRINUSE do incidente anterior. O inicializador agora usa HTTP nativo em scripts/api-healthcheck.mjs e registra motivos sanitizados de falha antes ocultados. Mantem a exigencia de resposta saudavel e envia no-store no 503 temporario. Dez testes de healthcheck e teste com API real/banco ficticio passaram, incluindo encerramento via IPC. Alteracoes locais pendentes de deploy; causa especifica da falha de comunicacao na Hostinger ainda nao confirmada. Ver docs/hostinger-deploy.md, secao de 29/09/2026.
+
 Atualizado em 25/09/2026 a partir do código local e do relato de login em produção. Este documento é o ponto de retomada do desenvolvimento; planos antigos não são prova de que uma funcionalidade esteja concluída. Nome no código: ProSis; repositório/pasta: Projov-Manager.
 
 ## Proposta do produto
