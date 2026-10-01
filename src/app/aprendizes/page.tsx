@@ -55,7 +55,7 @@ const INITIAL_FILTER_STATE = {
 function AprendizesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const filter = searchParams.get("filter") || "";
+  const filter = searchParams?.get("filter") || "";
 
   const [aprendizes, setAprendizes] = useState<AprendizTableRow[]>([]);
   const [loading, setLoading] = useState(true);

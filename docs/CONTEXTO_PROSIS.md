@@ -1,10 +1,16 @@
 # Contexto atual do ProSis
 
-### Incidente de inicializacao em 29/09/2026
+## Deploy atual: preset Next.js em 01/10/2026
+
+O responsável voltou o hPanel para Next.js e o site abriu, mas a API separada deixou de iniciar. A nova integração inclui o Fastify no processo do Next, sem `listen()` próprio, processo filho ou porta 3333 em produção. O build instala a API pelo lock, compila a API antes do Next e produz `.next/standalone` com dependências, Prisma e assets. `npm start` executa o servidor standalone. Configuração: preset Next.js, branch `main`, Node `22.x`, raiz `./`, build `npm run build`, saída `.next`.
+
+As variáveis secretas são fornecidas pelo ambiente de execução do hPanel. O pós-build remove apenas os quatro arquivos de ambiente de produção/raiz que o Next pode copiar para o standalone. A API é criada na primeira requisição; o build e `/api/proxy/health` não consultam MySQL. Build e testes locais desta integração ainda pendentes; deploy e login real também precisam de homologação. Ver `docs/hostinger-deploy.md`.
+
+### Histórico: incidente de inicializacao em 29/09/2026
 
 Logs atuais mostram API ouvindo em 3333 e falha na verificacao HTTP de /health apos 30 segundos; nao repetem o EADDRINUSE do incidente anterior. O inicializador agora usa HTTP nativo em scripts/api-healthcheck.mjs e registra motivos sanitizados de falha antes ocultados. Mantem a exigencia de resposta saudavel e envia no-store no 503 temporario. Dez testes de healthcheck e teste com API real/banco ficticio passaram, incluindo encerramento via IPC. Alteracoes locais pendentes de deploy; causa especifica da falha de comunicacao na Hostinger ainda nao confirmada. Ver docs/hostinger-deploy.md, secao de 29/09/2026.
 
-Atualizado em 25/09/2026 a partir do código local e do relato de login em produção. Este documento é o ponto de retomada do desenvolvimento; planos antigos não são prova de que uma funcionalidade esteja concluída. Nome no código: ProSis; repositório/pasta: Projov-Manager.
+Atualizado em 01/10/2026 a partir do código local e do relato sobre o preset Next.js. Registros datados de setembro abaixo descrevem a arquitetura anterior. Este documento é o ponto de retomada do desenvolvimento; planos antigos não são prova de que uma funcionalidade esteja concluída. Nome no código: ProSis; repositório/pasta: Projov-Manager.
 
 ## Proposta do produto
 
@@ -30,17 +36,19 @@ Tipos de login: `USUARIO`, `APRENDIZ`, `EDUCADOR`, `EMPRESA`. Perfis internos: `
 ## Arquitetura real
 
 ```text
-Navegador -> Next.js :3000
-             | /api/auth/login -> Fastify :3333 /login -> Prisma -> MySQL
-             | /api/proxy/*    -> Fastify :3333 /*     -> Prisma -> MySQL
+Produção: Navegador -> Next.js (porta pública)
+                        | /api/auth/login -> Fastify em processo -> Prisma -> MySQL
+                        | /api/proxy/*    -> Fastify em processo -> Prisma -> MySQL
+Desenvolvimento: Next.js :3000 -> HTTP -> Fastify :3333 -> Prisma -> MySQL
 ```
 
 - Raiz: Next.js 15, React 19, TypeScript, Tailwind 4, PrimeReact, Axios, React Hook Form/Zod.
 - `apps/api`: Fastify 5, Prisma 5, MySQL, Zod e autenticação JWT/cookies.
 - Monorepo com pacotes e locks independentes, sem configuração de npm workspaces. Instalar a raiz não instala a API.
 - `tsconfig.json` da raiz exclui a API; ela tem configuração e compilação próprias.
-- `src/services/api.ts`: Axios em `/api/proxy/`, com cookies; o rewrite está em `next.config.ts`.
-- `src/app/api/auth/login/route.ts`: encaminha o login, recebe o JWT e grava cookie `token` HTTP-only, com validade de oito horas. O navegador recebe o usuário, não o token no JSON.
+- `src/services/api.ts`: Axios em `/api/proxy/`, com cookies. Em produção, a rota Pages API passa a requisição HTTP ao Fastify no mesmo processo; em desenvolvimento, `next.config.ts` mantém o rewrite para a API separada.
+- `src/app/api/auth/login/route.ts`: encaminha o login internamente ao Fastify em produção (via HTTP em desenvolvimento), recebe o JWT e grava cookie `token` HTTP-only, com validade de oito horas. O navegador recebe o usuário, não o token no JSON.
+- `apps/api/src/app.ts` cria a aplicação sem abrir porta; `apps/api/src/server.ts` mantém o listener para desenvolvimento/uso independente. `src/lib/server/embedded-api.ts` carrega a API compilada sob demanda no Next.
 - `src/middleware.ts` faz verificações de navegação e expiração; a verificação criptográfica do JWT ocorre na API. `PrivateLayout` aplica restrições de navegação por perfil. O cache `projov_user` não deve ser fonte de autorização no backend.
 - API: rotas -> serviços -> Prisma. Schema em `apps/api/prisma/schema.prisma`; banco legado com algumas relações e IDs gerenciados pela aplicação.
 - CRUD do front: `src/hooks/useCrud.ts`, serviços em `src/services`, tipos em `src/types`, tabelas e formulários em `src/components`.
@@ -88,7 +96,9 @@ Não copie o `.env` da API inteiro para a raiz: `PORT=3333` pode causar conflito
 
 ## Deploy e documentos históricos
 
-O responsável confirmou que o deploy atual é na **Hostinger via GitHub**. Veja `docs/hostinger-deploy.md`. `scripts/start-production.mjs` inicia front e API no mesmo serviço, API em porta interna, MySQL separado. `npm run build` agora instala as dependências da API e compila ambos; antes compilava apenas o front. `npm start` inicia ambos. A Hostinger está usando Other com scripts/start-production.mjs; o responsável confirmou login e comunicação com MySQL em 25/09/2026. O servidor público roda no processo principal e Fastify em filho com IPC.
+O deploy atual é na **Hostinger via GitHub**, preset **Next.js**, com a configuração indicada no início deste documento. `npm run build` instala as dependências da API pelo lock e compila API e Next nessa ordem. `npm start` executa `.next/standalone/server.js`; as requisições da API usam Fastify dentro do Next. O MySQL continua separado. Os scripts `start-production.mjs` e `run-api-production.mjs` são alternativas legadas opcionais; não são necessários no preset atual.
+
+Histórico: em 25/09/2026, o responsável confirmou login e comunicação com MySQL usando Other e o inicializador customizado, com Fastify filho via IPC. Essa confirmação não homologa a nova integração de outubro.
 
 `railway.json` e `docs/railway-deploy.md` representam uma alternativa de hospedagem; não configuram a Hostinger. Referências à API em repositório irmão ou Vercel em documentos antigos são históricas. O plano de refatoração antigo cita build ignorando erros, mas esses ajustes não constam no `next.config.ts` atual. O portal de chamados já tem código; seu plano inicial não representa sozinho o estado implementado.
 

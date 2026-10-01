@@ -179,7 +179,7 @@ function SubMenuItem({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const isSubActive = pathname === item.href;
   const hasSub = item.subMenu && item.subMenu.length > 0;
 
@@ -229,7 +229,7 @@ function SubMenuItem({
 }
 
 function SubMenuGroup({ items, depth = 0 }: { items: NavItemWithSub[]; depth?: number }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -263,7 +263,7 @@ export function Header() {
     role: "",
   });
   const [openedMenu, setOpenedMenu] = useState<string | null>(null);
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

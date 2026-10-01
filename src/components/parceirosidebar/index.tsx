@@ -41,7 +41,7 @@ function containsActiveRoute(item: MenuItem, pathname: string): boolean {
 }
 
 function MenuGroup({ items, depth = 0 }: { items: MenuItem[]; depth?: number }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const [expanded, setExpanded] = useState<string[]>([]);
 
   useEffect(() => {

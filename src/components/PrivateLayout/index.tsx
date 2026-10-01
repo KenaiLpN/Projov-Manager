@@ -32,7 +32,7 @@ function isEducadorAllowedPath(pathname: string): boolean {
  * pelo middleware em src/middleware.ts.
  */
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const router = useRouter();
 
   useEffect(() => {

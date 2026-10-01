@@ -51,11 +51,13 @@ JWT tokens are issued at `POST /login` and stored in HTTP-only cookies. The `@fa
 
 ### Deployment
 
-Current deployment is Hostinger Node.js Other via GitHub. Root scripts/start-production.mjs serves Next in the main process; scripts/run-api-production.mjs runs the compiled API as an IPC child. src/server.ts calls listen(); older Vercel notes are historical. See ../../docs/hostinger-deploy.md.
+Current deployment target is Hostinger's Next.js preset via GitHub: main, Node 22.x, root ./, build npm run build, output .next. Root npm start runs .next/standalone/server.js. src/app.ts creates Fastify without listen(); production Next routes share a lazy instance and route requests directly, without an API port or child process. src/server.ts remains the listener entry point for development and independent API use. The root build compiles this package first and traces dist, dependencies and generated Prisma into standalone. Secrets must be supplied through the runtime environment; build and /health do not query MySQL. New deployment validation is pending. See ../../docs/hostinger-deploy.md.
+
+The Other preset, scripts/start-production.mjs and scripts/run-api-production.mjs belong to the previous deployment architecture. They remain optional legacy commands and are not required by the current preset.
 
 ### API Documentation
 
-Swagger/Scalar dependencies exist, but current server.ts does not register a /docs UI. Do not assume installed packages imply active endpoints.
+Swagger/Scalar dependencies exist, but current app.ts does not register a /docs UI. Do not assume installed packages imply active endpoints.
 
 ### Database Schema
 
@@ -67,4 +69,4 @@ Follow this pattern (look at any existing simple resource like `src/routes/conce
 
 1. Create `src/services/XService.ts` — extend `BaseService` or write custom Prisma calls
 2. Create `src/routes/x.routes.ts` — define Fastify routes with Zod validation
-3. Register the route in `src/server.ts` with `app.register()`
+3. Register the route in `src/app.ts` with `app.register()`

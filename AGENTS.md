@@ -2,7 +2,7 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
-Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-09-25). API-specific guidance is in `apps/api/AGENTS.md`; older deployment notes there are historical. The user confirmed Hostinger hosting via GitHub: see `docs/hostinger-deploy.md`. `railway.json` is an alternative provider configuration, not the current Hostinger settings.
+Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-10-01). API-specific guidance is in `apps/api/AGENTS.md`. Hostinger via GitHub uses the Next.js preset; see `docs/hostinger-deploy.md`. Older Other/custom-server instructions and Railway notes are historical.
 
 ## Commands
 
@@ -10,8 +10,9 @@ Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo set
 npm run dev      # Check configuration and start BOTH Next.js and Fastify
 npm run dev:web  # Start only Next.js (login still requires the API)
 npm run api:install # Install the API's separate dependencies
-npm run build    # Install API dependencies and build BOTH packages
-npm run start    # Start production server
+npm run build    # Install API dependencies from lock, build API then Next standalone
+npm run start    # Start standalone Next with embedded Fastify
+npm run test:deploy # Verify isolated standalone package after a build
 npm run lint     # ESLint
 ```
 
@@ -23,8 +24,9 @@ Node >= 22.0.0 required.
 
 ### API & Auth
 
-- `src/services/api.ts` — Axios instance. In dev and prod, requests use same-origin `/api/proxy`; Next.js rewrites them to the internal API at `http://127.0.0.1:3333` by default.
-- Login uses `POST /api/auth/login` in Next.js, which forwards to Fastify `POST /login` and sets the HTTP-only JWT cookie (`token`). `localStorage` (`projov_user`) caches user display data.
+- `src/services/api.ts` — Axios instance uses same-origin `/api/proxy`. In production, a Pages API catch-all passes raw HTTP requests directly to embedded Fastify. Development retains the rewrite to `http://127.0.0.1:3333`.
+- Login uses `POST /api/auth/login` in Next.js, calls Fastify `POST /login` in process in production (HTTP in development), and sets the HTTP-only JWT cookie (`token`). `localStorage` (`projov_user`) caches user display data.
+- Production Fastify is created lazily from `apps/api/dist/app.js`; it does not listen on a port. The API builds before Next traces its runtime files. Runtime secrets belong in hPanel; standalone output must not contain copied root `.env` files. Build and healthcheck do not query MySQL.
 - `src/components/PrivateLayout/index.tsx` enforces auth/role guards client-side. APRENDIZ users are restricted to their own profile page only.
 
 ### Role System

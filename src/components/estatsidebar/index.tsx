@@ -35,7 +35,7 @@ function SidebarItem({
   onHover: () => void,
   onToggle: () => void
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const isActive = pathname === item.href;
   const hasSub = item.subMenu && item.subMenu.length > 0;
 
@@ -77,7 +77,7 @@ function SidebarItem({
 }
 
 function SidebarGroup({ items, depth = 0 }: { items: MenuItem[], depth?: number }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   // Auto-expand based on current pathname

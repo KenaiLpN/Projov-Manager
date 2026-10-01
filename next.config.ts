@@ -6,7 +6,18 @@ const internalApiUrl =
   process.env.INTERNAL_API_URL?.trim() || `http://127.0.0.1:${apiPort}`;
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   outputFileTracingRoot: path.join(__dirname),
+  // A API e suas dependencias pertencem a um pacote separado e sao carregadas
+  // em runtime. Inclua-as tambem quando a hospedagem publicar o standalone.
+  outputFileTracingIncludes: {
+    "/api/**": [
+      "./apps/api/dist/**/*",
+      "./apps/api/package.json",
+      "./apps/api/node_modules/**/*",
+      "./apps/api/node_modules/.prisma/client/**/*",
+    ],
+  },
   transpilePackages: ["primereact", "primeicons"],
   async headers() {
     return [
@@ -38,12 +49,16 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {
-        source: "/api/proxy/:path*",
-        destination: `${internalApiUrl}/:path*`,
-      },
-    ];
+    if (process.env.NODE_ENV !== "development") return [];
+
+    return {
+      beforeFiles: [
+        {
+          source: "/api/proxy/:path*",
+          destination: `${internalApiUrl}/:path*`,
+        },
+      ],
+    };
   },
 };
 export default nextConfig;

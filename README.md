@@ -36,4 +36,6 @@ Execute `npm run test:regression` depois de instalar as dependências dos dois p
 - [Deploy na Hostinger via GitHub](docs/hostinger-deploy.md)
 - [Deploy no Railway via GitHub](docs/railway-deploy.md)
 
-`npm run build` instala as dependências da API e compila ambos; `npm run build:all` apenas compila, com as dependências já instaladas. `npm start` executa os dois em produção. Configure as variáveis no painel da hospedagem: os `.env` locais não são enviados pelo Git. O healthcheck `/api/proxy/health` verifica comunicação com a API, mas não consulta o MySQL.
+`npm run build` instala as dependências da API pelo lock, compila a API primeiro e gera o Next.js standalone com API, Prisma e assets. `npm run build:all` faz as mesmas compilações com as dependências já instaladas. `npm start` executa `.next/standalone/server.js`: em produção, o Fastify atende dentro do Next.js, sem processo filho nem porta interna. Em desenvolvimento, os dois processos e a porta 3333 continuam disponíveis.
+
+Na Hostinger, use o preset **Next.js**, branch `main`, Node `22.x`, raiz `./`, build `npm run build` e saída `.next`. Configure os segredos como variáveis de execução no hPanel; o pacote standalone remove os arquivos `.env` locais copiados pelo Next. A API é preparada na primeira requisição; o build não inicia a API nem consulta o banco. `/api/proxy/health` verifica a API, sem consultar MySQL. Execute `npm run test:deploy` após o build para verificar o pacote isolado; o novo deploy e login real ainda precisam de homologação.

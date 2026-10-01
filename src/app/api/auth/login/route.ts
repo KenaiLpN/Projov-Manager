@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { sendLoginToApi } from "@/lib/server/embedded-api";
+
+export const runtime = "nodejs";
 
 const loginResponseSchema = z.object({
   token: z.string().min(1),
@@ -11,9 +14,6 @@ const loginResponseSchema = z.object({
   }),
 });
 
-const apiPort = process.env.API_PORT?.trim() || "3333";
-const BACKEND_URL =
-  process.env.INTERNAL_API_URL?.trim() || `http://127.0.0.1:${apiPort}`;
 const LOGIN_PROXY_SECRET = process.env.LOGIN_PROXY_SECRET?.trim();
 
 export async function POST(request: NextRequest) {
@@ -29,16 +29,16 @@ export async function POST(request: NextRequest) {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
+    // Preserve the same origin checks and client IP used by the API's guards.
+    for (const name of ["origin", "referer", "sec-fetch-site", "x-forwarded-for", "user-agent"]) {
+      const value = request.headers.get(name);
+      if (value) headers[name] = value;
+    }
     if (LOGIN_PROXY_SECRET) {
       headers["x-prosis-login-secret"] = LOGIN_PROXY_SECRET;
     }
 
-    backendRes = await fetch(`${BACKEND_URL}/login`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(15000),
-    });
+    backendRes = await sendLoginToApi(body, headers);
   } catch (error) {
     // Registre somente o tipo/codigo, nunca URL, credenciais ou corpo do login.
     const failure = error as { name?: string; cause?: { code?: string } };

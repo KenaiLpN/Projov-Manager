@@ -899,7 +899,7 @@ const DATE_FIELDS: (keyof CA_Aprendiz)[] = [
 function CadastroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editingId = searchParams.get("id");
+  const editingId = searchParams?.get("id");
 
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(true);
@@ -941,7 +941,7 @@ function CadastroForm() {
   const [activeTab, setActiveTab] = useState("jovem");
 
   useEffect(() => {
-    const tab = searchParams.get("tab");
+    const tab = searchParams?.get("tab");
     if (tab === "calendario-turma") {
       setActiveTab("calendario");
       setCalendarMode("turma");
@@ -959,7 +959,7 @@ function CadastroForm() {
 
   const handleCalendarModeChange = useCallback((mode: "aprendiz" | "turma") => {
     setCalendarMode(mode);
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
     params.set("tab", mode === "turma" ? "calendario-turma" : "calendario");
     router.replace(`/aprendizes/cadaprendizes?${params.toString()}`, { scroll: false });
   }, [router, searchParams]);
