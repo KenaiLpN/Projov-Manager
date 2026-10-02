@@ -74,9 +74,10 @@ export class EducadorService {
   async create(data: CreateEducadorBody) {
     try {
       // Obter o próximo ID se necessário (EducCodigo é @id @default(autoincrement()))
-      return await prisma.cA_Educadores.create({
+      const created = await prisma.cA_Educadores.create({
         data: withoutPassword(data),
       });
+      return serializeEducador(created);
     } catch (error) {
       console.error("Erro ao criar educador:", error);
       throw error;
@@ -85,10 +86,11 @@ export class EducadorService {
 
   async update(id: number, data: UpdateEducadorBody) {
     try {
-      return await prisma.cA_Educadores.update({
+      const updated = await prisma.cA_Educadores.update({
         where: { EducCodigo: id },
         data: withoutPassword(data),
       });
+      return serializeEducador(updated);
     } catch (error) {
       console.error("Erro ao atualizar educador:", error);
       throw error;

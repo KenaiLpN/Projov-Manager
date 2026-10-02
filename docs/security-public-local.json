@@ -1,0 +1,258 @@
+{
+  "time": "2026-10-02T02:15:29.937Z",
+  "origin": "http://localhost:3000",
+  "scope": "Unauthenticated, bounded GET probes",
+  "results": [
+    {
+      "path": "/login",
+      "variant": "anonymous",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 29917,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "no-store, must-revalidate",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      },
+      "scripts": 19,
+      "scriptsWithNonce": 19
+    },
+    {
+      "path": "/api/proxy/health",
+      "variant": "anonymous",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 23,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": null,
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/.env",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/.env.local",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/apps/api/.env",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/.git/config",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/package.json",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/api/proxy/docs",
+      "variant": "anonymous",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 30,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": null,
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/api/proxy/users",
+      "variant": "anonymous",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 30,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": null,
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/home",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/home",
+      "variant": "forged-token",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/api/proxy/users",
+      "variant": "forged-token",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 30,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": null,
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/login",
+      "variant": "inert-xss-marker",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 30140,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "no-store, must-revalidate",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": true,
+        "unsafeEval": true,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      },
+      "scripts": 19,
+      "scriptsWithNonce": 19
+    }
+  ]
+}

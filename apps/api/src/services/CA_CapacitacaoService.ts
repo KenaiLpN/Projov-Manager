@@ -1,3 +1,4 @@
+import { BusinessError } from "../lib/businessError";
 import { prisma } from "../lib/prisma";
 
 function fmtDate(v: any) {
@@ -53,7 +54,7 @@ export class CA_CapacitacaoService {
       const created = await prisma.cA_CapacitacaoAprendiz.create({ data: payload });
       return serialize(created);
     } catch (error: any) {
-      if (error.code === "P2002") throw new Error("Este aprendiz já possui uma capacitação nesta turma.");
+      if (error.code === "P2002") throw new BusinessError("Este aprendiz já possui uma capacitação nesta turma.");
       throw error;
     }
   }
@@ -75,7 +76,7 @@ export class CA_CapacitacaoService {
       });
       return serialize(updated);
     } catch (error: any) {
-      if (error.code === "P2002") throw new Error("Este aprendiz já possui uma capacitação nesta turma.");
+      if (error.code === "P2002") throw new BusinessError("Este aprendiz já possui uma capacitação nesta turma.");
       throw error;
     }
   }

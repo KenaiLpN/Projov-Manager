@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
+import { authorizeRoles } from "../lib/authorization";
 import {
   ChamadoCreateBody,
   ChamadoListQuery,
@@ -48,6 +49,7 @@ function handleError(error: unknown, reply: FastifyReply, fallback: string) {
 }
 
 export async function chamadoRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", authorizeRoles(["A", "P", "T", "DEV"]));
   const routes = app.withTypeProvider<ZodTypeProvider>();
 
   routes.get(

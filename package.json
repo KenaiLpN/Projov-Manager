@@ -18,15 +18,17 @@
     "start:all": "node scripts/start-production.mjs",
     "lint": "eslint",
     "test:regression": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/response-validation.test.ts",
+    "test:navigation": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/navigation.test.ts",
+    "test:settings": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/interface-preferences.test.ts tests/chamado-notification-preferences.test.ts",
     "test:startup": "node --test tests/api-healthcheck.test.mjs",
+    "test:security": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/security-*.test.ts tests/security-*.test.mjs",
+    "security:scan": "node scripts/security-exposure-scan.mjs",
     "test:deploy": "node --test tests/next-api-deployment.test.mjs",
     "api:install": "npm --prefix apps/api install",
     "api:ci": "npm --prefix apps/api ci --include=dev",
     "api:dev": "npm --prefix apps/api run dev",
     "api:build": "npm --prefix apps/api run build",
     "api:start": "npm --prefix apps/api run start"
-    
-  
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -34,6 +36,7 @@
     "@react-pdf/renderer": "^4.5.1",
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
+    "framer-motion": "^13.5.0",
     "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
     "jspdf": "^4.2.1",

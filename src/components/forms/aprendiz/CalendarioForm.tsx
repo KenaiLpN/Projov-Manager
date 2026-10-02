@@ -225,10 +225,16 @@ export const CalendarioForm = React.memo(function CalendarioForm({
         }
 
         if (!loaded) {
-          const aprendizesRes = await api.get("/ca-aprendiz?limit=10000");
-          const aprendizes = Array.isArray(aprendizesRes.data)
-            ? aprendizesRes.data
-            : (aprendizesRes.data?.data ?? []);
+          const aprendizes: CA_Aprendiz[] = [];
+          let page = 1;
+          let totalPages = 1;
+          do {
+            const aprendizesRes = await api.get(`/ca-aprendiz?limit=1000&page=${page}`);
+            const batch = Array.isArray(aprendizesRes.data) ? aprendizesRes.data : (aprendizesRes.data?.data ?? []);
+            aprendizes.push(...batch);
+            totalPages = Number(aprendizesRes.data?.meta?.totalPages) || 1;
+            page++;
+          } while (page <= totalPages);
           const ids: number[] = aprendizes
             .map((a: CA_Aprendiz) => a.Apr_Codigo)
             .filter((id: number | null | undefined): id is number => id != null);

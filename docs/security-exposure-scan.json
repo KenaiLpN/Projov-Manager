@@ -1,0 +1,117 @@
+{
+  "createdAt": "2026-10-02T02:17:38.691Z",
+  "secretSources": [
+    ".env",
+    "apps/api/.env"
+  ],
+  "secretNamesChecked": [
+    "COOKIE_SECRET",
+    "DATABASE_URL",
+    "DB_PASSWORD",
+    "JWT_SECRET",
+    "LOGIN_PROXY_SECRET",
+    "SMTP_PASS"
+  ],
+  "scopes": {
+    "current-source": 435,
+    "public": 5,
+    "local-next-static": 85,
+    "git-history": 1428,
+    "http-public": 14
+  },
+  "findings": [
+    {
+      "scope": "current-source",
+      "path": "tests/security-auth.test.ts",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/security-authorization.test.ts",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/security-exposure-scan.test.mjs",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/security-route-coverage.test.ts",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "apps/api/.env.example",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/next-api-deployment.test.mjs",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "apps/api/.env.example (blob af1a58301e8d)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "tests/next-api-deployment.test.mjs (blob a813fbcc9ae0)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "apps/api/.env.example (blob 1a8f24e765d0)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "apps/api/.env.example (blob 8787b331af2e)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    }
+  ],
+  "errors": [],
+  "inlineSourceMaps": {
+    "current-source": 2,
+    "local-next-static": 54
+  },
+  "limitations": [
+    "Exact matches cover current local secret values plus URL/JSON/base64 forms; unknown old or transformed secrets require independent review.",
+    "No authenticated business data is requested. Pattern findings require manual review; test credentials may be fixtures."
+  ],
+  "localSourceMaps": [],
+  "localBuildType": "development-or-incomplete",
+  "httpOrigin": "https://prosis.digital",
+  "httpScriptLimit": 25
+}

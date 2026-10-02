@@ -40,7 +40,6 @@ export async function occurrenceRoutes(app: FastifyInstance) {
         console.error("Erro detalhado ao criar ocorrência:", error);
         return reply.status(500).send({
           message: "Erro ao criar ocorrência.",
-          detail: error?.message || String(error),
         });
       }
     },

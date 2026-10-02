@@ -1,3 +1,4 @@
+import { BusinessError } from "../lib/businessError";
 import { FastifyInstance, FastifyReply } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
@@ -188,8 +189,8 @@ export async function attendanceRoutes(app: FastifyInstance) {
         await attendanceService.saveFaltasLancamento({ ...body, userId: user.sub });
         return reply.status(200).send({ ok: true });
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        return reply.status(500).send({ error: message });
+        const message = err instanceof BusinessError ? err.message : "Erro ao salvar presenças.";
+        return reply.status(err instanceof BusinessError ? err.statusCode : 500).send({ error: message });
       }
     }
   );

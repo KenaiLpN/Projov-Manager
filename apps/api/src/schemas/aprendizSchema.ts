@@ -101,10 +101,10 @@ export const aprendizSchema = z
 export type AprendizInput = z.infer<typeof aprendizSchema>;
 export const listAprendizQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().default(10),
-  search: z.string().optional(),
+  limit: z.coerce.number().int().positive().max(1000).default(10),
+  search: z.string().max(500).optional(),
   filter: z.string().optional(),
-  advancedFilter: z.string().optional(),
+  advancedFilter: z.string().max(10000).optional(),
 });
 export type ListAprendizQuery = z.infer<typeof listAprendizQuerySchema>;
 export const aprendizResponseSchema = aprendizSchema;

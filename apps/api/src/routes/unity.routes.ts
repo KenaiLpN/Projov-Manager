@@ -58,7 +58,7 @@ export async function unityRoutes(app: FastifyInstance) {
         summary: "Lista unidades com paginação",
         querystring: listUnityQuerySchema,
         response: {
-          200: listUnityResponseSchema, 
+          200: listUnityResponseSchema,
           500: z.object({ message: z.string() }),
         },
       },
@@ -145,10 +145,10 @@ export async function unityRoutes(app: FastifyInstance) {
       } catch (error) {
         if (error instanceof Error) {
           console.error(error.message);
-          return reply.status(500).send({ message: error.message });
+          return reply.status(500).send({ message: "Erro ao excluir unidade." });
         }
         return reply.status(500).send({ message: "Erro desconhecido." });
       }
     },
   );
-}
+}

@@ -22,6 +22,18 @@ if (!existsSync(envPath)) {
       problems.push(`Configure ${key} em apps/api/.env com um valor real (nao o exemplo).`);
     }
   }
+  const frontEnv = {};
+  for (const file of [".env", ".env.development", ".env.local", ".env.development.local"]) {
+    const filePath = path.join(root, file);
+    if (existsSync(filePath)) Object.assign(frontEnv, parseEnv(readFileSync(filePath, "utf8")));
+  }
+  Object.assign(frontEnv, process.env);
+  if (!frontEnv.JWT_SECRET || frontEnv.JWT_SECRET !== env.JWT_SECRET) {
+    problems.push("Configure na raiz o mesmo JWT_SECRET da API para verificar a sessão no middleware. Nunca use NEXT_PUBLIC_.");
+  }
+  if (env.LOGIN_PROXY_SECRET && frontEnv.LOGIN_PROXY_SECRET !== env.LOGIN_PROXY_SECRET) {
+    problems.push("LOGIN_PROXY_SECRET deve ser igual no frontend e na API.");
+  }
 }
 
 if (problems.length) {

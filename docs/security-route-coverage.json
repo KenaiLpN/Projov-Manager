@@ -1,0 +1,1676 @@
+{
+  "scope": "Registered business routes: anonymous requests, real Fastify hooks, database disabled",
+  "checked": 334,
+  "results": [
+    {
+      "method": "POST",
+      "route": "/users",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/users",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/users",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/users/me",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/users/me",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/users/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/users/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/logout",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/unidade",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/unidade",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/unidade",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/unidade/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/unidade/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/instituicao",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/instituicao",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/instituicao",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/instituicao/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/instituicao/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/situacao-participante",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/situacao-participante",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/situacao-participante",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/situacao-participante/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/situacao-participante/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/motivo-desligamento",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/motivo-desligamento",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/motivo-desligamento",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/motivo-desligamento/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/motivo-desligamento/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/grau-parentesco",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/grau-parentesco",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/grau-parentesco",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/grau-parentesco/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/grau-parentesco/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/profissao",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/profissao",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/profissao",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/profissao/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/profissao/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/grau-escolaridade",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/grau-escolaridade",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/grau-escolaridade",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/grau-escolaridade/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/grau-escolaridade/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/feriado",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/feriado",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/feriado",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/feriado/:unidade/:data",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/feriado/:unidade/:data",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/ocorrencia",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/ocorrencia",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/ocorrencia",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/ocorrencia/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/ocorrencia/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/tipo-ocorrencia",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/tipo-ocorrencia",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/tipo-ocorrencia",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/tipo-ocorrencia/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/tipo-ocorrencia/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/instituicoes-parceiras",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/instituicoes-parceiras",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/instituicoes-parceiras",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/instituicoes-parceiras/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/instituicoes-parceiras/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/status-encaminhamento",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/status-encaminhamento",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/status-encaminhamento",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/status-encaminhamento/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/status-encaminhamento/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/regiao",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/regiao",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/regiao",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/regiao/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/regiao/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/orientadores",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/orientadores",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/orientadores",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/orientadores/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/orientadores/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/aprendiz",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/aprendiz",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/aprendiz",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/aprendiz/stats",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/aprendiz/stats",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/ramos-atividade",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/ramos-atividade",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/ramos-atividade",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/ramos-atividade/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/ramos-atividade/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/parceiros",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/parceiros",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/parceiros",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/parceiros/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/parceiros/:id",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/parceiros/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/parceiros/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/unidades-parceiro",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/unidades-parceiro",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/unidades-parceiro",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/unidades-parceiro/:codigo/:parceiro",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/unidades-parceiro/:codigo/:parceiro",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/unidades-parceiro/:codigo/:parceiro",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/unidades-parceiro/:codigo/:parceiro",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/cursos",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/cursos",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/cursos",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/cursos/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/cursos/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/disciplinas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/disciplinas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/disciplinas",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/disciplinas/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/disciplinas/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/turmas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/turmas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/turmas",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/turmas/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/turmas/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/conceitos",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/conceitos",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/conceitos",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/conceitos/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/conceitos/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/areas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/areas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/areas",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/areas/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/areas/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/vagas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/vagas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/vagas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/vagas/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/vagas/:id",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/vagas/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/vagas/:id",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/funcoes-sistema",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/funcoes-sistema",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/funcoes-sistema",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/funcoes-sistema/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/funcoes-sistema/:id",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/relatorio/carga_horaria_final",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/relatorio/carga_horaria_final",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/planos",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/planos",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/planos/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/planos/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/planos",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/planos/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/planos/:id",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/plano-curricular",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/plano-curricular",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/plano-curricular",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/plano-curricular/:codigoPlano/:disciplina",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/plano-curricular/:codigoPlano/:disciplina",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/educadores",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/educadores",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/educadores",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/educadores/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/educadores/:id",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/educadores/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/educadores/:id",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/turmas/:id/disciplines",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/turmas/:id/disciplines",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/turmas/:id/disciplines/:disciplineId/dates",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/turmas/:id/disciplines/:disciplineId/dates",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/turmas/:id/disciplines/:disciplineId/students",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/turmas/:id/disciplines/:disciplineId/students",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/turmas/:id/dates",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/turmas/:id/dates",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/turmas/:id/students",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/turmas/:id/students",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/turmas/:id/presenca-list",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/turmas/:id/presenca-list",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/disciplinas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/disciplinas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/capacitacao/turmas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/capacitacao/turmas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/attendance/capacitacao/presenca-list",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/attendance/capacitacao/presenca-list",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/attendance/faltas",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/attendance",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/estatisticas-jovem/filtros",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/estatisticas-jovem/filtros",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/estatisticas-jovem",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/estatisticas-jovem",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/data",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/data",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/turma-periodo",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/turma-periodo",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/turma-periodo-matriz",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/turma-periodo-matriz",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/total-aulas-turma",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/total-aulas-turma",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/total-aulas-turma-capacitacao",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/total-aulas-turma-capacitacao",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/conteudos",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/conteudos",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/parceiro-periodo",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/parceiro-periodo",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/total-aulas-parceiro",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/total-aulas-parceiro",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/faltas-parceiro",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/faltas-parceiro",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/contagem-faltas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/contagem-faltas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/aulas-dadas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/aulas-dadas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/presenca/aprendizes-faltas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/presenca/aprendizes-faltas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/ca-aprendiz",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/ca-aprendiz",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/ca-aprendiz/stats",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/ca-aprendiz/stats",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/ca-aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/ca-aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/ca-aprendiz",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/ca-aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/ca-aprendiz/:id",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/escolas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/escolas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/municipios",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/municipios",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/aprendiz/rascunho",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/aprendiz/rascunho",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/aprendiz/rascunho",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/aprendiz/rascunho",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/alocacoes/filtros-ativos",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/alocacoes/filtros-ativos",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/alocacoes/aprendizes-por-turma/:turmaId",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/alocacoes/aprendizes-por-turma/:turmaId",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/alocacoes/alunos-por-turma/:turmaId",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/alocacoes/alunos-por-turma/:turmaId",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/ca-aprendiz/:id/alocacoes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/ca-aprendiz/:id/alocacoes",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/ca-aprendiz/:id/alocacoes",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/ca-aprendiz/alocacoes/:ordem",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/ca-aprendiz/alocacoes/:ordem",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/ca-aprendiz/:id/capacitacoes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/ca-aprendiz/:id/capacitacoes",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/ca-aprendiz/:id/capacitacoes",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/ca-aprendiz/capacitacoes/:seq",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/ca-aprendiz/capacitacoes/:seq",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/faltas-capacitacao/datas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/faltas-capacitacao/datas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/faltas-capacitacao/aprendizes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/faltas-capacitacao/aprendizes",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/faltas-capacitacao/presencas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/faltas-capacitacao/presencas",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/faltas-capacitacao/presencas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/faltas-capacitacao/turma-info/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/faltas-capacitacao/turma-info/:id",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/faltas-capacitacao/lancar-aula",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/registro-gi",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/registro-gi",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/registro-gi",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/registro-gi/:id",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/registro-gi/:id",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/registro-gi/:id",
+      "status": 401
+    },
+    {
+      "method": "DELETE",
+      "route": "/registro-gi/:id",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/cronogramas/turma",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/cronogramas/turma",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/geracao-cronogramas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/geracao-cronogramas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/geracao-cronogramas",
+      "status": 401
+    },
+    {
+      "method": "PUT",
+      "route": "/geracao-cronogramas/:id/educador",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/geracao-cronogramas-semestre",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/geracao-cronogramas-semestre",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/geracao-cronogramas-semestre",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/vagas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/vagas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/vagas/areas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/vagas/areas",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/empresa/vagas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/avaliacoes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/avaliacoes",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/contagem-faltas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/contagem-faltas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/controle-presenca/total-periodo",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/controle-presenca/total-periodo",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/controle-presenca/por-periodo",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/controle-presenca/por-periodo",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/aprendizes-alocados",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/aprendizes-alocados",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/aprendizes-alocados/:aprendizId/detalhes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/aprendizes-alocados/:aprendizId/detalhes",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/empresa/aprendizes-alocados/:aprendizId/calendario",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/empresa/aprendizes-alocados/:aprendizId/calendario",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/chamados",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/chamados",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/chamados",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/chamados/notificacoes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/chamados/notificacoes",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/chamados/:id/conversa",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/chamados/:id/conversa",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/chamados/:id/mensagens",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/chamados/:id/confirmar-solucao",
+      "status": 401
+    },
+    {
+      "method": "PATCH",
+      "route": "/chamados/:id",
+      "status": 401
+    },
+    {
+      "method": "PATCH",
+      "route": "/chamados/:id/urgencia",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "route": "/chamados/:id/resolver",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/carga_horaria_final",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/carga_horaria_final",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/ativos_por_turma",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/ativos_por_turma",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/ativos_por_area_atuacao",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/ativos_por_area_atuacao",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/ativos_por_cidade",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/ativos_por_cidade",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/desligados_por_periodo",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/desligados_por_periodo",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/desligados_por_motivo",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/desligados_por_motivo",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/alocacao_no_periodo",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/alocacao_no_periodo",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/ativos_por_unidade",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/ativos_por_unidade",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/tipo_pagamento",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/tipo_pagamento",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/participantessituacao/conheceu_projov",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/participantessituacao/conheceu_projov",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/estatisticaaprendiz/porparceiro",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/estatisticaaprendiz/porparceiro",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/estatisticagestaoavaliacoes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/estatisticagestaoavaliacoes",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/estatisticaavaliacoespendentes",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/estatisticaavaliacoespendentes",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/estatisticaavaliacoesrealizadas",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/estatisticaavaliacoesrealizadas",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/estatisticaavaliacoesdisponiveisparceiro",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/estatisticaavaliacoesdisponiveisparceiro",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/estatisticaavaliacoesdisponiveiseducador",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/estatisticaavaliacoesdisponiveiseducador",
+      "status": 401
+    }
+  ]
+}

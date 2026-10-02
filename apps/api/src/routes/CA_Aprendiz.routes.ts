@@ -138,7 +138,7 @@ export async function caAprendizRoutes(app: FastifyInstance) {
         const created = await service.create(body, user.sub);
         return reply.status(201).send(created);
       } catch (error: any) {
-        const msg = error?.message ?? "Erro ao criar aprendiz.";
+        const msg = "Erro ao criar aprendiz.";
         return reply.status(500).send({ message: msg });
       }
     },
@@ -179,7 +179,7 @@ export async function caAprendizRoutes(app: FastifyInstance) {
         const updated = await service.update(id, body, user.sub);
         return reply.status(200).send(updated);
       } catch (error: any) {
-        const msg = error?.message ?? "Erro ao atualizar aprendiz.";
+        const msg = "Erro ao atualizar aprendiz.";
         return reply.status(500).send({ message: msg });
       }
     },

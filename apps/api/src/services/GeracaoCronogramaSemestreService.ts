@@ -1,3 +1,4 @@
+import { BusinessError } from "../lib/businessError";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 
@@ -163,7 +164,7 @@ export class GeracaoCronogramaSemestreService {
     });
 
     if (result.data.length === 0) {
-      throw new Error("Nenhum aprendiz encontrado para gerar o cronograma.");
+      throw new BusinessError("Nenhum aprendiz encontrado para gerar o cronograma.");
     }
 
     await prisma.$transaction(

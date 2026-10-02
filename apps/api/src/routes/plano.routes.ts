@@ -1,10 +1,12 @@
+import { z } from "zod";
+import { createPlanoBodySchema, updatePlanoBodySchema, recordIdSchema, paginatedQuerySchema } from "../schemas/pedagogyWriteSchema";
 import { FastifyInstance } from "fastify";
 import { PlanoService } from "../services/PlanoService";
 
 const planoService = new PlanoService();
 
 export async function planoRoutes(app: FastifyInstance) {
-  app.get("/planos", async (request, reply) => {
+  app.get("/planos", { schema: { querystring: paginatedQuerySchema } }, async (request, reply) => {
     try {
       const { page, limit, search } = request.query as {
         page?: string;
@@ -23,7 +25,7 @@ export async function planoRoutes(app: FastifyInstance) {
       return reply.status(500).send({ error: "Erro ao buscar planos." });
     }
   });
-  app.get("/planos/:id", async (request, reply) => {
+  app.get("/planos/:id", { schema: { params: z.object({ id: recordIdSchema }) } }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
       const plano = await planoService.getById(Number(id));
@@ -37,7 +39,7 @@ export async function planoRoutes(app: FastifyInstance) {
     }
   });
 
-  app.post("/planos", async (request, reply) => {
+  app.post("/planos", { schema: { body: createPlanoBodySchema } }, async (request, reply) => {
     try {
       const data = request.body as { PlanCurso: string; PlanDescricao?: string };
       const plano = await planoService.create(data);
@@ -48,7 +50,7 @@ export async function planoRoutes(app: FastifyInstance) {
     }
   });
 
-  app.put("/planos/:id", async (request, reply) => {
+  app.put("/planos/:id", { schema: { params: z.object({ id: recordIdSchema }), body: updatePlanoBodySchema } }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
       const data = request.body as { PlanCurso?: string; PlanDescricao?: string };
@@ -60,7 +62,7 @@ export async function planoRoutes(app: FastifyInstance) {
     }
   });
 
-  app.delete("/planos/:id", async (request, reply) => {
+  app.delete("/planos/:id", { schema: { params: z.object({ id: recordIdSchema }) } }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
       await planoService.delete(Number(id));

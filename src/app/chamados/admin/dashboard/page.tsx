@@ -47,6 +47,7 @@ import {
 } from "@/services/chamadoService";
 import { getRoleLabel, getSessionUserRole } from "@/utils/roles";
 import { useChamadoNotifications } from "@/hooks/useChamadoNotifications";
+import { useInterfacePreferences } from "@/hooks/useInterfacePreferences";
 import pageStyles from "./dashboard.module.css";
 
 type SessionUser = {
@@ -55,26 +56,16 @@ type SessionUser = {
   UsuTipo?: string | null;
 };
 
-type ThemeMode = "light" | "dark";
 type SortDirection = "asc" | "desc" | null;
 type StatusFilter = ChamadoStatus | "all";
 type UrgencyFilter = ChamadoUrgencia | "all";
 type DepartmentFilter = ChamadoFormData["departamento"] | "all";
-const CHAMADOS_THEME_STORAGE_KEY = "prosis-chamados-theme";
-const GLOBAL_THEME_STORAGE_KEY = "prosis-theme";
 const CHAMADOS_REFRESH_INTERVAL = 10_000;
 
 type TicketLoadOptions = {
   showError?: boolean;
   showLoading?: boolean;
 };
-
-function applyChamadosTheme(theme: ThemeMode) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  document.documentElement.style.colorScheme = theme;
-  localStorage.setItem(CHAMADOS_THEME_STORAGE_KEY, theme);
-  localStorage.setItem(GLOBAL_THEME_STORAGE_KEY, theme);
-}
 
 type QueueView =
   | "Dashboard"
@@ -226,7 +217,7 @@ function urgencyBarClass(urgency: ChamadoUrgencia) {
 
 export default function ChamadosAdminDashboardPage() {
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [theme, setTheme] = useState<ThemeMode>("light");
+  const { resolvedTheme: theme, updatePreferences } = useInterfacePreferences();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [ticketsExpanded, setTicketsExpanded] = useState(true);
   const [activeView, setActiveView] = useState<QueueView>("Dashboard");
@@ -293,19 +284,6 @@ export default function ChamadosAdminDashboardPage() {
 
   useEffect(() => {
     const sessionRaw = localStorage.getItem("projov_user");
-    const chamadosTheme = localStorage.getItem(CHAMADOS_THEME_STORAGE_KEY);
-    const globalTheme = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
-    const preferredTheme =
-      chamadosTheme === "light" || chamadosTheme === "dark"
-        ? chamadosTheme
-        : globalTheme === "light" || globalTheme === "dark"
-          ? globalTheme
-          : document.documentElement.classList.contains("dark")
-            ? "dark"
-            : "light";
-
-    setTheme(preferredTheme);
-    applyChamadosTheme(preferredTheme);
     if (sessionRaw) {
       try {
         const sessionUser = JSON.parse(sessionRaw) as SessionUser;
@@ -407,11 +385,7 @@ export default function ChamadosAdminDashboardPage() {
   ], [tickets]);
 
   function toggleTheme() {
-    setTheme((currentTheme) => {
-      const nextTheme = currentTheme === "light" ? "dark" : "light";
-      applyChamadosTheme(nextTheme);
-      return nextTheme;
-    });
+    updatePreferences({ theme: isDark ? "light" : "dark" });
   }
 
   function toggleTicketSort() {

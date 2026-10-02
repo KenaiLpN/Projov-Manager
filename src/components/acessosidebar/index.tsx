@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { useGlobalNavigation } from "@/components/navigation/NavigationContext";
 
 const navItems = [
   { name: "Cadastro de Funções", href: "/acessos/funcoes" },
@@ -9,6 +10,7 @@ const navItems = [
 ];
 
 export function AcessoSidebar() {
+  const hasGlobalNavigation = useGlobalNavigation();
   const pathname = usePathname();
 
   const baseLinkClasses =
@@ -20,6 +22,8 @@ export function AcessoSidebar() {
     const isActive = pathname === href;
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
+
+  if (hasGlobalNavigation) return null;
 
   return (
     <div className="flex flex-col bg-[#0F306D] w-60 h-full items-center">

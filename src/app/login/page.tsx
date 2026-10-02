@@ -61,16 +61,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const [loginErrorMessage, setLoginErrorMessage] = useState("");
-  const [needsPassword, setNeedsPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [createError, setCreateError] = useState("");
+
+
+
+
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [firstAccessMode, setFirstAccessMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotError, setForgotError] = useState("");
   const [showSenha, setShowSenha] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+
   const [chamadoLogin, setChamadoLogin] = useState("");
   const [chamadoSenha, setChamadoSenha] = useState("");
   const [chamadoLoading, setChamadoLoading] = useState(false);
@@ -111,7 +112,7 @@ export default function LoginPage() {
     setTipoAcesso(nextAccessType);
     setUsuCodigo("");
     setSenha("");
-    setNeedsPassword(false);
+
     setLoginError(false);
     setLoginErrorMessage("");
   }
@@ -130,11 +131,6 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        if (data?.code === "NEEDS_PASSWORD") {
-          setNeedsPassword(true);
-          setLoading(false);
-          return;
-        }
         console.error("[Login] Motivo:", data?.message);
         setLoginError(true);
         setLoginErrorMessage(data?.message || "Credenciais inválidas. Verifique seu usuário e senha.");
@@ -148,57 +144,6 @@ export default function LoginPage() {
       console.error("[Login] Erro inesperado:", error);
       setLoginError(true);
       setLoginErrorMessage("Erro inesperado. Tente novamente.");
-      setLoading(false);
-    }
-  }
-  async function handleCreatePassword(e: React.FormEvent) {
-    e.preventDefault();
-    if (loading) return;
-    setCreateError("");
-    setLoading(true);
-    if (newPassword.length < 6) {
-      setCreateError("A senha deve ter no mínimo 6 caracteres.");
-      setLoading(false);
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setCreateError("As senhas não coincidem.");
-      setLoading(false);
-      return;
-    }
-    try {
-      const createRes = await fetch("/api/proxy/primeiro-acesso", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ UsuCodigo, senha: newPassword, tipoAcesso }),
-      });
-      const createData = await createRes.json();
-      if (!createRes.ok) {
-        setCreateError(createData?.message || "Erro ao criar senha.");
-        setLoading(false);
-        return;
-      }
-      toast.success("Senha criada com sucesso! Você já pode entrar.");
-      setNeedsPassword(false);
-      setNewPassword("");
-      setConfirmPassword("");
-      const loginRes = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ UsuCodigo, senha: newPassword, tipoAcesso }),
-      });
-      const loginData = await loginRes.json();
-      if (!loginRes.ok) {
-        setCreateError(loginData?.message || "Erro ao entrar.");
-        setLoading(false);
-        return;
-      }
-      const { user } = loginData;
-      localStorage.setItem("projov_user", JSON.stringify(user));
-      window.location.href = getDefaultRedirect(user);
-    } catch (error: unknown) {
-      console.error("[PrimeiroAcesso] Erro inesperado:", error);
-      setCreateError("Erro inesperado. Tente novamente.");
       setLoading(false);
     }
   }
@@ -257,7 +202,7 @@ export default function LoginPage() {
       return;
     }
     try {
-      const res = await fetch("/api/proxy/forgot-password", {
+      const res = await fetch(firstAccessMode ? "/api/proxy/primeiro-acesso" : "/api/proxy/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, tipoAcesso }),
@@ -276,120 +221,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-  if (needsPassword) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#253442]">
-        <form
-          onSubmit={handleCreatePassword}
-          className="flex flex-col p-8 bg-[#34495E] shadow-2xl w-110 rounded-2xl gap-8 shadow-grey-900"
-        >
-          <div>
-            <h1 className="text-2xl font-bold text-center text-[#FFFF]">
-              Primeiro Acesso
-            </h1>
-            <p className="flex text-center justify-center text-[#FFFF] mt-2">
-              Olá, {tipoAcesso === "EDUCADOR" ? "Educador" : tipoAcesso === "EMPRESA" ? "Empresa Parceira" : "Aprendiz"}! Crie sua nova senha para acessar o sistema.
-            </p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="relative">
-              <input
-                type={showNewPassword ? "text" : "password"}
-                placeholder="Nova Senha (Mínimo 6 caracteres)"
-                value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  setCreateError("");
-                }}
-                className={`w-full p-3 pr-11 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
-                  createError
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-[#34495E] focus:border-blue-500"
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                tabIndex={-1}
-              >
-                {showNewPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirme a Nova Senha"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setCreateError("");
-                }}
-                className={`w-full p-3 pr-11 rounded-xl bg-[#F3F4F6] border-2 outline-none ${
-                  createError
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-[#34495E] focus:border-blue-500"
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {createError && (
-              <div className="text-red-500 text-sm text-center rounded">
-                {createError}
-              </div>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full text-white p-3 rounded cursor-pointer transition-[background-position] duration-500 ease-in-out
-      ${
-        loading
-          ? "bg-blue-400 cursor-not-allowed"
-          : "bg-linear-to-t from-[#345ce2] via-[#6a8dff] to-[#345ce2] bg-size-[100%_200%] bg-bottom hover:bg-top"
-      }`}
-          >
-            {loading ? "Processando..." : "Confirmar Senha"}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setNeedsPassword(false);
-              setLoading(false);
-            }}
-            className="flex justify-center text-gray-300 hover:text-white mt-[-10px]"
-          >
-            Voltar ao Login
-          </button>
-        </form>
-      </div>
-    );
-  }
   if (forgotPasswordMode) {
     return (
       <div className="flex items-center justify-center h-screen bg-[#253442]">
@@ -399,16 +230,20 @@ export default function LoginPage() {
         >
           <div>
             <h1 className="text-2xl font-bold text-center text-[#FFFF]">
-              Recuperar Senha
+              {firstAccessMode ? "Primeiro acesso" : "Recuperar senha"}
             </h1>
             <p className="flex text-center justify-center text-[#FFFF] mt-2">
-              Informe o e-mail cadastrado para {selectedAccessLabel} e receba as instruções de recuperação.
+              Informe o e-mail cadastrado para {selectedAccessLabel}. Enviaremos um link para definir sua senha. Se você não tem acesso a esse e-mail, procure a equipe responsável pelo cadastro.
             </p>
           </div>
           <div className="flex flex-col gap-4">
             <div>
               <input
                 type="email"
+                required
+                maxLength={254}
+                autoComplete="email"
+                aria-label="E-mail cadastrado"
                 placeholder="Seu E-mail"
                 value={forgotEmail}
                 onChange={(e) => {
@@ -809,6 +644,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
+                  setFirstAccessMode(false);
                   setForgotPasswordMode(true);
                   setLoginError(false);
                   setLoginErrorMessage("");
@@ -821,6 +657,19 @@ export default function LoginPage() {
                 id="lostpassword"
               >
                 Esqueci minha senha
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFirstAccessMode(true);
+                  setForgotPasswordMode(true);
+                  setForgotError("");
+                  setForgotEmail("");
+                  setSenha("");
+                }}
+                className="mt-3 flex w-full justify-center text-sm font-medium text-slate-300 hover:text-[#8ab4ff]"
+              >
+                Primeiro acesso
               </button>
             </form>
           )}

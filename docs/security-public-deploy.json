@@ -1,0 +1,258 @@
+{
+  "time": "2026-10-02T02:07:40.221Z",
+  "origin": "https://prosis.digital",
+  "scope": "Unauthenticated, bounded GET probes",
+  "results": [
+    {
+      "path": "/login",
+      "variant": "anonymous",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 22138,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      },
+      "scripts": 20,
+      "scriptsWithNonce": 20
+    },
+    {
+      "path": "/api/proxy/health",
+      "variant": "anonymous",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 23,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/.env",
+      "variant": "anonymous",
+      "status": 403,
+      "contentType": "text/html",
+      "bytes": 787,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-cache, no-store, must-revalidate, max-age=0",
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/.env.local",
+      "variant": "anonymous",
+      "status": 403,
+      "contentType": "text/html",
+      "bytes": 787,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-cache, no-store, must-revalidate, max-age=0",
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/apps/api/.env",
+      "variant": "anonymous",
+      "status": 403,
+      "contentType": "text/html",
+      "bytes": 787,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-cache, no-store, must-revalidate, max-age=0",
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/.git/config",
+      "variant": "anonymous",
+      "status": 403,
+      "contentType": "text/html",
+      "bytes": 787,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-cache, no-store, must-revalidate, max-age=0",
+      "securityHeaders": {
+        "csp": false,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": false,
+        "noSniff": false,
+        "frameDenied": false
+      }
+    },
+    {
+      "path": "/package.json",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": null,
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/api/proxy/docs",
+      "variant": "anonymous",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 30,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/api/proxy/users",
+      "variant": "anonymous",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 30,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/home",
+      "variant": "anonymous",
+      "status": 307,
+      "contentType": null,
+      "bytes": 6,
+      "redirectedToLogin": true,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": null,
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/home",
+      "variant": "forged-token",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 35084,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/api/proxy/users",
+      "variant": "forged-token",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 30,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "no-store",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      }
+    },
+    {
+      "path": "/login",
+      "variant": "inert-xss-marker",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 22362,
+      "redirectedToLogin": false,
+      "potentialEnvFile": false,
+      "potentialGitConfig": false,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "securityHeaders": {
+        "csp": true,
+        "nonce": false,
+        "unsafeEval": false,
+        "hsts": true,
+        "noSniff": true,
+        "frameDenied": true
+      },
+      "scripts": 20,
+      "scriptsWithNonce": 20
+    }
+  ]
+}

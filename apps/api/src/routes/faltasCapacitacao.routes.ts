@@ -1,3 +1,4 @@
+import { capacitacaoPresencasBodySchema, dateOnlySchema, recordIdSchema } from "../schemas/pedagogyWriteSchema";
 import { FastifyInstance, FastifyReply } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
@@ -8,7 +9,7 @@ const service = new CA_FaltasCapacitacaoService();
 export async function faltasCapacitacaoRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
     "/faltas-capacitacao/datas",
-    { schema: { tags: ["FaltasCapacitacao"], querystring: z.object({ turma: z.coerce.number() }) } },
+    { schema: { tags: ["FaltasCapacitacao"], querystring: z.object({ turma: recordIdSchema }) } },
     async (request, reply: FastifyReply) => {
       const { turma } = request.query as { turma: number };
       try {
@@ -21,7 +22,7 @@ export async function faltasCapacitacaoRoutes(app: FastifyInstance) {
 
   app.withTypeProvider<ZodTypeProvider>().get(
     "/faltas-capacitacao/aprendizes",
-    { schema: { tags: ["FaltasCapacitacao"], querystring: z.object({ turma: z.coerce.number() }) } },
+    { schema: { tags: ["FaltasCapacitacao"], querystring: z.object({ turma: recordIdSchema }) } },
     async (request, reply: FastifyReply) => {
       const { turma } = request.query as { turma: number };
       try {
@@ -37,7 +38,7 @@ export async function faltasCapacitacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["FaltasCapacitacao"],
-        querystring: z.object({ turma: z.coerce.number(), data: z.string() }),
+        querystring: z.object({ turma: recordIdSchema, data: dateOnlySchema }),
       },
     },
     async (request, reply: FastifyReply) => {
@@ -52,7 +53,7 @@ export async function faltasCapacitacaoRoutes(app: FastifyInstance) {
 
   app.withTypeProvider<ZodTypeProvider>().post(
     "/faltas-capacitacao/presencas",
-    { schema: { tags: ["FaltasCapacitacao"], body: z.object({ registros: z.array(z.object({}).passthrough()) }) } },
+    { schema: { tags: ["FaltasCapacitacao"], body: capacitacaoPresencasBodySchema } },
     async (request, reply: FastifyReply) => {
       const user = request.user as { sub: string };
       const { registros } = request.body as any;
@@ -69,7 +70,7 @@ export async function faltasCapacitacaoRoutes(app: FastifyInstance) {
 
   app.withTypeProvider<ZodTypeProvider>().get(
     "/faltas-capacitacao/turma-info/:id",
-    { schema: { tags: ["FaltasCapacitacao"], params: z.object({ id: z.coerce.number() }) } },
+    { schema: { tags: ["FaltasCapacitacao"], params: z.object({ id: recordIdSchema }) } },
     async (request, reply: FastifyReply) => {
       const { id } = request.params as { id: number };
       try {
@@ -87,7 +88,7 @@ export async function faltasCapacitacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["FaltasCapacitacao"],
-        body: z.object({ turma: z.number(), data: z.string() }),
+        body: z.object({ turma: recordIdSchema, data: dateOnlySchema }),
       },
     },
     async (request, reply: FastifyReply) => {

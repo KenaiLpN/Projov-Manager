@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { EducadorService } from "../services/EducadorService";
 import {
@@ -28,7 +28,19 @@ const EDUCATOR_PROFILE_FIELDS = new Set([
   "EducCEP",
 ]);
 
+async function protectEducatorProfile(request: FastifyRequest, reply: FastifyReply) {
+  if (request.user?.role !== "EDUCADOR") return;
+  const id = (request.params as { id?: number }).id;
+  if (!["GET", "PUT"].includes(request.method) || id === undefined) {
+    return reply.status(403).send({ message: "Acesso nao permitido." });
+  }
+  if (String(id) !== String(request.user.sub)) {
+    return reply.status(404).send({ message: "Educador não encontrado." });
+  }
+}
+
 export async function educadorRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", protectEducatorProfile);
   app.withTypeProvider<ZodTypeProvider>().post(
     "/educadores",
     {
@@ -71,13 +83,8 @@ export async function educadorRoutes(app: FastifyInstance) {
       try {
         const result = await service.getAll(page, limit, search);
         return reply.status(200).send(result);
-      } catch (error: any) {
-        console.error("DEBUG - Erro detalhado:", error);
-        return reply.status(500).send({ 
-          error: "Erro ao listar educadores.", 
-          message: error.message,
-          code: error.code // Prisma error code if available
-        });
+      } catch {
+        return reply.status(500).send({ message: "Erro ao listar educadores." });
       }
 
     }

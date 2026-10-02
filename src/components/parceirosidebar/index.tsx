@@ -1,4 +1,5 @@
 "use client";
+import { useGlobalNavigation } from "@/components/navigation/NavigationContext";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -110,6 +111,9 @@ function MenuGroup({ items, depth = 0 }: { items: MenuItem[]; depth?: number }) 
 }
 
 export function ParceiroSidebar() {
+  const hasGlobalNavigation = useGlobalNavigation();
+  if (hasGlobalNavigation) return null;
+
   return (
     <aside className="h-full w-72 shrink-0 overflow-y-auto border-r border-[#123A83] bg-[#0F306D]">
       <div className="border-b border-white/10 px-5 py-5 text-white">

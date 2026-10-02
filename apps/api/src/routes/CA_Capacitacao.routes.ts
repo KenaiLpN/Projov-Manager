@@ -1,3 +1,5 @@
+import { createCapacitacaoBodySchema, updateCapacitacaoBodySchema, recordIdSchema } from "../schemas/pedagogyWriteSchema";
+import { BusinessError } from "../lib/businessError";
 import { FastifyInstance, FastifyReply } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
@@ -11,7 +13,7 @@ export async function capacitacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Capacitacao"],
-        params: z.object({ id: z.coerce.number() }),
+        params: z.object({ id: recordIdSchema }),
       },
     },
     async (request, reply: FastifyReply) => {
@@ -30,8 +32,8 @@ export async function capacitacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Capacitacao"],
-        params: z.object({ id: z.coerce.number() }),
-        body: z.object({}).passthrough(),
+        params: z.object({ id: recordIdSchema }),
+        body: createCapacitacaoBodySchema,
       },
     },
     async (request, reply: FastifyReply) => {
@@ -40,7 +42,7 @@ export async function capacitacaoRoutes(app: FastifyInstance) {
         const created = await service.create(id, request.body);
         return reply.status(201).send(created);
       } catch (error: any) {
-        return reply.status(400).send({ message: error.message });
+        return reply.status(error instanceof BusinessError ? error.statusCode : 500).send({ message: error instanceof BusinessError ? error.message : "Erro ao salvar capacitação." });
       }
     },
   );
@@ -50,8 +52,8 @@ export async function capacitacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Capacitacao"],
-        params: z.object({ seq: z.coerce.number() }),
-        body: z.object({}).passthrough(),
+        params: z.object({ seq: recordIdSchema }),
+        body: updateCapacitacaoBodySchema,
       },
     },
     async (request, reply: FastifyReply) => {
@@ -60,7 +62,7 @@ export async function capacitacaoRoutes(app: FastifyInstance) {
         const updated = await service.update(seq, request.body);
         return reply.send(updated);
       } catch (error: any) {
-        return reply.status(400).send({ message: error.message });
+        return reply.status(error instanceof BusinessError ? error.statusCode : 500).send({ message: error instanceof BusinessError ? error.message : "Erro ao salvar capacitação." });
       }
     },
   );
@@ -70,7 +72,7 @@ export async function capacitacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Capacitacao"],
-        params: z.object({ seq: z.coerce.number() }),
+        params: z.object({ seq: recordIdSchema }),
       },
     },
     async (request, reply: FastifyReply) => {

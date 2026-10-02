@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { useGlobalNavigation } from "@/components/navigation/NavigationContext";
 interface NavItem {
   name: string;
   href: string;
@@ -22,6 +23,7 @@ const navItems: NavItem[] = [
   { name: "Regiões", href: "/cadastros/regioes" },
 ];
 export function CadSidebar() {
+  const hasGlobalNavigation = useGlobalNavigation();
   const pathname = usePathname();
   const baseLinkClasses =
     "flex items-center transition font-medium duration-300 ease-in-out h-14 w-full justify-center hover:bg-[#123A83] ";
@@ -31,6 +33,8 @@ export function CadSidebar() {
     const isActive = pathname === href;
     return `${baseLinkClasses} ${isActive ? activeLinkClasses : inactive}`;
   };
+  if (hasGlobalNavigation) return null;
+
   return (
     <div className="flex flex-col bg-[#0F306D] w-60 h-full items-center">
       {navItems.map((item) => {

@@ -32,6 +32,7 @@ import {
 } from "@/services/chamadoService";
 import { getRoleLabel, getSessionUserRole } from "@/utils/roles";
 import { useChamadoNotifications } from "@/hooks/useChamadoNotifications";
+import { useInterfacePreferences } from "@/hooks/useInterfacePreferences";
 
 type SessionUser = {
   UsuCodigo?: string | null;
@@ -39,18 +40,7 @@ type SessionUser = {
   UsuTipo?: string | null;
 };
 
-type ThemeMode = "light" | "dark";
 type PortalView = "ativos" | "resolvidos";
-
-const CHAMADOS_THEME_STORAGE_KEY = "prosis-chamados-theme";
-const GLOBAL_THEME_STORAGE_KEY = "prosis-theme";
-
-function applyChamadosTheme(theme: ThemeMode) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  document.documentElement.style.colorScheme = theme;
-  localStorage.setItem(CHAMADOS_THEME_STORAGE_KEY, theme);
-  localStorage.setItem(GLOBAL_THEME_STORAGE_KEY, theme);
-}
 
 const themes = {
   light: {
@@ -161,7 +151,7 @@ function isClosed(ticket: Chamado) {
 export default function ChamadosPortalPage() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [tickets, setTickets] = useState<Chamado[]>([]);
-  const [theme, setTheme] = useState<ThemeMode>("light");
+  const { resolvedTheme: theme, updatePreferences } = useInterfacePreferences();
   const [activeView, setActiveView] = useState<PortalView>("ativos");
   const [loadingTickets, setLoadingTickets] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -208,20 +198,6 @@ export default function ChamadosPortalPage() {
 
   useEffect(() => {
     const sessionRaw = localStorage.getItem("projov_user");
-    const chamadosTheme = localStorage.getItem(CHAMADOS_THEME_STORAGE_KEY);
-    const globalTheme = localStorage.getItem(GLOBAL_THEME_STORAGE_KEY);
-    const preferredTheme =
-      chamadosTheme === "light" || chamadosTheme === "dark"
-        ? chamadosTheme
-        : globalTheme === "light" || globalTheme === "dark"
-          ? globalTheme
-          : document.documentElement.classList.contains("dark")
-            ? "dark"
-            : "light";
-
-    setTheme(preferredTheme);
-    applyChamadosTheme(preferredTheme);
-
     if (sessionRaw) {
       try {
         setUser(JSON.parse(sessionRaw));
@@ -233,11 +209,7 @@ export default function ChamadosPortalPage() {
   }, [loadTickets]);
 
   function toggleTheme() {
-    setTheme((currentTheme) => {
-      const nextTheme = currentTheme === "light" ? "dark" : "light";
-      applyChamadosTheme(nextTheme);
-      return nextTheme;
-    });
+    updatePreferences({ theme: isDark ? "light" : "dark" });
   }
 
   function openCreateModal() {

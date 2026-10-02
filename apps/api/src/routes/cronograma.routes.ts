@@ -30,7 +30,7 @@ export async function cronogramaRoutes(app: FastifyInstance) {
         return reply.send(await service.getCronogramaTurma(turmaId, startDate, endDate));
       } catch (error: any) {
         console.error("Erro ao gerar cronograma da turma:", error);
-        return reply.status(500).send({ message: error?.message ?? "Erro ao gerar cronograma da turma." });
+        return reply.status(500).send({ message: "Erro ao gerar cronograma da turma." });
       }
     },
   );

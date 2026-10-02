@@ -210,7 +210,7 @@ export async function userRoutes(app: FastifyInstance) {
       } catch (error) {
         if (error instanceof Error) {
           console.error(error.message);
-          return reply.status(500).send({ message: error.message });
+          return reply.status(500).send({ message: "Erro ao excluir usuário." });
         }
         return reply.status(500).send({ message: "Erro desconhecido." });
       }

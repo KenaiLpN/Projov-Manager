@@ -1,3 +1,4 @@
+import { BusinessError } from "../lib/businessError";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 
@@ -61,10 +62,10 @@ function resolveWeekdays(primary?: string | null, secondary?: string | null) {
 
 function normalizeQuantidade(value: number) {
   if (!Number.isFinite(value) || value < 1) {
-    throw new Error("A quantidade deve ser maior que zero.");
+    throw new BusinessError("A quantidade deve ser maior que zero.");
   }
   if (value > 300) {
-    throw new Error("A quantidade maxima permitida e 300.");
+    throw new BusinessError("A quantidade maxima permitida e 300.");
   }
   return Math.floor(value);
 }
@@ -122,9 +123,9 @@ export class GeracaoCronogramaService {
       }),
     ]);
 
-    if (!turma) throw new Error("Turma nao encontrada.");
-    if (!disciplina) throw new Error("Disciplina nao encontrada.");
-    if (!educador) throw new Error("Professor nao encontrado.");
+    if (!turma) throw new BusinessError("Turma nao encontrada.");
+    if (!disciplina) throw new BusinessError("Disciplina nao encontrada.");
+    if (!educador) throw new BusinessError("Professor nao encontrado.");
 
     const weekdays = resolveWeekdays(turma.TurDiaSemana, turma.TurDiaSemana02);
     const holidayWindowEnd = new Date(dataInicio);
@@ -160,7 +161,7 @@ export class GeracaoCronogramaService {
     }
 
     if (dates.length < quantidade) {
-      throw new Error("Nao foi possivel montar todas as datas do cronograma.");
+      throw new BusinessError("Nao foi possivel montar todas as datas do cronograma.");
     }
 
     const data = dates.map((date) => ({
@@ -252,7 +253,7 @@ export class GeracaoCronogramaService {
       where: { EducCodigo: educadorId },
       select: { EducCodigo: true, EducNome: true },
     });
-    if (!educador) throw new Error("Professor nao encontrado.");
+    if (!educador) throw new BusinessError("Professor nao encontrado.");
 
     await prisma.$executeRaw`
       UPDATE CA_Cronogramas
@@ -264,7 +265,7 @@ export class GeracaoCronogramaService {
       Prisma.sql`SELECT * FROM CA_Cronogramas WHERE CroCodigo = ${id} LIMIT 1`,
     );
     const row = rows[0];
-    if (!row) throw new Error("Cronograma nao encontrado.");
+    if (!row) throw new BusinessError("Cronograma nao encontrado.");
 
     const [turmas, disciplinas] = await Promise.all([
       prisma.cA_Turmas.findMany({

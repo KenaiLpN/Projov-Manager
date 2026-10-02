@@ -134,9 +134,12 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-full bg-gray-50/50 p-3">
+    <div className="min-h-full bg-gray-50/50 p-5 md:p-8">
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Visão geral</h1>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Acompanhe os participantes e acesse as áreas do programa.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

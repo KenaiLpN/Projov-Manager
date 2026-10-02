@@ -1,3 +1,4 @@
+import { createAlocacaoBodySchema, updateAlocacaoBodySchema, recordIdSchema } from "../schemas/pedagogyWriteSchema";
 import { FastifyInstance, FastifyReply } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
@@ -23,7 +24,7 @@ export async function alocacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Alocacao"],
-        params: z.object({ turmaId: z.coerce.number() }),
+        params: z.object({ turmaId: recordIdSchema }),
       },
       preHandler: [app.authenticate],
     },
@@ -42,7 +43,7 @@ export async function alocacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Alocacao"],
-        params: z.object({ turmaId: z.coerce.number() }),
+        params: z.object({ turmaId: recordIdSchema }),
       },
       preHandler: [app.authenticate],
     },
@@ -62,7 +63,7 @@ export async function alocacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Alocacao"],
-        params: z.object({ id: z.coerce.number() }),
+        params: z.object({ id: recordIdSchema }),
       },
       preHandler: [app.authenticate],
     },
@@ -79,8 +80,8 @@ export async function alocacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Alocacao"],
-        params: z.object({ id: z.coerce.number() }),
-        body: z.object({}).passthrough(),
+        params: z.object({ id: recordIdSchema }),
+        body: createAlocacaoBodySchema,
       },
       preHandler: [app.authenticate],
     },
@@ -92,7 +93,7 @@ export async function alocacaoRoutes(app: FastifyInstance) {
         return reply.status(201).send(created);
       } catch (error: any) {
         console.error("Erro ao criar alocação:", error);
-        return reply.status(500).send({ message: error?.message ?? "Erro ao criar alocação." });
+        return reply.status(500).send({ message: "Erro ao criar alocação." });
       }
     },
   );
@@ -103,8 +104,8 @@ export async function alocacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Alocacao"],
-        params: z.object({ ordem: z.coerce.number() }),
-        body: z.object({}).passthrough(),
+        params: z.object({ ordem: recordIdSchema }),
+        body: updateAlocacaoBodySchema,
       },
       preHandler: [app.authenticate],
     },
@@ -116,7 +117,7 @@ export async function alocacaoRoutes(app: FastifyInstance) {
         return reply.send(updated);
       } catch (error: any) {
         console.error("Erro ao atualizar alocação:", error);
-        return reply.status(500).send({ message: error?.message ?? "Erro ao atualizar alocação." });
+        return reply.status(500).send({ message: "Erro ao atualizar alocação." });
       }
     },
   );
@@ -127,7 +128,7 @@ export async function alocacaoRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Alocacao"],
-        params: z.object({ ordem: z.coerce.number() }),
+        params: z.object({ ordem: recordIdSchema }),
       },
       preHandler: [app.authenticate],
     },

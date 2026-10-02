@@ -41,7 +41,7 @@ function getSmtpConfiguration() {
 
 function smtpErrorDetails(error: unknown) {
   if (!(error instanceof Error)) {
-    return { message: String(error) };
+    return { category: "SMTP_FAILURE" };
   }
 
   const smtpError = error as Error & {
@@ -50,12 +50,15 @@ function smtpErrorDetails(error: unknown) {
     responseCode?: number;
   };
 
+  // SMTP responses/messages may contain recipients, credentials or reset URLs.
+  // Only bounded, known protocol categories are useful in the application log.
+  const allowedCodes = new Set(["EAUTH", "ECONNECTION", "ETIMEDOUT", "EDNS", "ESOCKET", "EENVELOPE", "EMESSAGE", "ESTREAM"]);
+  const allowedCommands = new Set(["CONN", "EHLO", "HELO", "STARTTLS", "AUTH", "MAIL FROM", "RCPT TO", "DATA", "QUIT"]);
   return {
-    name: smtpError.name,
-    message: smtpError.message,
-    code: smtpError.code,
-    command: smtpError.command,
-    responseCode: smtpError.responseCode,
+    category: "SMTP_FAILURE",
+    code: smtpError.code && allowedCodes.has(smtpError.code) ? smtpError.code : undefined,
+    command: smtpError.command && allowedCommands.has(smtpError.command) ? smtpError.command : undefined,
+    responseCode: Number.isInteger(smtpError.responseCode) && smtpError.responseCode! >= 400 && smtpError.responseCode! <= 599 ? smtpError.responseCode : undefined,
   };
 }
 
@@ -72,7 +75,7 @@ export async function sendResetPasswordEmail(to: string, resetLink: string) {
   });
 
   try {
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
       from: {
         name: process.env.SMTP_FROM_NAME?.trim() || "ProSis",
         address: user,
@@ -103,7 +106,7 @@ export async function sendResetPasswordEmail(to: string, resetLink: string) {
       `,
     });
 
-    console.log("E-mail de recuperação enviado:", info.messageId);
+    console.log("E-mail de recuperação enviado.");
     return true;
   } catch (error) {
     console.error("Erro ao enviar e-mail de recuperação:", smtpErrorDetails(error));

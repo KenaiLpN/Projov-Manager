@@ -6,6 +6,8 @@ const internalApiUrl =
   process.env.INTERNAL_API_URL?.trim() || `http://127.0.0.1:${apiPort}`;
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname),
   // A API e suas dependencias pertencem a um pacote separado e sao carregadas

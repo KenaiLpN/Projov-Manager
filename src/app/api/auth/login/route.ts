@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendLoginToApi } from "@/lib/server/embedded-api";
+import { isTrustedBrowserMutation, readLimitedBody } from "@/lib/security/browserRequest";
 
 export const runtime = "nodejs";
 
@@ -17,11 +18,17 @@ const loginResponseSchema = z.object({
 const LOGIN_PROXY_SECRET = process.env.LOGIN_PROXY_SECRET?.trim();
 
 export async function POST(request: NextRequest) {
-  let body: unknown;
+  const json = (data: unknown, status = 200, extra: Record<string, string> = {}) =>
+    NextResponse.json(data, { status, headers: { "Cache-Control": "no-store", ...extra } });
+  if (!isTrustedBrowserMutation(request)) return json({ message: "Origem não permitida." }, 403);
+  if (request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") {
+    return json({ message: "Utilize application/json." }, 415);
+  }
+  let body: string;
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ message: "Requisição inválida." }, { status: 400 });
+    body = await readLimitedBody(request);
+  } catch (error) {
+    return json({ message: "Requisição inválida." }, error instanceof RangeError ? 413 : 400);
   }
 
   let backendRes: Response;
@@ -30,7 +37,7 @@ export async function POST(request: NextRequest) {
       "Content-Type": "application/json",
     };
     // Preserve the same origin checks and client IP used by the API's guards.
-    for (const name of ["origin", "referer", "sec-fetch-site", "x-forwarded-for", "user-agent"]) {
+    for (const name of ["origin", "referer", "sec-fetch-site", "user-agent"]) {
       const value = request.headers.get(name);
       if (value) headers[name] = value;
     }
@@ -45,9 +52,9 @@ export async function POST(request: NextRequest) {
     console.error("[auth/login] API interna indisponivel", {
       code: failure?.cause?.code ?? failure?.name ?? "UNKNOWN",
     });
-    return NextResponse.json(
+    return json(
       { message: "Erro ao conectar com o servidor." },
-      { status: 503 }
+      503
     );
   }
 
@@ -55,21 +62,22 @@ export async function POST(request: NextRequest) {
   try {
     data = await backendRes.json();
   } catch {
-    return NextResponse.json({ message: "Resposta inválida do servidor de autenticação." }, { status: 502 });
+    return json({ message: "Resposta inválida do servidor de autenticação." }, 502);
   }
 
   if (!backendRes.ok) {
     const failure = z.object({ message: z.string(), code: z.string().optional() }).safeParse(data);
-    return NextResponse.json(failure.success ? failure.data : { message: "Falha no servidor de autenticação." }, { status: backendRes.status });
+    const retryAfter = backendRes.headers.get("retry-after");
+    return json(failure.success ? failure.data : { message: "Falha no servidor de autenticação." }, backendRes.status, retryAfter ? { "Retry-After": retryAfter } : {});
   }
 
   const parsed = loginResponseSchema.safeParse(data);
   if (!parsed.success) {
-    return NextResponse.json({ message: "Resposta inválida do servidor de autenticação." }, { status: 502 });
+    return json({ message: "Resposta inválida do servidor de autenticação." }, 502);
   }
   const { token, user, message } = parsed.data;
 
-  const response = NextResponse.json({ user, message });
+  const response = json({ user, message });
 
   response.cookies.set("token", token, {
     httpOnly: true,

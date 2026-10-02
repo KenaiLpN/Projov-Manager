@@ -1309,7 +1309,7 @@ function CadastroForm() {
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-20">
+        <div className="fixed bottom-0 left-0 md:left-[var(--sidebar-width,0px)] right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-20">
           <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
             <button
               disabled={tabs.findIndex(t => t.id === activeTab) === 0}

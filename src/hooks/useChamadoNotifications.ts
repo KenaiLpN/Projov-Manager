@@ -1,97 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import {
   ChamadoNotificationEvent,
   listChamadoNotifications,
 } from "@/services/chamadoService";
 import {
-  ChamadoNotificationSound,
-  isChamadoNotificationSound,
   playChamadoNotificationSound,
   prepareChamadoNotificationAudio,
 } from "@/utils/chamadoNotificationSounds";
+import { useChamadoNotificationPreferences } from "@/hooks/useChamadoNotificationPreferences";
+import type { ChamadoNotificationSettings } from "@/utils/chamadoNotificationPreferences";
 
-export type ChamadoNotificationChannelSettings = {
-  sound: ChamadoNotificationSound;
-  volume: number;
-};
+export type {
+  ChamadoNotificationChannelSettings,
+  ChamadoNotificationSettings,
+} from "@/utils/chamadoNotificationPreferences";
+export { DEFAULT_CHAMADO_NOTIFICATION_SETTINGS } from "@/utils/chamadoNotificationPreferences";
 
-export type ChamadoNotificationSettings = {
-  enabled: boolean;
-  abertura: ChamadoNotificationChannelSettings;
-  mensagem: ChamadoNotificationChannelSettings;
-  resolucao: ChamadoNotificationChannelSettings;
-};
-
-const STORAGE_KEY = "prosis-chamados-notifications";
 const POLL_INTERVAL = 5_000;
-
-export const DEFAULT_CHAMADO_NOTIFICATION_SETTINGS: ChamadoNotificationSettings = {
-  enabled: false,
-  abertura: { sound: "sino", volume: 0.7 },
-  mensagem: { sound: "digital", volume: 0.6 },
-  resolucao: { sound: "suave", volume: 0.7 },
-};
-
-function normalizedVolume(value: unknown, fallback: number) {
-  return typeof value === "number" && Number.isFinite(value)
-    ? Math.min(1, Math.max(0, value))
-    : fallback;
-}
-
-function normalizedChannel(
-  value: unknown,
-  fallback: ChamadoNotificationChannelSettings,
-) {
-  if (!value || typeof value !== "object") return fallback;
-  const channel = value as Partial<ChamadoNotificationChannelSettings>;
-  return {
-    sound: isChamadoNotificationSound(channel.sound)
-      ? channel.sound
-      : fallback.sound,
-    volume: normalizedVolume(channel.volume, fallback.volume),
-  };
-}
-
-function loadStoredSettings() {
-  if (typeof window === "undefined") {
-    return DEFAULT_CHAMADO_NOTIFICATION_SETTINGS;
-  }
-
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return DEFAULT_CHAMADO_NOTIFICATION_SETTINGS;
-
-  try {
-    const parsed = JSON.parse(stored) as Record<string, unknown>;
-    const legacySound = isChamadoNotificationSound(parsed.sound)
-      ? parsed.sound
-      : undefined;
-    const legacyChannel = legacySound
-      ? { sound: legacySound, volume: 0.7 }
-      : undefined;
-
-    return {
-      enabled: parsed.enabled === true,
-      abertura: normalizedChannel(
-        parsed.abertura ?? legacyChannel,
-        DEFAULT_CHAMADO_NOTIFICATION_SETTINGS.abertura,
-      ),
-      mensagem: normalizedChannel(
-        parsed.mensagem ?? legacyChannel,
-        DEFAULT_CHAMADO_NOTIFICATION_SETTINGS.mensagem,
-      ),
-      resolucao: normalizedChannel(
-        parsed.resolucao ?? legacyChannel,
-        DEFAULT_CHAMADO_NOTIFICATION_SETTINGS.resolucao,
-      ),
-    };
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    return DEFAULT_CHAMADO_NOTIFICATION_SETTINGS;
-  }
-}
 
 function notificationText(event: ChamadoNotificationEvent) {
   const identifier = event.chamado.protocolo || `Chamado #${event.chamado.id}`;
@@ -111,19 +39,15 @@ export function useChamadoNotifications({
   userId?: string | null;
   onExternalEvent?: () => void;
 }) {
-  const [settings, setSettingsState] = useState(
-    DEFAULT_CHAMADO_NOTIFICATION_SETTINGS,
-  );
+  const { settings, updateSettings } = useChamadoNotificationPreferences();
   const settingsRef = useRef(settings);
   const cursorRef = useRef<number | null>(null);
   const inFlightRef = useRef(false);
   const onExternalEventRef = useRef(onExternalEvent);
 
   useEffect(() => {
-    const stored = loadStoredSettings();
-    settingsRef.current = stored;
-    setSettingsState(stored);
-  }, []);
+    settingsRef.current = settings;
+  }, [settings]);
 
   useEffect(() => {
     onExternalEventRef.current = onExternalEvent;
@@ -131,9 +55,8 @@ export function useChamadoNotifications({
 
   const setSettings = useCallback((next: ChamadoNotificationSettings) => {
     settingsRef.current = next;
-    setSettingsState(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  }, []);
+    return updateSettings(next);
+  }, [updateSettings]);
 
   useEffect(() => {
     function unlockAudio() {

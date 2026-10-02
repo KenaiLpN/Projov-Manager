@@ -34,8 +34,13 @@ function ResetPasswordForm() {
     e.preventDefault();
     setErrorMsg("");
     setLoading(true);
-    if (newPassword.length < 6) {
-      setErrorMsg("A senha deve ter no mínimo 6 caracteres.");
+    if (newPassword.length < 12) {
+      setErrorMsg("A senha deve ter no mínimo 12 caracteres.");
+      setLoading(false);
+      return;
+    }
+    if (new TextEncoder().encode(newPassword).length > 72) {
+      setErrorMsg("A senha é muito longa. Reduza o tamanho e tente novamente.");
       setLoading(false);
       return;
     }
@@ -70,7 +75,8 @@ function ResetPasswordForm() {
       <div className="flex flex-col gap-4">
         <input
           type="password"
-          placeholder="Nova Senha (Mínimo 6 caracteres)"
+          autoComplete="new-password"
+          placeholder="Nova senha (mínimo 12 caracteres)"
           value={newPassword}
           onChange={(e) => {
             setNewPassword(e.target.value);
@@ -80,6 +86,7 @@ function ResetPasswordForm() {
         />
         <input
           type="password"
+          autoComplete="new-password"
           placeholder="Confirme a Nova Senha"
           value={confirmPassword}
           onChange={(e) => {

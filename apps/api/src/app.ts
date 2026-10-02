@@ -1,4 +1,5 @@
 import { parseSessionClaims } from "./lib/sessionClaims";
+import { hasDuplicateJsonKeys, hasDuplicateQueryKeys, trustedProxyConfiguration } from "./lib/requestSecurity";
 import { fastify, FastifyReply, FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
@@ -77,7 +78,7 @@ import { participantessituacaoroutes,
 
 
 import { prisma } from "./lib/prisma";
-import { logger, redactSensitiveData } from "./lib/logger";
+import { logger } from "./lib/logger";
 
 /** Create the API without opening a port; callers choose listen() or inject(). */
 export function createApp() {
@@ -94,8 +95,11 @@ export function createApp() {
     );
   }
   const app = fastify({
-    trustProxy: true,
-    logger: true,
+    trustProxy: trustedProxyConfiguration(),
+    logger: {
+      redact: ["req.headers.authorization", "req.headers.cookie", 'req.headers["x-prosis-login-secret"]'],
+      serializers: { req: (request) => ({ method: request.method, url: request.url?.split("?")[0], remoteAddress: request.ip }) },
+    },
   }).withTypeProvider<ZodTypeProvider>();
   const BLOCKED_IPS = new Set(
     (process.env.BLOCKED_IPS ?? "")
@@ -110,16 +114,27 @@ export function createApp() {
   app.decorate("prisma", prisma);
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
-  if (process.env.NODE_ENV !== "production") {
-    app.addHook("preHandler", async (request) => {
-      if (["POST", "PUT", "PATCH"].includes(request.method) && request.body) {
-        console.log(
-          `[${request.method}] ${request.url} Body:`,
-          redactSensitiveData(request.body),
-        );
+  app.addHook("onSend", async (_request, reply, payload) => {
+    reply.header("Cache-Control", "no-store");
+    reply.header("X-Content-Type-Options", "nosniff");
+    return payload;
+  });
+  const defaultJsonParser = app.getDefaultJsonParser("error", "error");
+  app.removeContentTypeParser("application/json");
+  app.addContentTypeParser("application/json", { parseAs: "string" }, (request, body, done) => {
+    defaultJsonParser(request, String(body), (error, value) => {
+      if (error) return done(error);
+      if (hasDuplicateJsonKeys(String(body))) {
+        return done(Object.assign(new Error("Chaves JSON duplicadas nao sao permitidas."), { statusCode: 400 }));
       }
+      done(null, value);
     });
-  }
+  });
+  app.addHook("onRequest", async (request, reply) => {
+    if (hasDuplicateQueryKeys(request.url)) {
+      return reply.code(400).send({ message: "Parametros duplicados nao sao permitidos." });
+    }
+  });
 
   app.addHook("onRequest", async (request, reply) => {
     if (!BLOCKED_IPS.size) return;
@@ -245,6 +260,8 @@ export function createApp() {
   });
   app.register(jwt, {
     secret: JWT_SECRET,
+    sign: { algorithm: "HS256" },
+    verify: { algorithms: ["HS256"] },
     cookie: {
       cookieName: "token",
       signed: false,
@@ -273,9 +290,13 @@ export function createApp() {
     },
   );
 
-  // Rate limiting: apenas no endpoint de login (máx. 5 tentativas por IP em 15 min)
+  // Per-IP baseline; authentication applies stricter limits and account buckets.
   app.register(rateLimit, {
-    global: false,
+    global: true,
+    max: 300,
+    timeWindow: "1 minute",
+    allowList: (request) => request.url.split("?")[0] === "/health" || request.url === "/",
+    errorResponseBuilder: () => ({ statusCode: 429, message: "Muitas requisicoes. Tente novamente em instantes." }),
   });
 
   // Hook de autenticação global — todas as rotas exceto as públicas exigem JWT válido
@@ -309,7 +330,6 @@ export function createApp() {
     "/cronogramas",
     "/cursos",
     "/disciplinas",
-    "/educadores",
     "/faltas-capacitacao",
     "/geracao-cronogramas",
     "/geracao-cronogramas-semestre",
@@ -538,15 +558,8 @@ export function createApp() {
 
   app.setErrorHandler((error: any, request, reply) => {
     if (error.validation) {
-      console.error("Erro de Validação:", {
-        validation: error.validation,
-        context: error.validationContext,
-        url: request.url,
-        method: request.method,
-        ip: request.ip,
-      });
       logger.error("Erro de validação", {
-        url: request.url,
+        url: request.url.split("?")[0],
         method: request.method,
         context: error.validationContext,
         ip: request.ip,
@@ -562,29 +575,24 @@ export function createApp() {
         {
           event: "request_rejected",
           statusCode,
-          url: request.url,
+          url: request.url.split("?")[0],
           method: request.method,
           ip: request.ip,
         },
-        error.message ?? "Request rejected",
+        "Request rejected",
       );
       return reply.status(statusCode).send({
         message: error.message ?? "Requisicao rejeitada.",
       });
     }
 
-    console.error(error);
-    logger.error(error.message ?? "Erro interno do servidor", {
-      url: request.url,
+    logger.error("Erro interno do servidor", {
+      url: request.url.split("?")[0],
       method: request.method,
       statusCode: 500,
-      stack: error.stack,
       ip: request.ip,
     });
-    const msg = process.env.NODE_ENV !== "production"
-      ? (error.message ?? "Erro interno do servidor")
-      : "Erro interno do servidor";
-    reply.status(500).send({ message: msg });
+    reply.status(500).send({ message: "Erro interno do servidor" });
   });
 
   return app;

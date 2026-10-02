@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifySessionToken, type VerifiedSession } from "./lib/security/sessionToken";
 
 type JwtClaims = {
   exp?: number;
@@ -8,38 +9,6 @@ type JwtClaims = {
   tokenTipo?: string;
   tipoAcesso?: string;
 };
-
-// ---------------------------------------------------------------------------
-// JWT helpers (Edge Runtime — sem Node.js crypto)
-// ---------------------------------------------------------------------------
-function parseJwt(token: string): JwtClaims | null {
-  try {
-    const base64Url = token.split(".")[1];
-    if (!base64Url) return null;
-    let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const pad = base64.length % 4;
-    if (pad) {
-      if (pad === 1) return null;
-      base64 += new Array(5 - pad).join("=");
-    }
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join(""),
-    );
-    return JSON.parse(jsonPayload) as JwtClaims;
-  } catch {
-    return null;
-  }
-}
-
-function isTokenValid(token: string | undefined): boolean {
-  if (!token) return false;
-  const decoded = parseJwt(token);
-  if (!decoded || !decoded.exp) return false;
-  return decoded.exp * 1000 > Date.now();
-}
 
 function isAprendizToken(decoded: JwtClaims | null): boolean {
   return (
@@ -153,7 +122,7 @@ function buildCsp(nonce: string): string {
 // ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Gera um nonce único para esta requisição (disponível no Edge Runtime)
@@ -162,8 +131,8 @@ export function middleware(request: NextRequest) {
 
   // --- Lógica de autenticação ---
   const token = request.cookies.get("token")?.value;
-  const decodedToken = token ? parseJwt(token) : null;
-  const isValidToken = isTokenValid(token);
+  const decodedToken: VerifiedSession | null = await verifySessionToken(token, process.env.JWT_SECRET);
+  const isValidToken = decodedToken !== null;
   const isAuthRoute = pathname === "/login";
   const isPublicRoute = pathname.startsWith("/reset-password");
   const isNextInternal =
@@ -255,6 +224,8 @@ export function middleware(request: NextRequest) {
     // (lido no layout.tsx através de next/headers)
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-nonce", nonce);
+    // Next reads the request CSP to attach this nonce to its own bootstrap scripts.
+    requestHeaders.set("Content-Security-Policy", csp);
 
     response = NextResponse.next({
       request: { headers: requestHeaders },
@@ -263,6 +234,8 @@ export function middleware(request: NextRequest) {
 
   // Aplica o CSP em todas as respostas (inclusive redirects)
   response.headers.set("Content-Security-Policy", csp);
+  response.headers.set("Cache-Control", "private, no-store");
+  if (pathname === "/reset-password") response.headers.set("Referrer-Policy", "no-referrer");
 
   return response;
 }

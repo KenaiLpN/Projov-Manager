@@ -62,7 +62,7 @@ test("Proxy de login: resposta invalida nunca cria cookie de sessao", async () =
   const { POST } = await import("../src/app/api/auth/login/route");
   const { NextRequest } = await import("next/server");
   const originalFetch = globalThis.fetch;
-  const request = () => new NextRequest("https://example.invalid/api/auth/login", {method:"POST",body:JSON.stringify({UsuCodigo:"teste",senha:"teste",tipoAcesso:"USUARIO"})});
+  const request = () => new NextRequest("https://example.invalid/api/auth/login", {method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({UsuCodigo:"teste",senha:"teste",tipoAcesso:"USUARIO"})});
   try {
     for (const body of ["<html>erro</html>", "null", JSON.stringify({message:"OK",user:{}})]) {
       globalThis.fetch = async () => new Response(body, {status:200});

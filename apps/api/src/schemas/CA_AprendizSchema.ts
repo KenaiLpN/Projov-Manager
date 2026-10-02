@@ -266,10 +266,10 @@ export type UpdateOwnAprendizInput = z.infer<typeof updateOwnAprendizSchema>;
 
 export const listCaAprendizQuerySchema = z.object({
   page:            z.coerce.number().int().positive().default(1),
-  limit:           z.coerce.number().int().positive().default(10),
+  limit:           z.coerce.number().int().positive().max(1000).default(10),
   search:          z.string().optional(),
   filter:          z.string().optional(),
-  advancedFilter:  z.string().optional(),
+  advancedFilter:  z.string().max(10000).optional(),
 });
 
 export type ListCaAprendizQuery = z.infer<typeof listCaAprendizQuerySchema>;

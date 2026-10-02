@@ -54,9 +54,9 @@ export const listVagaResponseSchema = z.object({
 });
 
 export const listVagaQuerySchema = z.object({
-  page: z.coerce.number().default(1),
-  limit: z.coerce.number().default(10),
-  search: z.string().optional(),
+  page: z.coerce.number().int().positive().max(1000000).default(1),
+  limit: z.coerce.number().int().positive().max(1000).default(10),
+  search: z.string().max(500).optional(),
 });
 
 export type CreateVagaBody = z.infer<typeof createVagaBodySchema>;

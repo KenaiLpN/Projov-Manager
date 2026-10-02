@@ -1,3 +1,4 @@
+import { createPlanoCurricularBodySchema, updatePlanoCurricularBodySchema, planoCurricularParamsSchema, paginatedQuerySchema } from "../schemas/pedagogyWriteSchema";
 import { FastifyInstance, FastifyReply } from "fastify";
 import { PlanoCurricularService } from "../services/PlanoCurricularService";
 
@@ -5,7 +6,7 @@ const service = new PlanoCurricularService();
 
 export async function planoCurricularRoutes(app: FastifyInstance) {
   // GET /plano-curricular
-  app.get("/plano-curricular", async (request, reply: FastifyReply) => {
+  app.get("/plano-curricular", { schema: { querystring: paginatedQuerySchema } }, async (request, reply: FastifyReply) => {
     const { page, limit, search } = request.query as {
       page?: string;
       limit?: string;
@@ -25,7 +26,7 @@ export async function planoCurricularRoutes(app: FastifyInstance) {
   });
 
   // POST /plano-curricular
-  app.post("/plano-curricular", async (request, reply: FastifyReply) => {
+  app.post("/plano-curricular", { schema: { body: createPlanoCurricularBodySchema } }, async (request, reply: FastifyReply) => {
     const body = request.body as {
       PlcCodigoPlano: number;
       PlcDisciplina: number;
@@ -55,6 +56,7 @@ export async function planoCurricularRoutes(app: FastifyInstance) {
   // PUT /plano-curricular/:codigoPlano/:disciplina
   app.put(
     "/plano-curricular/:codigoPlano/:disciplina",
+    { schema: { params: planoCurricularParamsSchema, body: updatePlanoCurricularBodySchema } },
     async (request, reply: FastifyReply) => {
       const { codigoPlano, disciplina } = request.params as {
         codigoPlano: string;
@@ -86,6 +88,7 @@ export async function planoCurricularRoutes(app: FastifyInstance) {
   // DELETE /plano-curricular/:codigoPlano/:disciplina
   app.delete(
     "/plano-curricular/:codigoPlano/:disciplina",
+    { schema: { params: planoCurricularParamsSchema } },
     async (request, reply: FastifyReply) => {
       const { codigoPlano, disciplina } = request.params as {
         codigoPlano: string;

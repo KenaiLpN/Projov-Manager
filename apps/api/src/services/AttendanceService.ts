@@ -1,3 +1,4 @@
+import { BusinessError } from "../lib/businessError";
 import { prisma } from "../lib/prisma";
 
 export class AttendanceService {
@@ -228,7 +229,7 @@ export class AttendanceService {
       });
 
       if (!classInfo) {
-        throw new Error("Agendamento de aula não encontrado para esta turma/disciplina/data.");
+        throw new BusinessError("Agendamento de aula não encontrado para esta turma/disciplina/data.");
       }
 
       return await prisma.$transaction(async (tx) => {

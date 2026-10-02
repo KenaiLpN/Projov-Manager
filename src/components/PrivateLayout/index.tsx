@@ -1,7 +1,7 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Header } from "../header";
+import AppNavigation from "../navigation";
 import { getSessionUserRole } from "@/utils/roles";
 
 const EMPRESA_ALLOWED_PATHS = new Set([
@@ -87,16 +87,5 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
     return <>{children}</>;
   }
 
-  return (
-    <div className="flex flex-col h-screen w-full bg-gray-100">
-       <header className="flex-none h-20 z-50">
-            <Header />
-       </header>
-        <main className="flex-1 flex flex-col bg-gray-100 overflow-y-auto">
-           <div className="flex-1">
-              {children}
-           </div>
-        </main>
-    </div>
-  );
+  return <AppNavigation>{children}</AppNavigation>;
 }

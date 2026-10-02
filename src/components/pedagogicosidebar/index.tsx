@@ -1,4 +1,5 @@
 "use client";
+import { useGlobalNavigation } from "@/components/navigation/NavigationContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect } from "react";
@@ -155,6 +156,9 @@ function SidebarGroup({ items, depth = 0 }: { items: MenuItem[], depth?: number 
 }
 
 export function PedagogicoSidebar() {
+  const hasGlobalNavigation = useGlobalNavigation();
+  if (hasGlobalNavigation) return null;
+
   return (
     <div className="flex flex-col bg-[#0F306D] w-64 h-full overflow-y-auto overflow-x-hidden border-r border-[#123A83]/50">
       <div className="py-2">

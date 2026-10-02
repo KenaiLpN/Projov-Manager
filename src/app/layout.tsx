@@ -7,6 +7,8 @@ import { PrimeReactProvider } from "primereact/api";
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import { headers } from "next/headers";
+import InterfacePreferencesProvider from "@/components/InterfacePreferencesProvider";
+import { INTERFACE_PREFERENCES_BOOTSTRAP } from "@/utils/interfacePreferences";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,34 +38,24 @@ export default async function RootLayout({
           nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: `
-              (() => {
-                try {
-                  const storedTheme = localStorage.getItem("prosis-theme");
-                  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                  const theme = storedTheme || (prefersDark ? "dark" : "light");
-                  document.documentElement.classList.toggle("dark", theme === "dark");
-                  document.documentElement.style.colorScheme = theme;
-                } catch {
-                  document.documentElement.classList.remove("dark");
-                }
-              })();
-            `,
+            __html: INTERFACE_PREFERENCES_BOOTSTRAP,
           }}
         />
       </head>
       <body className={inter.className} suppressHydrationWarning={true}>
         <PrimeReactProvider>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: "#133c86",
-                color: "#fff",
-              },
-            }}
-          />
-          <PrivateLayout>{children}</PrivateLayout>
+          <InterfacePreferencesProvider>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: "#133c86",
+                  color: "#fff",
+                },
+              }}
+            />
+            <PrivateLayout>{children}</PrivateLayout>
+          </InterfacePreferencesProvider>
         </PrimeReactProvider>
       </body>
     </html>

@@ -1,0 +1,8 @@
+.trigger { position: relative; display: flex; width: 38px; height: 38px; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; transition: background-color 160ms; }
+.trigger:focus-visible { outline: 2px solid var(--prosis-focus); outline-offset: 3px; }
+.header { color: white; }
+.header:hover { background: #123a83; }
+.surface { color: var(--prosis-muted); }
+.surface:hover, .surface[aria-expanded="true"] { background: var(--prosis-surface-soft); color: var(--prosis-text); }
+.indicator { position: absolute; right: 7px; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--prosis-danger); box-shadow: 0 0 0 2px var(--prosis-surface); }
+@media (prefers-reduced-motion: reduce) { .trigger { transition: none; } }

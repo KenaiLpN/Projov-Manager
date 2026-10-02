@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -7,7 +7,9 @@ import { loginBodySchema, LoginBody } from "../schemas/userSchema";
 import { prisma } from "../lib/prisma";
 import { sendResetPasswordEmail } from "../services/mail";
 import { logger } from "../lib/logger";
-import { createHash, timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual, randomUUID } from "crypto";
+
+import { AccountAttemptLimiter } from "../lib/requestSecurity";
 
 const userService = new UserService();
 const isProduction = process.env.NODE_ENV === "production";
@@ -16,13 +18,20 @@ const COOKIE_OPTIONS = {
   path: "/",
   httpOnly: true,
   secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
-  partitioned: isProduction,
+  sameSite: "lax",
   signed: false,
 } as const;
 
 const DISABLED_USER_TYPE = "D";
 const PASSWORD_MIN_LENGTH = 12;
+const INVALID_CREDENTIALS = "Credenciais invalidas.";
+// Match the slow path for unknown/uninitialized accounts without using a real credential.
+const DUMMY_PASSWORD_HASH = "$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+const resetClaimsSchema = z.object({
+  purpose: z.literal("password-reset"), email: z.string().email().max(254),
+  tipoAcesso: z.enum(["USUARIO", "APRENDIZ", "EDUCADOR", "EMPRESA"]),
+  resetSubject: z.string().min(1).max(128), passwordFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+});
 
 const USER_TOKEN_TYPES: Record<string, string> = {
   A: "USUARIO_ADMINISTRADOR",
@@ -67,14 +76,14 @@ function logAuthRateLimit(request: any) {
   );
 }
 
-function authRateLimit(max: number) {
+function authRateLimit(max: number, timeWindow = "15 minutes") {
   return {
     max,
-    timeWindow: "15 minutes",
+    timeWindow,
     continueExceeding: true,
     errorResponseBuilder: (_request: unknown, context: { statusCode: number }) => ({
       statusCode: context.statusCode,
-      message: "Muitas tentativas. Tente novamente em 15 minutos.",
+      message: "Muitas tentativas. Tente novamente mais tarde.",
     }),
     onExceeded: (request: any) => logAuthRateLimit(request),
   };
@@ -86,20 +95,12 @@ function safeSecretMatch(value: string, expected: string) {
   return actual.length === target.length && timingSafeEqual(actual, target);
 }
 
-function isTrustedLoginProxy(request: any) {
-  if (!isProduction || !LOGIN_PROXY_SECRET) return true;
-
+function hasLoginProxySecret(request: FastifyRequest) {
+  if (!LOGIN_PROXY_SECRET) return false;
   const providedSecret = request.headers["x-prosis-login-secret"];
   return (
     typeof providedSecret === "string" &&
     safeSecretMatch(providedSecret, LOGIN_PROXY_SECRET)
-  );
-}
-
-function isPasswordResetAccessType(value: unknown): value is PasswordResetAccessType {
-  return (
-    typeof value === "string" &&
-    PASSWORD_RESET_ACCESS_TYPES.includes(value as PasswordResetAccessType)
   );
 }
 
@@ -240,93 +241,73 @@ async function findCurrentPasswordHash(params: {
 }
 
 async function updatePasswordResetTarget(params: {
-  email: string;
   tipoAcesso: PasswordResetAccessType;
-  resetSubject?: string;
+  resetSubject: string;
+  previousPasswordHash: string | null;
   hashedPassword: string;
 }) {
-  const { email, tipoAcesso, resetSubject, hashedPassword } = params;
-
+  const { tipoAcesso, resetSubject, previousPasswordHash, hashedPassword } = params;
   if (tipoAcesso === "USUARIO") {
-    const user = resetSubject
-      ? await (prisma as any).cA_Usuarios.findUnique({
-          where: { UsuCodigo: resetSubject },
-          select: { UsuCodigo: true },
-        })
-      : await (prisma as any).cA_Usuarios.findFirst({
-          where: { UsuEmail: email },
-          select: { UsuCodigo: true },
-        });
-    if (!user) return false;
-    await (prisma as any).cA_Usuarios.update({
-      where: { UsuCodigo: user.UsuCodigo },
-      data: { UsuSenha: hashedPassword },
+    if (previousPasswordHash === null) return false;
+    const result = await prisma.cA_Usuarios.updateMany({
+      where: { UsuCodigo: resetSubject, UsuSenha: previousPasswordHash }, data: { UsuSenha: hashedPassword },
     });
-    return true;
+    return result.count === 1;
   }
-
   if (tipoAcesso === "APRENDIZ") {
-    const aprendizCode = parsePositiveBigInt(resetSubject);
-    const aprendiz = aprendizCode
-      ? await prisma.cA_Aprendiz.findUnique({
-          where: { Apr_Codigo: aprendizCode },
-          select: { Apr_Codigo: true },
-        })
-      : await prisma.cA_Aprendiz.findFirst({
-          where: { Apr_Email: email },
-          select: { Apr_Codigo: true },
-        });
-    if (!aprendiz) return false;
-    await prisma.cA_Aprendiz.update({
-      where: { Apr_Codigo: aprendiz.Apr_Codigo },
-      data: { Apr_senha: hashedPassword },
+    const id = parsePositiveBigInt(resetSubject);
+    if (!id) return false;
+    const result = await prisma.cA_Aprendiz.updateMany({
+      where: { Apr_Codigo: id, Apr_senha: previousPasswordHash }, data: { Apr_senha: hashedPassword },
     });
-    return true;
+    return result.count === 1;
   }
-
   if (tipoAcesso === "EDUCADOR") {
-    const educadorCode = parsePositiveSafeInteger(resetSubject);
-    const educador = educadorCode
-      ? await prisma.cA_Educadores.findUnique({
-          where: { EducCodigo: educadorCode },
-          select: { EducCodigo: true },
-        })
-      : await prisma.cA_Educadores.findFirst({
-          where: { EducEMail: email },
-          select: { EducCodigo: true },
-        });
-    if (!educador) return false;
-    await prisma.cA_Educadores.update({
-      where: { EducCodigo: educador.EducCodigo },
-      data: { EducSenha: hashedPassword },
+    const id = parsePositiveSafeInteger(resetSubject);
+    if (!id) return false;
+    const result = await prisma.cA_Educadores.updateMany({
+      where: { EducCodigo: id, EducSenha: previousPasswordHash }, data: { EducSenha: hashedPassword },
     });
-    return true;
+    return result.count === 1;
   }
-
-  const empresaCode = parsePositiveSafeInteger(resetSubject);
-  const empresa = empresaCode
-    ? await prisma.cA_Parceiros.findUnique({
-        where: { ParCodigo: empresaCode },
-        select: { ParCodigo: true },
-      })
-    : await prisma.cA_Parceiros.findFirst({
-        where: { ParEmail: email },
-        select: { ParCodigo: true },
-      });
-  if (!empresa) return false;
-  await prisma.cA_Parceiros.update({
-    where: { ParCodigo: empresa.ParCodigo },
-    data: { ParSenha: hashedPassword },
+  const id = parsePositiveSafeInteger(resetSubject);
+  if (!id) return false;
+  const result = await prisma.cA_Parceiros.updateMany({
+    where: { ParCodigo: id, ParSenha: previousPasswordHash }, data: { ParSenha: hashedPassword },
   });
-  return true;
+  return result.count === 1;
 }
 
 export async function authRoutes(app: FastifyInstance) {
+  const accountLimiter = new AccountAttemptLimiter();
+  function limitAccount(request: FastifyRequest, reply: FastifyReply, identifier: string, max: number, windowMs: number) {
+    const body = request.body as { tipoAcesso?: string };
+    const scope = request.url.startsWith("/login") ? "login" : "recovery";
+    const normalizedIdentifier = scope === "login" && body.tipoAcesso !== "USUARIO"
+      ? identifier.replace(/\D/g, "") || identifier
+      : identifier;
+    const retryAfter = accountLimiter.consume(scope + ":" + (body.tipoAcesso ?? "USUARIO"), normalizedIdentifier, max, windowMs);
+    if (!retryAfter) return false;
+    reply.header("Retry-After", retryAfter).code(429).send({ message: "Muitas tentativas. Tente novamente mais tarde." });
+    return true;
+  }
+  async function rejectCredentials(senha: string, reply: FastifyReply) {
+    await bcrypt.compare(senha, DUMMY_PASSWORD_HASH);
+    return reply.status(401).send({ message: INVALID_CREDENTIALS });
+  }
+
   app.withTypeProvider<ZodTypeProvider>().post(
     "/login",
     {
       config: {
-        rateLimit: authRateLimit(5),
+        rateLimit: {
+          ...authRateLimit(5),
+          // The embedded Next transport has no verified client socket. Do not lock
+          // every user behind its loopback address after five total attempts.
+          keyGenerator: (request: FastifyRequest) => hasLoginProxySecret(request) ? "trusted-login-proxy" : request.ip,
+          max: (request: FastifyRequest) => hasLoginProxySecret(request) ? 300 : 5,
+          timeWindow: (request: FastifyRequest) => hasLoginProxySecret(request) ? 60_000 : 15 * 60_000,
+        },
       },
       schema: {
         tags: ["Autenticação"],
@@ -350,12 +331,17 @@ export async function authRoutes(app: FastifyInstance) {
           404: z.object({ message: z.string() }),
           429: z.object({ message: z.string() }),
           500: z.object({ message: z.string() }),
+          503: z.object({ message: z.string() }),
         },
       },
     },
     async (request, reply: FastifyReply) => {
       const { UsuCodigo, senha, tipoAcesso: loginAccessType } = request.body as LoginBody;
-      if (!isTrustedLoginProxy(request)) {
+      if (isProduction && !LOGIN_PROXY_SECRET) {
+        request.log.error({ event: "login_proxy_not_configured" }, "Configure LOGIN_PROXY_SECRET no ambiente do servidor");
+        return reply.status(503).send({ message: "Autenticacao temporariamente indisponivel." });
+      }
+      if (isProduction && !hasLoginProxySecret(request)) {
         request.log.warn(
           {
             event: "direct_login_rejected",
@@ -367,6 +353,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.status(404).send({ message: "Rota nao encontrada." });
       }
 
+      if (limitAccount(request, reply, UsuCodigo, 5, 15 * 60_000)) return;
       try {
         const loginIdentifier = UsuCodigo.trim();
         let codigoReal = "";
@@ -382,8 +369,7 @@ export async function authRoutes(app: FastifyInstance) {
         if (loginAccessType === "USUARIO") {
           const user = await userService.getUserByCode(loginIdentifier);
           if (!user || !user.UsuSenha) {
-            logger.auth.loginFailed(loginIdentifier, "Usuario nao encontrado", request.ip);
-            return reply.status(401).send({ message: "Credenciais invÃ¡lidas." });
+            return rejectCredentials(senha, reply);
           }
           codigoReal = user.UsuCodigo;
           nomeReal = user.UsuNome ?? "";
@@ -409,16 +395,10 @@ export async function authRoutes(app: FastifyInstance) {
             },
           });
           if (!aprendiz) {
-            logger.auth.loginFailed(loginIdentifier, "Aprendiz nao encontrado", request.ip);
-            return reply.status(401).send({ message: "Credenciais inválidas." });
+            return rejectCredentials(senha, reply);
           }
-          if (!aprendiz.Apr_senha) {
-            return reply.status(403).send({
-              message: "Primeiro acesso: Crie sua senha.",
-              code: "NEEDS_PASSWORD",
-            });
-          }
-          codigoReal = String(Number(aprendiz.Apr_Codigo));
+          if (!aprendiz.Apr_senha) return rejectCredentials(senha, reply);
+          codigoReal = String(aprendiz.Apr_Codigo);
           nomeReal = aprendiz.Apr_Nome ?? "";
           emailReal = aprendiz.Apr_Email ?? "";
           tipoParaToken = "APRENDIZ";
@@ -444,15 +424,9 @@ export async function authRoutes(app: FastifyInstance) {
             },
           });
           if (!educador) {
-            logger.auth.loginFailed(loginIdentifier, "Educador nao encontrado", request.ip);
-            return reply.status(401).send({ message: "Credenciais invalidas." });
+            return rejectCredentials(senha, reply);
           }
-          if (!educador.EducSenha) {
-            return reply.status(403).send({
-              message: "Primeiro acesso: Crie sua senha.",
-              code: "NEEDS_PASSWORD",
-            });
-          }
+          if (!educador.EducSenha) return rejectCredentials(senha, reply);
           codigoReal = String(educador.EducCodigo);
           nomeReal = educador.EducNome ?? "";
           emailReal = educador.EducEMail ?? "";
@@ -479,15 +453,9 @@ export async function authRoutes(app: FastifyInstance) {
             },
           });
           if (!empresa) {
-            logger.auth.loginFailed(loginIdentifier, "Empresa nao encontrada", request.ip);
-            return reply.status(401).send({ message: "Credenciais invalidas." });
+            return rejectCredentials(senha, reply);
           }
-          if (!empresa.ParSenha) {
-            return reply.status(403).send({
-              message: "Primeiro acesso: Crie sua senha.",
-              code: "NEEDS_PASSWORD",
-            });
-          }
+          if (!empresa.ParSenha) return rejectCredentials(senha, reply);
           codigoReal = String(empresa.ParCodigo);
           nomeReal = empresa.ParNomeFantasia ?? empresa.ParDescricao;
           emailReal = empresa.ParEmail ?? "";
@@ -502,7 +470,7 @@ export async function authRoutes(app: FastifyInstance) {
         if (!isPasswordValid) {
           return reply
             .status(401)
-            .send({ message: "Credenciais inválidas (Senha)." });
+            .send({ message: INVALID_CREDENTIALS });
         }
         if (usuarioDesligado) {
           logger.auth.loginFailed(
@@ -515,8 +483,10 @@ export async function authRoutes(app: FastifyInstance) {
             code: "USER_DISABLED",
           });
         }
+        accountLimiter.clear(`login:${loginAccessType}`, loginAccessType === "USUARIO" ? UsuCodigo : UsuCodigo.replace(/\D/g, "") || UsuCodigo);
         const token = app.jwt.sign(
           {
+            jti: randomUUID(),
             nome: nomeReal,
             role: tipoParaToken,
             tokenTipo,
@@ -544,7 +514,7 @@ export async function authRoutes(app: FastifyInstance) {
           },
         });
       } catch (error) {
-        console.error("Erro no login:", error);
+        request.log.error({ event: "login_failed" }, "Falha interna no login");
         return reply.status(500).send({ message: "Erro interno no servidor." });
       }
     },
@@ -569,141 +539,20 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.send({ message: "Logout efetuado com sucesso" });
     },
   );
+  for (const recoveryRoute of ["/forgot-password", "/primeiro-acesso"]) {
   app.withTypeProvider<ZodTypeProvider>().post(
-    "/primeiro-acesso",
+    recoveryRoute,
     {
       config: {
-        rateLimit: authRateLimit(5),
-      },
-      schema: {
-        tags: ["Autenticação"],
-        summary: "Cria a senha do Aprendiz no primeiro acesso",
-        body: z.object({
-          UsuCodigo: z.string(),
-          senha: z.string().min(PASSWORD_MIN_LENGTH),
-          tipoAcesso: z.enum(["APRENDIZ", "EDUCADOR", "EMPRESA"]).optional().default("APRENDIZ"),
-        }),
-        response: {
-          200: z.object({ message: z.string() }),
-          400: z.object({ message: z.string() }),
-          404: z.object({ message: z.string() }),
-          429: z.object({ message: z.string() }),
-          500: z.object({ message: z.string() }),
-        },
-      },
-    },
-    async (request, reply: FastifyReply) => {
-      const { UsuCodigo, senha, tipoAcesso } = request.body as {
-        UsuCodigo: string;
-        senha: string;
-        tipoAcesso: "APRENDIZ" | "EDUCADOR" | "EMPRESA";
-      };
-      try {
-        const accessIdentifier = UsuCodigo.trim();
-        const cpfWithoutMask = accessIdentifier.replace(/\D/g, "");
-        if (tipoAcesso === "EMPRESA") {
-          const numericIdentifier = Number(accessIdentifier);
-          const isEmpresaCode =
-            /^\d+$/.test(accessIdentifier) &&
-            Number.isSafeInteger(numericIdentifier) &&
-            numericIdentifier <= 2147483647;
-          const empresa = await prisma.cA_Parceiros.findFirst({
-            where: {
-              OR: [
-                { ParCNPJ: accessIdentifier },
-                ...(cpfWithoutMask && cpfWithoutMask !== accessIdentifier
-                  ? [{ ParCNPJ: cpfWithoutMask }]
-                  : []),
-                ...(isEmpresaCode ? [{ ParCodigo: numericIdentifier }] : []),
-              ],
-            },
-          });
-          if (!empresa) {
-            return reply.status(404).send({ message: "Empresa nao encontrada." });
-          }
-          if (empresa.ParSenha) {
-            return reply.status(400).send({ message: "Empresa ja possui uma senha criada." });
-          }
-          const hashedPassword = await bcrypt.hash(senha, 10);
-          await prisma.cA_Parceiros.update({
-            where: { ParCodigo: empresa.ParCodigo },
-            data: { ParSenha: hashedPassword },
-          });
-          return reply.send({ message: "Senha criada com sucesso. Faca o login agora." });
-        }
-        if (tipoAcesso === "EDUCADOR") {
-          const numericIdentifier = Number(accessIdentifier);
-          const isEducadorCode =
-            /^\d+$/.test(accessIdentifier) &&
-            Number.isSafeInteger(numericIdentifier) &&
-            numericIdentifier <= 2147483647;
-          const educador = await prisma.cA_Educadores.findFirst({
-            where: {
-              OR: [
-                { EducCPF: accessIdentifier },
-                ...(cpfWithoutMask && cpfWithoutMask !== accessIdentifier
-                  ? [{ EducCPF: cpfWithoutMask }]
-                  : []),
-                ...(isEducadorCode ? [{ EducCodigo: numericIdentifier }] : []),
-              ],
-            },
-          });
-          if (!educador) {
-            return reply.status(404).send({ message: "Educador nao encontrado." });
-          }
-          if (educador.EducSenha) {
-            return reply.status(400).send({ message: "Educador ja possui uma senha criada." });
-          }
-          const hashedPassword = await bcrypt.hash(senha, 10);
-          await prisma.cA_Educadores.update({
-            where: { EducCodigo: educador.EducCodigo },
-            data: { EducSenha: hashedPassword },
-          });
-          return reply.send({ message: "Senha criada com sucesso. Faca o login agora." });
-        }
-        const isAprendizCode = /^\d+$/.test(accessIdentifier);
-        const aprendiz = await prisma.cA_Aprendiz.findFirst({
-          where: {
-            OR: [
-              { Apr_CPF: accessIdentifier },
-              ...(cpfWithoutMask && cpfWithoutMask !== accessIdentifier
-                ? [{ Apr_CPF: cpfWithoutMask }]
-                : []),
-              ...(isAprendizCode ? [{ Apr_Codigo: BigInt(accessIdentifier) }] : [])
-            ]
-          }
-        });
-        if (!aprendiz) {
-          return reply.status(404).send({ message: "Aprendiz não encontrado." });
-        }
-        if (aprendiz.Apr_senha) {
-          return reply.status(400).send({ message: "Aprendiz já possui uma senha criada." });
-        }
-        const hashedPassword = await bcrypt.hash(senha, 10);
-        await prisma.cA_Aprendiz.update({
-          where: { Apr_Codigo: aprendiz.Apr_Codigo },
-          data: { Apr_senha: hashedPassword }
-        });
-        return reply.send({ message: "Senha criada com sucesso. Faça o login agora." });
-      } catch (error) {
-        console.error("Erro no primeiro-acesso:", error);
-        return reply.status(500).send({ message: "Erro interno no servidor." });
-      }
-    }
-  );
-  app.withTypeProvider<ZodTypeProvider>().post(
-    "/forgot-password",
-    {
-      config: {
-        rateLimit: authRateLimit(3),
+        rateLimit: authRateLimit(3, "1 hour"),
       },
       schema: {
         tags: ["Autenticação"],
         summary: "Solicitação de redefinição de senha",
         body: z.object({
-          email: z.string().trim().email("E-mail inválido"),
+          email: z.string().trim().email("E-mail inválido").max(254),
           tipoAcesso: z.enum(PASSWORD_RESET_ACCESS_TYPES).optional().default("USUARIO"),
-        }),
+        }).strict(),
         response: {
           200: z.object({ message: z.string() }),
           429: z.object({ message: z.string() }),
@@ -716,11 +565,14 @@ export async function authRoutes(app: FastifyInstance) {
         email: string;
         tipoAcesso: PasswordResetAccessType;
       };
+      if (limitAccount(request, reply, email, 3, 60 * 60_000)) return;
       try {
         const target = await findPasswordResetTarget(email, tipoAcesso);
         if (target) {
           const resetToken = app.jwt.sign(
             {
+              purpose: "password-reset",
+              jti: randomUUID(),
               email: target.email,
               tipoAcesso: target.tipoAcesso,
               resetSubject: target.resetSubject,
@@ -730,9 +582,6 @@ export async function authRoutes(app: FastifyInstance) {
           );
           const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
           const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
-          if (process.env.NODE_ENV !== "production") {
-            console.log("Reset link gerado (dev only): " + resetLink);
-          }
           try {
             await sendResetPasswordEmail(target.email, resetLink);
           } catch (mailError) {
@@ -740,7 +589,6 @@ export async function authRoutes(app: FastifyInstance) {
               {
                 event: "password_reset_email_failed",
                 tipoAcesso,
-                error: mailError instanceof Error ? mailError.message : String(mailError),
               },
               "Falha ao enviar e-mail de recuperação",
             );
@@ -754,15 +602,14 @@ export async function authRoutes(app: FastifyInstance) {
           {
             event: "forgot_password_failed",
             tipoAcesso,
-            error: error instanceof Error ? error.message : String(error),
           },
           "Erro no forgot-password",
         );
-        console.error("Erro no forgot-password:", error);
         return reply.status(500).send({ message: "Erro interno no servidor." });
       }
     }
   );
+  }
   app.withTypeProvider<ZodTypeProvider>().post(
     "/reset-password",
     {
@@ -773,9 +620,9 @@ export async function authRoutes(app: FastifyInstance) {
         tags: ["Autenticação"],
         summary: "Criar uma nova senha usando um token de recuperação",
         body: z.object({
-          token: z.string(),
-          newPassword: z.string().min(PASSWORD_MIN_LENGTH, "A senha deve ter no minimo 12 caracteres."),
-        }),
+          token: z.string().min(1).max(4096),
+          newPassword: z.string().min(PASSWORD_MIN_LENGTH, "A senha deve ter no minimo 12 caracteres.").max(72).refine((value) => Buffer.byteLength(value, "utf8") <= 72, "A senha deve ter no maximo 72 bytes."),
+        }).strict(),
         response: {
           200: z.object({ message: z.string() }),
           400: z.object({ message: z.string() }),
@@ -787,16 +634,8 @@ export async function authRoutes(app: FastifyInstance) {
     async (request, reply: FastifyReply) => {
       const { token, newPassword } = request.body as { token: string; newPassword: string };
       try {
-        const decoded = app.jwt.verify<{
-          email: string;
-          tipoAcesso?: PasswordResetAccessType;
-          resetSubject?: string;
-          passwordFingerprint?: string;
-        }>(token);
-        const email = decoded.email;
-        const tipoAcesso = isPasswordResetAccessType(decoded.tipoAcesso)
-          ? decoded.tipoAcesso
-          : "USUARIO";
+        const decoded = resetClaimsSchema.parse(app.jwt.verify(token));
+        const { email, tipoAcesso } = decoded;
         const currentPasswordHash = await findCurrentPasswordHash({
           email,
           tipoAcesso,
@@ -810,40 +649,18 @@ export async function authRoutes(app: FastifyInstance) {
         }
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         const updated = await updatePasswordResetTarget({
-          email,
           tipoAcesso,
           resetSubject: decoded.resetSubject,
+          previousPasswordHash: currentPasswordHash,
           hashedPassword,
         });
         if (!updated) {
-          return reply.status(404).send({ message: "Registro não encontrado." });
+          return reply.status(400).send({ message: "Token invalido ou ja utilizado." });
         }
         return reply.send({ message: "Senha alterada com sucesso." });
       } catch (error) {
-        console.error("Erro no reset-password:", error);
         return reply.status(400).send({ message: "Token inválido ou expirado." });
       }
     }
   );
-  if (process.env.NODE_ENV !== "production") {
-    app.get("/debug/user-tipo", async (request: any, reply: FastifyReply) => {
-      const { codigo } = request.query as { codigo?: string };
-      if (!codigo) {
-        return reply
-          .status(400)
-          .send({ message: "Parâmetro 'codigo' obrigatório." });
-      }
-      const user = await userService.getUserByCode(codigo);
-      if (!user) {
-        return reply.status(404).send({ message: "Usuário não encontrado." });
-      }
-      return reply.send({
-        UsuCodigo: user.UsuCodigo,
-        UsuTipo_raw: user.UsuTipo,
-        UsuTipo_length: user.UsuTipo?.length ?? null,
-        UsuTipo_json: JSON.stringify(user.UsuTipo),
-        UsuNome: user.UsuNome,
-      });
-    });
-  }
 }

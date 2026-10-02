@@ -104,6 +104,9 @@ test("Next standalone serves the site and API without a second server or databas
     DATABASE_URL: "mysql://deployment_test:dummy@127.0.0.1:1/deployment_test",
     JWT_SECRET: jwtSecret, COOKIE_SECRET: randomBytes(32).toString("hex"),
     LOGIN_PROXY_SECRET: randomBytes(32).toString("hex"), BLOCKED_IPS: blockedIp,
+    // The test client deliberately emulates a verified local reverse proxy.
+    // Default-deny proxy behavior is covered separately by test:security.
+    TRUSTED_PROXY_CIDRS: "127.0.0.1,::1",
     DOTENV_CONFIG_PATH: path.join(directory, "deliberately-absent.env"),
   });
   child = spawn(process.execPath, [path.join(directory, "server.js")], {
@@ -193,21 +196,37 @@ test("Next standalone serves the site and API without a second server or databas
     }), 415);
   });
 
-  await t.test("both login paths preserve CSRF protection and blocked client IPs", async () => {
+  await t.test("both login paths reject CSRF; raw proxy honors only configured IP trust", async () => {
     for (const route of ["/api/proxy/login", "/api/auth/login"]) {
       await assertStatus(await jsonPost(route, "203.0.113.20", {
         origin: "https://untrusted.example", "sec-fetch-site": "cross-site",
       }), 403);
-      await assertStatus(await jsonPost(route, blockedIp), 403);
+      await assertStatus(await jsonPost(route, blockedIp), route === "/api/proxy/login" ? 403 : 400);
     }
   });
 
-  await t.test("rate limiting is shared across login paths and isolated by client IP", async () => {
+  await t.test("direct-login limiter applies per verified IP; embedded login avoids a five-user global lockout", async () => {
     for (let attempt = 0; attempt < 6; attempt++) {
-      const route = attempt % 2 ? "/api/auth/login" : "/api/proxy/login";
-      await assertStatus(await jsonPost(route, "203.0.113.30"), attempt < 5 ? 400 : 429);
+      await assertStatus(await jsonPost("/api/proxy/login", "203.0.113.30"), attempt < 5 ? 400 : 429);
     }
-    await assertStatus(await jsonPost("/api/auth/login", "203.0.113.31"), 400);
+    for (let attempt = 0; attempt < 6; attempt++) await assertStatus(await jsonPost("/api/auth/login", "203.0.113.31"), 400);
+    await assertStatus(await request("/api/auth/login", {
+      method: "POST", headers: { "content-type": "application/json" }, body: '{"UsuCodigo":"one","UsuCodigo":"two"}',
+    }), 400);
+  });
+
+  await t.test("middleware verifies signatures at runtime and serves CSP nonces without browser source maps", async () => {
+    const unsigned = Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url") + "." +
+      Buffer.from(JSON.stringify({ sub: "x", role: "A", exp: Math.floor(Date.now() / 1000) + 60 })).toString("base64url") + ".fake";
+    await assertStatus(await request("/home", { headers: { cookie: `token=${unsigned}` } }), 307);
+    const response = await request("/home", { headers: { cookie: `token=${signSession(jwtSecret)}` } });
+    const body = await assertStatus(response, 200);
+    const policy = response.headers.get("content-security-policy");
+    assert.match(policy, /script-src[^;]*'nonce-/);
+    assert.doesNotMatch(policy, /unsafe-eval/);
+    assert.match(body, /<script[^>]*nonce=/);
+    assert.match(response.headers.get("cache-control"), /no-store/);
+    assert.equal(response.headers.get("x-powered-by"), null);
   });
 
   await t.test("session cookies reach JWT verification and logout preserves Set-Cookie", async () => {

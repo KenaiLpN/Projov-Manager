@@ -3,8 +3,8 @@ import { z } from "zod";
 export const loginAccessTypeSchema = z.enum(["USUARIO", "APRENDIZ", "EDUCADOR", "EMPRESA"]);
 
 export const loginBodySchema = z.object({
-  UsuCodigo: z.string().trim().min(1, "O código do usuário é obrigatório"),
-  senha: z.string().optional().default(""),
+  UsuCodigo: z.string().trim().min(1, "O código do usuário é obrigatório").max(128),
+  senha: z.string().max(1024).optional().default(""),
   tipoAcesso: loginAccessTypeSchema.optional().default("USUARIO"),
 }).strict();
 export type LoginBody = z.infer<typeof loginBodySchema>;

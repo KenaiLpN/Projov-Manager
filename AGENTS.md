@@ -46,7 +46,11 @@ Most pages follow a consistent pattern:
 
 ### Navigation
 
-`src/components/header/index.tsx` renders a hierarchical nav (3+ levels deep) with animated expand/collapse, active route highlighting, and role-aware items. Each major section also has its own sidebar component (`cadsidebar`, `empsidebar`, `pedagogicosidebar`, `acessosidebar`).
+`src/components/navigation/index.tsx` renders the authenticated app shell: collapsible sidebar, searchable mega-menu, mobile drawer and account footer. `navigation.ts` is the central role-aware route catalog; `header/index.tsx` contains only the toolbar and breadcrumbs. `PrivateLayout` mounts the shell outside public pages and the independent `/chamados` screens. Legacy section sidebars return null under `NavigationContext` to avoid duplicate navigation. Use `npm run test:navigation` to validate destinations and role visibility. Sidebar state persists in `prosis-sidebar-collapsed`; theme still uses `prosis-theme`.
+
+### Interface preferences
+
+`/configuracoes` manages appearance, navigation and ticket sounds. `InterfacePreferencesProvider` and `useInterfacePreferences` are the single source for theme (`light`, `dark`, `system`), sidebar collapse and reduced motion. Keep the nonce-protected bootstrap in sync with `src/utils/interfacePreferences.ts`; do not write theme storage directly from pages. Ticket pages keep their palettes but consume the shared theme. `useChamadoNotificationPreferences` manages only browser settings and must not poll; `useChamadoNotifications` adds polling in the ticket module. These preferences are browser-local, not per-account server settings. Run `npm run test:settings` for migration, validation and storage-failure coverage.
 
 ### Key Libraries
 

@@ -1,5 +1,19 @@
 # Contexto atual do ProSis
 
+## Configurações pessoais em 01/10/2026
+
+A página `/configuracoes` contém as abas Aparência, Navegação e Notificações (esta última para A/P/T/DEV). Oferece tema claro/escuro/automático, redução de animações, sidebar expandida/recolhida e sons/volumes/prévias por abertura, mensagem e resolução de chamados. As alterações têm efeito imediato, persistem neste navegador e sincronizam entre abas; `Restaurar padrões` redefine apenas estas preferências e preserva a sessão. Não há sincronização por conta no backend.
+
+`InterfacePreferencesProvider` centraliza o tema para o shell, conta e ambas as páginas de chamados, preservando suas paletas. `useChamadoNotificationPreferences` reutiliza a chave legada e migra o formato antigo de som único, sem iniciar polling na página de configurações. `enabled` continua controlando apenas sons; o fluxo de avisos visuais e permissões de acesso permanece existente. Falhas de armazenamento mantêm as alterações na sessão e exibem feedback na página.
+
+Validação: 12 testes em `npm run test:settings`, TypeScript e ESLint passaram. Testes de interface com dados simulados cobriram preferências legadas, tema do sistema e manual, sidebar/conta, redução de movimentos, sons/volume/prévia, sincronização entre abas, recarga, restauração preservando sessão, teclado, mobile, visibilidade por perfil e armazenamento bloqueado. Nenhuma publicação ou alteração de dados de negócio nesta entrega.
+
+## Navegação lateral em 01/10/2026
+
+O layout autenticado agora utiliza a sidebar global em `src/components/navigation`, com marca ProSis, busca por páginas (Ctrl/Cmd+K, tolerante a acentos), modo recolhido com ícones, mega-menu animado com Framer Motion e drawer no celular. O rodapé reúne conta, tema e saída; o header apresenta o caminho da página e notificações. A preferência de recolhimento é salva localmente. Rotas e visibilidade por perfil ficam centralizadas em `navigation.ts`; middleware e autorização da API não foram alterados. As seis barras antigas deixam de aparecer sob `NavigationContext`. O módulo de chamados mantém seu layout próprio.
+
+Validação local: 14 testes de navegação/perfis, TypeScript e ESLint dos arquivos alterados passaram. Testes de interface em Chrome com sessão/dados simulados verificaram desktop, modo recolhido persistente, mega-menu, busca, Escape/foco, Ctrl+K, tema, troca de página e drawer mobile, sem erros de JavaScript. A compilação TypeScript da API e `npm run build:web` concluíram em cópia isolada, com 84 páginas geradas. O ambiente Windows impediu regenerar o Prisma com a DLL em uso e avisou sobre um symlink das dependências da cópia; o build web encerrou com código zero usando o cliente Prisma existente. Não houve escrita no banco nem publicação desta alteração; o pacote não foi homologado em produção nesta revisão.
+
 ## Deploy atual: preset Next.js em 01/10/2026
 
 O responsável voltou o hPanel para Next.js e o site abriu, mas a API separada deixou de iniciar. A nova integração inclui o Fastify no processo do Next, sem `listen()` próprio, processo filho ou porta 3333 em produção. O build instala a API pelo lock, compila a API antes do Next e produz `.next/standalone` com dependências, Prisma e assets. `npm start` executa o servidor standalone. Configuração: preset Next.js, branch `main`, Node `22.x`, raiz `./`, build `npm run build`, saída `.next`.

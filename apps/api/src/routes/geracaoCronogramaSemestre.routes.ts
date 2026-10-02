@@ -1,3 +1,4 @@
+import { BusinessError } from "../lib/businessError";
 import { FastifyInstance, FastifyReply } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
@@ -35,7 +36,7 @@ export async function geracaoCronogramaSemestreRoutes(app: FastifyInstance) {
         const result = await service.list(query);
         return reply.status(200).send(result);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Erro ao pesquisar cronograma turma/semestre.";
+        const message = error instanceof BusinessError ? error.message : "Erro ao pesquisar cronograma turma/semestre.";
         return reply.status(500).send({ message });
       }
     },
@@ -61,8 +62,8 @@ export async function geracaoCronogramaSemestreRoutes(app: FastifyInstance) {
         });
         return reply.status(201).send(result);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Erro ao gerar cronograma turma/semestre.";
-        return reply.status(400).send({ message });
+        const message = error instanceof BusinessError ? error.message : "Erro ao gerar cronograma turma/semestre.";
+        return reply.status(error instanceof BusinessError ? error.statusCode : 500).send({ message });
       }
     },
   );

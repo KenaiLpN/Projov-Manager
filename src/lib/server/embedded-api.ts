@@ -12,7 +12,7 @@ type EmbeddedApi = {
     url: string;
     headers: Record<string, string>;
     payload: string;
-  }): Promise<{ statusCode: number; body: string }>;
+  }): Promise<{ statusCode: number; body: string; headers: Record<string, unknown> }>;
 };
 
 const runtime = globalThis as typeof globalThis & {
@@ -44,7 +44,7 @@ export function getEmbeddedApi(): Promise<EmbeddedApi> {
 }
 
 export async function sendLoginToApi(
-  body: unknown,
+  body: string,
   headers: Record<string, string>,
 ): Promise<Response> {
   if (process.env.NODE_ENV === "production") {
@@ -52,14 +52,16 @@ export async function sendLoginToApi(
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const result = await Promise.race([
-        app.inject({ method: "POST", url: "/login", headers, payload: JSON.stringify(body) }),
+        app.inject({ method: "POST", url: "/login", headers, payload: body }),
         new Promise<never>((_, reject) => {
           timer = setTimeout(() => reject(new DOMException("Login timeout", "TimeoutError")), 15000);
         }),
       ]);
+      const responseHeaders = new Headers({ "Content-Type": "application/json" });
+      if (result.headers["retry-after"] != null) responseHeaders.set("Retry-After", String(result.headers["retry-after"]));
       return new Response(result.body, {
         status: result.statusCode,
-        headers: { "Content-Type": "application/json" },
+        headers: responseHeaders,
       });
     } finally {
       clearTimeout(timer);
@@ -69,7 +71,7 @@ export async function sendLoginToApi(
   const apiPort = process.env.API_PORT?.trim() || "3333";
   const backendUrl = process.env.INTERNAL_API_URL?.trim() || `http://127.0.0.1:${apiPort}`;
   return fetch(`${backendUrl}/login`, {
-    method: "POST", headers, body: JSON.stringify(body),
+    method: "POST", headers, body,
     signal: AbortSignal.timeout(15000),
   });
 }

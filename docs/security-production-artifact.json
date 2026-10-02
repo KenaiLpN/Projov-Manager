@@ -1,0 +1,88 @@
+{
+  "createdAt": "2026-10-02T02:21:31.173Z",
+  "secretSources": [
+    ".env",
+    "apps/api/.env"
+  ],
+  "secretNamesChecked": [
+    "COOKIE_SECRET",
+    "DATABASE_URL",
+    "DB_PASSWORD",
+    "JWT_SECRET",
+    "LOGIN_PROXY_SECRET",
+    "SMTP_PASS"
+  ],
+  "scopes": {
+    "current-source": 436,
+    "public": 5,
+    "local-next-static": 100,
+    "production-artifact": 590
+  },
+  "findings": [
+    {
+      "scope": "current-source",
+      "path": "tests/security-auth.test.ts",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/security-authorization.test.ts",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/security-exposure-scan.test.mjs",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/security-route-coverage.test.ts",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "apps/api/.env.example",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/next-api-deployment.test.mjs",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    }
+  ],
+  "errors": [],
+  "inlineSourceMaps": {
+    "current-source": 2,
+    "local-next-static": 64
+  },
+  "limitations": [
+    "Exact matches cover current local secret values plus URL/JSON/base64 forms; unknown old or transformed secrets require independent review.",
+    "No authenticated business data is requested. Pattern findings require manual review; test credentials may be fixtures."
+  ],
+  "localSourceMaps": [],
+  "localBuildType": "development-or-incomplete",
+  "artifact": {
+    "root": "C:\\Users\\leona\\OneDrive\\Documentos\\ChatGPT\\ProSis\\.maintenance-stage\\security-build-20261001\\.next\\standalone",
+    "environmentFiles": [],
+    "sourceMaps": [],
+    "productionBuild": true
+  }
+}

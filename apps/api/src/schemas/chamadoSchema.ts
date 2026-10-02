@@ -11,7 +11,7 @@ export const chamadoDepartamentos = [
 export const chamadoUrgencias = ["minima", "media", "maxima"] as const;
 
 export const chamadoParamsSchema = z.object({
-  id: z.string().regex(/^\d+$/, "Número de chamado inválido."),
+  id: z.string().max(19).regex(/^\d+$/, "Número de chamado inválido."),
 });
 
 export const chamadoListQuerySchema = z.object({
@@ -20,7 +20,7 @@ export const chamadoListQuerySchema = z.object({
 });
 
 export const chamadoNotificationQuerySchema = z.object({
-  after: z.string().regex(/^\d+$/, "Cursor de notificação inválido.").optional(),
+  after: z.string().max(19).regex(/^\d+$/, "Cursor de notificação inválido.").optional(),
 });
 
 export const chamadoCreateBodySchema = z.object({

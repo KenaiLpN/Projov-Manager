@@ -1,8 +1,10 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { Bell, UserPlus, Clock } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import api from "@/services/api";
+import styles from "./notifications.module.css";
 interface Notification {
   id: string;
   title: string;
@@ -17,11 +19,14 @@ type RecentRegistration = {
   DataUltimaInteracao?: string;
 };
 
-export function NotificationsMenu() {
+export function NotificationsMenu({ variant = "header" }: { variant?: "header" | "surface" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+  const pathname = usePathname();
   const lastFetchRef = useRef<number>(0);
   const fetchRecentRegistrations = async () => {
     setLoading(true);
@@ -59,27 +64,46 @@ export function NotificationsMenu() {
     fetchRecentRegistrations();
   }, [isOpen]);
   useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    if (!isOpen) return;
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
   return (
     <div className="relative" ref={menuRef}>
       <button
+        ref={triggerRef}
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-[#123a83] transition-colors duration-200 outline-none focus:ring-2 focus:ring-gray-500/10 text-white"
+        aria-label="Notificações de cadastros"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? menuId : undefined}
+        className={`${styles.trigger} ${variant === "surface" ? styles.surface : styles.header}`}
       >
-        <Bell size={20} />
+        <Bell size={20} aria-hidden="true" />
         {notifications.length > 0 && (
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border-2 border-[#34495E]"></span>
+          <span className={styles.indicator} aria-hidden="true"></span>
         )}
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
+        <div id={menuId} role="region" aria-label="Notificações recentes" className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
             <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
               Notificações
