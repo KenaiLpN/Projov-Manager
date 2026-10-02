@@ -1,0 +1,13 @@
+{
+  "firstAccessEmailOnly": true,
+  "passwordMinimumEnforced": true,
+  "reflectedMarkerExecuted": false,
+  "csp": {
+    "inlineBlocked": true,
+    "evalBlocked": true
+  },
+  "validSignedSession": true,
+  "forgedSessionRedirected": true,
+  "pageErrors": [],
+  "realDatabaseOrSmtpUsed": false
+}
