@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CircleCheckBig,
   Clock3,
   Inbox,
+  House,
   LoaderCircle,
   LogOut,
   MessageCircleMore,
@@ -303,6 +305,15 @@ export default function ChamadosPortalPage() {
             >
               {isDark ? <Sun size={18} strokeWidth={1.8} /> : <Moon size={18} strokeWidth={1.8} />}
             </button>
+            <Link
+              href="/home"
+              aria-label="Voltar ao ProSis"
+              title="Voltar ao ProSis"
+              className={`flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition-colors ${styles.button}`}
+            >
+              <House size={17} />
+              <span className="hidden sm:inline">ProSis</span>
+            </Link>
             <button
               type="button"
               onClick={handleLogout}
