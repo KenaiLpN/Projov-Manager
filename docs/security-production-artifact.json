@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-10-02T02:21:31.173Z",
+  "createdAt": "2026-10-02T16:45:28.930Z",
   "secretSources": [
     ".env",
     "apps/api/.env"
@@ -13,12 +13,28 @@
     "SMTP_PASS"
   ],
   "scopes": {
-    "current-source": 436,
+    "current-source": 440,
     "public": 5,
-    "local-next-static": 100,
+    "local-next-static": 109,
     "production-artifact": 590
   },
   "findings": [
+    {
+      "scope": "current-source",
+      "path": "apps/api/.env.example",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/next-api-deployment.test.mjs",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
     {
       "scope": "current-source",
       "path": "tests/security-auth.test.ts",
@@ -50,28 +66,12 @@
       "patterns": [
         "credential-url-review"
       ]
-    },
-    {
-      "scope": "current-source",
-      "path": "apps/api/.env.example",
-      "secretNames": [],
-      "patterns": [
-        "credential-url-review"
-      ]
-    },
-    {
-      "scope": "current-source",
-      "path": "tests/next-api-deployment.test.mjs",
-      "secretNames": [],
-      "patterns": [
-        "credential-url-review"
-      ]
     }
   ],
   "errors": [],
   "inlineSourceMaps": {
     "current-source": 2,
-    "local-next-static": 64
+    "local-next-static": 70
   },
   "limitations": [
     "Exact matches cover current local secret values plus URL/JSON/base64 forms; unknown old or transformed secrets require independent review.",

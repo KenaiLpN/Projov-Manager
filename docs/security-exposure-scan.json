@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-10-02T02:17:38.691Z",
+  "createdAt": "2026-10-02T16:34:31.160Z",
   "secretSources": [
     ".env",
     "apps/api/.env"
@@ -13,13 +13,29 @@
     "SMTP_PASS"
   ],
   "scopes": {
-    "current-source": 435,
+    "current-source": 440,
     "public": 5,
-    "local-next-static": 85,
-    "git-history": 1428,
-    "http-public": 14
+    "local-next-static": 109,
+    "git-history": 1532,
+    "http-public": 15
   },
   "findings": [
+    {
+      "scope": "current-source",
+      "path": "apps/api/.env.example",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "current-source",
+      "path": "tests/next-api-deployment.test.mjs",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
     {
       "scope": "current-source",
       "path": "tests/security-auth.test.ts",
@@ -53,16 +69,48 @@
       ]
     },
     {
-      "scope": "current-source",
-      "path": "apps/api/.env.example",
+      "scope": "git-history",
+      "path": "apps/api/.env.example (blob 63268021962d)",
       "secretNames": [],
       "patterns": [
         "credential-url-review"
       ]
     },
     {
-      "scope": "current-source",
-      "path": "tests/next-api-deployment.test.mjs",
+      "scope": "git-history",
+      "path": "tests/next-api-deployment.test.mjs (blob 33558c219ae0)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "tests/security-auth.test.ts (blob 6a0a5cd93773)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "tests/security-authorization.test.ts (blob 0765b842f931)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "tests/security-exposure-scan.test.mjs (blob 6b3e8514be97)",
+      "secretNames": [],
+      "patterns": [
+        "credential-url-review"
+      ]
+    },
+    {
+      "scope": "git-history",
+      "path": "tests/security-route-coverage.test.ts (blob 33ae67288e01)",
       "secretNames": [],
       "patterns": [
         "credential-url-review"
@@ -104,7 +152,8 @@
   "errors": [],
   "inlineSourceMaps": {
     "current-source": 2,
-    "local-next-static": 54
+    "local-next-static": 70,
+    "git-history": 2
   },
   "limitations": [
     "Exact matches cover current local secret values plus URL/JSON/base64 forms; unknown old or transformed secrets require independent review.",

@@ -192,71 +192,11 @@ export const CalendarioForm = React.memo(function CalendarioForm({
   useEffect(() => {
     if (!isTurmaMode) return;
 
-    const addToCounts = (
-      counts: Record<string, Set<number | string>>,
-      alocacoes: AlocacaoResumo[],
-      fallbackAprendiz?: number | string,
-    ) => {
-      alocacoes.forEach((alocacao) => {
-        if (!alocacao.ALATurma) return;
-        const turmaKey = String(alocacao.ALATurma);
-        const aprendizKey = alocacao.ALAAprendiz ?? fallbackAprendiz ?? `${turmaKey}-${Math.random()}`;
-        if (!counts[turmaKey]) counts[turmaKey] = new Set();
-        counts[turmaKey].add(aprendizKey);
-      });
-    };
-
     const loadCounts = async () => {
       setLoadingTurmaCounts(true);
       try {
-        const counts: Record<string, Set<number | string>> = {};
-        let loaded = false;
-
-        for (const endpoint of ["/ca-aprendiz/alocacoes?limit=10000", "/alocacoes?limit=10000"]) {
-          try {
-            const res = await api.get(endpoint);
-            const lista = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
-            if (Array.isArray(lista)) {
-              addToCounts(counts, lista);
-              loaded = true;
-              break;
-            }
-          } catch {}
-        }
-
-        if (!loaded) {
-          const aprendizes: CA_Aprendiz[] = [];
-          let page = 1;
-          let totalPages = 1;
-          do {
-            const aprendizesRes = await api.get(`/ca-aprendiz?limit=1000&page=${page}`);
-            const batch = Array.isArray(aprendizesRes.data) ? aprendizesRes.data : (aprendizesRes.data?.data ?? []);
-            aprendizes.push(...batch);
-            totalPages = Number(aprendizesRes.data?.meta?.totalPages) || 1;
-            page++;
-          } while (page <= totalPages);
-          const ids: number[] = aprendizes
-            .map((a: CA_Aprendiz) => a.Apr_Codigo)
-            .filter((id: number | null | undefined): id is number => id != null);
-
-          for (let i = 0; i < ids.length; i += 20) {
-            const chunk = ids.slice(i, i + 20);
-            const results = await Promise.allSettled(
-              chunk.map((id) => api.get(`/ca-aprendiz/${id}/alocacoes`).then((res) => ({ id, data: res.data }))),
-            );
-            results.forEach((result) => {
-              if (result.status !== "fulfilled") return;
-              const lista = Array.isArray(result.value.data) ? result.value.data : [];
-              addToCounts(counts, lista, result.value.id);
-            });
-          }
-        }
-
-        setTurmaCounts(
-          Object.fromEntries(
-            Object.entries(counts).map(([turmaId, aprendizes]) => [turmaId, aprendizes.size]),
-          ),
-        );
+        const response = await api.get<Array<{ turmaId: number; total: number }>>("/alocacoes/contagem-por-turma");
+        setTurmaCounts(Object.fromEntries(response.data.map(({ turmaId, total }) => [String(turmaId), total])));
       } catch {
         setTurmaCounts({});
       } finally {

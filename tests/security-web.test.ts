@@ -51,6 +51,9 @@ test("browser mutations reject forged origins, cross-site and invalid origins", 
   assert.equal(isTrustedBrowserMutation(make({ origin: "null" })), false);
   assert.equal(isTrustedBrowserMutation(make({ "sec-fetch-site": "cross-site" })), false);
   assert.equal(isTrustedBrowserMutation(make({ referer: "https://evil.invalid/x" })), false);
+  const behindProxy = new Request("http://127.0.0.1:3000/api/auth/login", { method: "POST", headers: { origin: "https://prosis.digital" } });
+  assert.equal(isTrustedBrowserMutation(behindProxy, "https://prosis.digital"), true);
+  assert.equal(isTrustedBrowserMutation(behindProxy, "https://another.invalid"), false);
 });
 
 test("login streaming body limit cannot be bypassed by absent content-length", async () => {

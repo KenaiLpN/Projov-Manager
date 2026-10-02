@@ -34,6 +34,15 @@ function serialize(a: any) {
 }
 
 export class CA_AlocacaoService {
+  async getContagemPorTurma() {
+    // Aggregate in the database: the calendar needs counts, not every student's records.
+    const rows = await prisma.$queryRaw<Array<{ turmaId: number; total: bigint }>>`
+      SELECT ALATurma AS turmaId, COUNT(DISTINCT ALAAprendiz) AS total
+      FROM CA_AlocacaoAprendiz GROUP BY ALATurma
+    `;
+    return rows.map((row) => ({ turmaId: Number(row.turmaId), total: Number(row.total) }));
+  }
+
   async getFiltrosAtivos() {
     const [cursos, turmas] = await Promise.all([
       prisma.cA_Cursos.findMany({

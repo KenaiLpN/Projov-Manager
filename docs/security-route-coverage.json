@@ -1,6 +1,6 @@
 {
   "scope": "Registered business routes: anonymous requests, real Fastify hooks, database disabled",
-  "checked": 334,
+  "checked": 336,
   "results": [
     {
       "method": "POST",
@@ -1145,6 +1145,16 @@
     {
       "method": "DELETE",
       "route": "/aprendiz/rascunho",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "route": "/alocacoes/contagem-por-turma",
+      "status": 401
+    },
+    {
+      "method": "HEAD",
+      "route": "/alocacoes/contagem-por-turma",
       "status": 401
     },
     {

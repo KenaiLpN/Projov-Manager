@@ -1,6 +1,6 @@
 # Deploy do ProSis na Hostinger
 
-Atualizado em 01/10/2026. O responsável restaurou o preset **Next.js**: o site abriu, mas o inicializador da API separada deixou de ser executado. A integração atual incorpora o Fastify ao processo do Next para funcionar com esse preset.
+Atualizado em 02/10/2026. O responsável restaurou o preset **Next.js**: o site abriu, mas o inicializador da API separada deixou de ser executado. A integração atual incorpora o Fastify ao processo do Next para funcionar com esse preset.
 
 ## Configuração do hPanel
 
@@ -49,12 +49,20 @@ Os `.env` locais são ignorados pelo Git. O pós-build remove do standalone apen
 
 ## Verificação
 
+### Requisitos da revisão de segurança de 02/10/2026
+
+- `JWT_SECRET` deve estar disponível em runtime para Next/middleware e Fastify; não use prefixo `NEXT_PUBLIC_`. A ausência ou divergência impede abrir páginas autenticadas. `LOGIN_PROXY_SECRET` ausente agora faz o login de produção retornar 503, sem impedir o healthcheck.
+- `FRONTEND_URL=https://prosis.digital` identifica a origem pública para validação de login/logout atrás do proxy. Primeiro acesso passa pelo e-mail; confira SMTP e cadastros antes da publicação.
+- `TRUSTED_PROXY_CIDRS` vazio não confia em X-Forwarded-For. Configure somente endereços/redes confirmados da infraestrutura. Não copie redes genéricas ou habilite confiança irrestrita. Valide limites com usuários simultâneos atrás de NAT/proxy; recuperação tem limite por IP e conta.
+- A resposta pública examinada apresentou somente `Content-Security-Policy: upgrade-insecure-requests` com `server: hcdn`. Investigue a substituição desse cabeçalho no CDN/proxy e preserve a CSP gerada pela aplicação. Ela contém nonce variável por resposta; nunca configure um nonce fixo no painel. Após publicar, confirme que `script-src` inclui nonce e que `unsafe-eval` está ausente.
+- Há correções finais desta revisão ainda locais. Commits surgidos durante a execução foram preservados, e o reteste público já rejeita o token falso também na página protegida. O assistente não executou publicação. Testes com segredos sintéticos e banco desabilitado não substituem homologação real de login, e-mail, permissões e dados em staging. Consulte [o relatório](AUDITORIA_SEGURANCA_2026-10-02.md) antes de aprovar produção; revogação de sessões ainda está pendente.
+
 1. Conferir no build a instalação pelo lock, geração do Prisma, compilação da API e mensagem `[build] Standalone preparado com site, API e Prisma.`.
 2. Após publicar, abrir `/login` e `/api/proxy/health`; este deve responder 200 com `{"status":"API Online"}`.
 3. Testar login com uma conta válida, criação do cookie HTTP-only e carregamento de listagens.
 4. Em falha, coletar status e código sanitizado dos logs de login/proxy. A página abrir não prova que banco e segredos estão configurados corretamente.
 
-A verificação local é `npm run build` seguida de `npm run test:deploy`, que executa o standalone isolado do repositório, e dos testes de regressão pertinentes. **Build e testes locais da integração de 01/10/2026 ainda estão pendentes; deploy e login real também precisam de homologação.** Testes com banco fictício não confirmam autenticação no banco real.
+A verificação local é `npm run build` seguida de `npm run test:deploy`, que executa o standalone isolado do repositório, e dos testes de regressão pertinentes. **Em 02/10, o build completo e os nove cenários da integração standalone passaram em cópia física isolada, no Windows com Node 24.21.0.** O navegador também validou sessão assinada e bloqueio de sessão adulterada. Ainda é necessária homologação no Node 22.x/Linux da hospedagem, incluindo login/e-mail e banco real. Testes com banco fictício não confirmam autenticação no banco real.
 
 ## Histórico: preset Other e API separada
 

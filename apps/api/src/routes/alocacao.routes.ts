@@ -8,6 +8,12 @@ const service = new CA_AlocacaoService();
 
 export async function alocacaoRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
+    "/alocacoes/contagem-por-turma",
+    { schema: { tags: ["Alocacao"], response: { 200: z.array(z.object({ turmaId: z.number(), total: z.number() })) } }, preHandler: [app.authenticate] },
+    async (_request, reply) => reply.send(await service.getContagemPorTurma()),
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().get(
     "/alocacoes/filtros-ativos",
     { schema: { tags: ["Alocacao"] }, preHandler: [app.authenticate] },
     async (_request, reply: FastifyReply) => {

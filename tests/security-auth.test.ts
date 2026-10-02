@@ -220,8 +220,10 @@ test("CSRF, internal error disclosure and generic request flooding are blocked",
   const app = await fixture();
   try {
     for (const headers of [{ origin: "https://attacker.invalid" }, { "sec-fetch-site": "cross-site" }, { referer: "https://attacker.invalid/page" }]) {
-      const result = await app.inject({ method: "POST", url: "/logout", headers, cookies: { token: signedToken("HS256") } });
-      assert.equal(result.statusCode, 403);
+      for (const url of ["/logout", "/login"]) {
+        const result = await app.inject({ method: "POST", url, headers, cookies: { token: signedToken("HS256") } });
+        assert.equal(result.statusCode, 403, `${url}: CSRF denial must serialize correctly`);
+      }
     }
     const failure = await app.inject({ url: "/_failure", cookies: { token: signedToken("HS256") } });
     assert.equal(failure.statusCode, 500); assert.doesNotMatch(failure.body, /INTERNAL_SECRET_CANARY/);

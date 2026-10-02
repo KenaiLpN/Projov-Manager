@@ -4,6 +4,8 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 Read `docs/CONTEXTO_PROSIS.md` first for the current product scope, monorepo setup, login flow and verified limitations (updated 2026-10-01). API-specific guidance is in `apps/api/AGENTS.md`. Hostinger via GitHub uses the Next.js preset; see `docs/hostinger-deploy.md`. Older Other/custom-server instructions and Railway notes are historical.
 
+Security baseline (2026-10-02): read `docs/AUDITORIA_SEGURANCA_2026-10-02.md`. Run `npm run test:security` after changing authentication, authorization or request parsing. Tests use synthetic credentials and mocked database/email; never substitute real data. First access requires an email reset link. Middleware verifies HS256 using server-only `JWT_SECRET`; Next and API must share it. Production login requires `LOGIN_PROXY_SECRET`. Proxy trust is deny-by-default and must be configured from verified infrastructure. The audit does not establish server-side session revocation or complete internal RBAC.
+
 ## Commands
 
 ```bash

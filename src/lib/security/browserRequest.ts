@@ -1,10 +1,13 @@
-export function isTrustedBrowserMutation(request: Request): boolean {
+export function isTrustedBrowserMutation(request: Request, publicOrigin = process.env.FRONTEND_URL): boolean {
   const site = request.headers.get("sec-fetch-site");
   if (site === "cross-site") return false;
   const source = request.headers.get("origin") || request.headers.get("referer");
   if (!source) return !site || site === "same-origin" || site === "none";
   try {
-    return new URL(source).origin === new URL(request.url).origin;
+    const origin = new URL(source).origin;
+    // Hosting proxies may expose an internal URL to Next. FRONTEND_URL is an
+    // explicit operator-controlled origin, never a forwarded header from a client.
+    return origin === new URL(request.url).origin || Boolean(publicOrigin && origin === new URL(publicOrigin).origin);
   } catch {
     return false;
   }

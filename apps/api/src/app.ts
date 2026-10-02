@@ -407,6 +407,7 @@ export function createApp() {
         /^\/ca-aprendiz\/\d+$/.test(path) ||
         /^\/ca-aprendiz\/\d+\/(?:alocacoes|capacitacoes)$/.test(path) ||
         path === "/alocacoes/filtros-ativos" ||
+        path === "/alocacoes/contagem-por-turma" ||
         /^\/alocacoes\/(?:aprendizes|alunos)-por-turma\/[^/]+$/.test(path)
       )
     ) {

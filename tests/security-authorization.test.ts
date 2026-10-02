@@ -214,6 +214,19 @@ test("Allocation and attendance allowlists discard forged owner/audit columns", 
   assert.equal(Object.hasOwn(attendance.registros[0], "usuario"), false);
 });
 
+test("Calendar allocation counts return only aggregate totals in a single query", async (t) => {
+  let queries = 0;
+  dbMock(t, fakePrisma, "$queryRaw", async () => {
+    queries++;
+    return [{ turmaId: 1, total: BigInt(25) }, { turmaId: 2, total: BigInt(0) }];
+  });
+  const app = await appFor(t, modules.alocacoes.alocacaoRoutes);
+  const result = await app.inject({ method: "GET", url: "/alocacoes/contagem-por-turma" });
+  assert.equal(result.statusCode, 200);
+  assert.deepEqual(result.json(), [{ turmaId: 1, total: 25 }, { turmaId: 2, total: 0 }]);
+  assert.equal(queries, 1);
+});
+
 test("Unbounded and malformed pagination requests are rejected before database access", async (t) => {
   for (const [plugin, endpoint] of [[modules.aprendizes.caAprendizRoutes, "/ca-aprendiz"], [modules.planos.planoRoutes, "/planos"], [modules.curricular.planoCurricularRoutes, "/plano-curricular"]]) {
     const app = await appFor(t, plugin);

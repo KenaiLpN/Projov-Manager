@@ -327,7 +327,7 @@ export async function authRoutes(app: FastifyInstance) {
             }),
           }),
           401: z.object({ message: z.string() }),
-          403: z.object({ message: z.string(), code: z.string() }),
+          403: z.object({ message: z.string(), code: z.string().optional() }),
           404: z.object({ message: z.string() }),
           429: z.object({ message: z.string() }),
           500: z.object({ message: z.string() }),
