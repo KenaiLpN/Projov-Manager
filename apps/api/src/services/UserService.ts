@@ -53,8 +53,18 @@ export class UserService {
       }),
       (prisma as any).cA_Usuarios.count({ where }),
     ]);
+    let assignments: any[] = [];
+    try {
+      assignments = await (prisma as any).accessUserProfile.findMany({
+        where: { userCode: { in: users.map((user: any) => user.UsuCodigo) } },
+        include: { profile: { select: { id: true, code: true, name: true, active: true } } },
+      });
+    } catch (error: any) {
+      if (!["P2021", "P2022"].includes(error?.code)) throw error;
+    }
+    const assignmentByUser = new Map(assignments.map((assignment) => [assignment.userCode, assignment.profile]));
     return {
-      data: users,
+      data: users.map((user: any) => ({ ...user, AccessProfile: assignmentByUser.get(user.UsuCodigo) ?? null })),
       meta: {
         page,
         limit,

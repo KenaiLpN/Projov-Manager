@@ -12,6 +12,8 @@ import {
 import cookie from "@fastify/cookie";
 import { userRoutes } from "./routes/user.routes";
 import { authRoutes } from "./routes/auth.routes";
+import { accessProfileRoutes } from "./routes/accessProfile.routes";
+import { authorizeMappedPermission } from "./lib/authorization";
 import { unityRoutes } from "./routes/unity.routes";
 import { instituicaoRoutes } from "./routes/instituicao.routes";
 import { situacaoParticipanteRoutes } from "./routes/situacaoParticipante.routes";
@@ -492,8 +494,14 @@ export function createApp() {
     }
   });
 
+  // Perfis personalizados complementam as regras de propriedade dos acessos
+  // externos. Rotas ainda não catalogadas mantêm o comportamento legado durante
+  // a migração; toda rota catalogada é negada quando o perfil não a autoriza.
+  app.addHook("preHandler", authorizeMappedPermission);
+
   app.register(userRoutes);
   app.register(authRoutes);
+  app.register(accessProfileRoutes);
   app.register(unityRoutes);
   app.register(instituicaoRoutes);
   app.register(situacaoParticipanteRoutes);

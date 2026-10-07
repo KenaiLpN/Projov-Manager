@@ -9,6 +9,7 @@ import "primereact/resources/primereact.min.css";
 import { headers } from "next/headers";
 import InterfacePreferencesProvider from "@/components/InterfacePreferencesProvider";
 import { INTERFACE_PREFERENCES_BOOTSTRAP } from "@/utils/interfacePreferences";
+import AccessPermissionsProvider from "@/components/AccessPermissionsProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,16 +46,18 @@ export default async function RootLayout({
       <body className={inter.className} suppressHydrationWarning={true}>
         <PrimeReactProvider>
           <InterfacePreferencesProvider>
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                style: {
-                  background: "#133c86",
-                  color: "#fff",
-                },
-              }}
-            />
-            <PrivateLayout>{children}</PrivateLayout>
+            <AccessPermissionsProvider>
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: "#133c86",
+                    color: "#fff",
+                  },
+                }}
+              />
+              <PrivateLayout>{children}</PrivateLayout>
+            </AccessPermissionsProvider>
           </InterfacePreferencesProvider>
         </PrimeReactProvider>
       </body>

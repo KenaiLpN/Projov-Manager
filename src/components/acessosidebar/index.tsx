@@ -5,8 +5,8 @@ import React from "react";
 import { useGlobalNavigation } from "@/components/navigation/NavigationContext";
 
 const navItems = [
-  { name: "Cadastro de Funções", href: "/acessos/funcoes" },
-  { name: "Designar Funções", href: "/acessos/designar" },
+  { name: "Perfis e Permissões", href: "/acessos/perfis" },
+  { name: "Designar Perfis", href: "/acessos/designar" },
 ];
 
 export function AcessoSidebar() {

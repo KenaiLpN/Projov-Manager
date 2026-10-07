@@ -1,197 +1,90 @@
 "use client";
-import { validateArray } from "@/utils/apiResponse";
-/* eslint-disable react-hooks/exhaustive-deps -- buscas paginadas legadas usam botao/Enter para search */
-import { useState, useEffect } from "react";
-import { AcessoSidebar } from "@/components/acessosidebar";
-import api from "@/services/api";
-import { toast } from "react-hot-toast";
-import Pagination from "@/components/pagination";
 
-interface Usuario {
+import { useCallback, useEffect, useState } from "react";
+import { Search, UserCog } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { accessProfileService } from "@/services/accessProfileService";
+import { useAccessPermissions } from "@/components/AccessPermissionsProvider";
+
+type User = {
   UsuCodigo: string;
-  UsuNome: string;
-  UsuEmail: string;
-  UsuTipo: string;
+  UsuNome: string | null;
+  UsuEmail: string | null;
+  UsuTipo: string | null;
   chk_ativo: boolean;
+  AccessProfile?: { id: number; code: string; name: string; active: boolean } | null;
+};
+
+type AssignableProfile = { id: number; code: string; name: string; active: boolean };
+
+function errorMessage(error: unknown) {
+  return (error as { response?: { data?: { message?: string } } }).response?.data?.message ?? "Não foi possível atualizar o perfil.";
 }
 
-export default function DesignarFuncoesPage() {
-  const [lista, setLista] = useState<Usuario[]>([]);
+export default function DesignarPerfisPage() {
+  const { can } = useAccessPermissions();
+  const canEdit = can("acessos.designacoes", "edit");
+  const [users, setUsers] = useState<User[]>([]);
+  const [profiles, setProfiles] = useState<AssignableProfile[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState("");
-  const [updating, setUpdating] = useState<string | null>(null);
 
-  const commonRoles = [
-    "Administrador",
-    "Coordenador",
-    "Monitor",
-    "Orientador",
-    "Secretaria",
-    "Financeiro",
-    "Pedagógico",
-    "Empresa",
-    "Aprendiz"
-  ];
-
-  const fetchData = async (p: number, s: string = search) => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const resp = await api.get(`/users?page=${p}&limit=10&search=${s}`);
-      setLista(validateArray(resp.data.data));
-      setTotalPages(resp.data.meta.totalPages);
-      setError(null);
-    } catch (err) {
-      console.error(err);
-      setError("Falha ao carregar usuários.");
+      const [userResponse, profileResponse] = await Promise.all([
+        accessProfileService.assignableUsers({ page, limit: 20, search: search || undefined }),
+        accessProfileService.assignableProfiles(),
+      ]);
+      setUsers(userResponse.data);
+      setTotalPages(Number(userResponse.meta.totalPages) || 1);
+      setProfiles(profileResponse.filter((profile) => profile.active));
+    } catch {
+      toast.error("Não foi possível carregar usuários e perfis.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search]);
 
-  useEffect(() => {
-    fetchData(page);
-  }, [page]);
+  useEffect(() => { void load(); }, [load]);
 
-  const handleSearch = () => {
-    setPage(1);
-    fetchData(1, search);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSearch();
-  };
-
-  const handleClearSearch = () => {
-    setSearch("");
-    setPage(1);
-    fetchData(1, "");
-  };
-
-  const handleRoleChange = async (usuCodigo: string, nextRole: string) => {
-    setUpdating(usuCodigo);
+  async function assign(user: User, profileId: number) {
+    setUpdating(user.UsuCodigo);
     try {
-      await api.put(`/users/${usuCodigo}`, { UsuTipo: nextRole });
-      toast.success("Cargo atualizado com sucesso!");
-      setLista(prev => prev.map(u => u.UsuCodigo === usuCodigo ? { ...u, UsuTipo: nextRole } : u));
-    } catch {
-      toast.error("Erro ao atualizar o cargo.");
+      await accessProfileService.assign(user.UsuCodigo, profileId);
+      const profile = profiles.find((entry) => entry.id === profileId);
+      setUsers((current) => current.map((entry) => entry.UsuCodigo === user.UsuCodigo
+        ? { ...entry, AccessProfile: profile ? { id: profile.id, code: profile.code, name: profile.name, active: profile.active } : null }
+        : entry));
+      toast.success("Perfil designado com sucesso.");
+    } catch (error) {
+      toast.error(errorMessage(error));
     } finally {
       setUpdating(null);
     }
-  };
+  }
 
   return (
-    <div className="flex flex-row h-full w-full">
-      <aside>
-        <AcessoSidebar />
-      </aside>
-
-      <div className="flex flex-col w-full h-full">
-        <div className="flex bg-[#bacce6] p-2 h-20 m-5 rounded justify-between items-center">
-          <div className="flex items-center gap-2 ml-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar usuário por nome, e-mail ou código..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="p-2 pr-10 w-80 rounded bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#133c86]"
-              />
-              {search && (
-                <button
-                  onClick={handleClearSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  title="Limpar pesquisa"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-[#133c86] text-white font-semibold rounded hover:bg-[#0f2e6b] transition-colors cursor-pointer"
-            >
-              Pesquisar
-            </button>
+    <main className="min-h-full bg-[var(--prosis-bg)] p-4 text-[var(--prosis-text)] md:p-8">
+      <section className="mx-auto max-w-6xl overflow-hidden rounded-3xl border border-[var(--prosis-border)] bg-[var(--prosis-surface)] shadow-sm">
+        <header className="flex flex-col gap-5 border-b border-[var(--prosis-border)] p-6 md:flex-row md:items-center md:justify-between md:p-8">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--prosis-surface-soft)] text-[var(--prosis-brand)]"><UserCog size={28} /></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--prosis-brand)]">Configurações</p><h1 className="mt-1 text-2xl font-semibold text-[var(--prosis-text)]">Designar Perfis</h1><p className="mt-1 text-[var(--prosis-muted)]">Associe cada usuário interno a um perfil de acesso.</p></div>
           </div>
-          <div className="flex items-center gap-2 mr-6 text-[#133c86] font-bold">
-             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-             </svg>
-             <span>Designar Funções</span>
-          </div>
+          <form onSubmit={(event) => { event.preventDefault(); setPage(1); void load(); }} className="relative w-full md:max-w-sm"><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--prosis-muted)]" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar nome, e-mail ou código" className="w-full rounded-xl border border-[var(--prosis-border)] bg-[var(--prosis-surface)] py-2.5 pl-10 pr-4 text-[var(--prosis-text)] outline-none placeholder:text-[var(--prosis-muted)] focus:border-[var(--prosis-focus)] focus:ring-2 focus:ring-blue-500/20" /></form>
+        </header>
+        <div className="overflow-x-auto">
+          <table className="min-w-[760px] w-full text-left">
+            <thead className="bg-[var(--prosis-surface-soft)] text-xs uppercase tracking-wide text-[var(--prosis-muted)]"><tr><th className="px-6 py-4">Usuário</th><th className="px-6 py-4">E-mail</th><th className="px-6 py-4">Status</th><th className="px-6 py-4">Perfil de acesso</th></tr></thead>
+            <tbody className="divide-y divide-[var(--prosis-table-divider)]">{loading ? <tr><td colSpan={4} className="px-6 py-12 text-center text-[var(--prosis-muted)]">Carregando...</td></tr> : users.length === 0 ? <tr><td colSpan={4} className="px-6 py-12 text-center text-[var(--prosis-muted)]">Nenhum usuário encontrado.</td></tr> : users.map((user) => <tr key={user.UsuCodigo} className="hover:bg-[var(--prosis-surface-soft)]"><td className="px-6 py-4"><div className="font-semibold text-[var(--prosis-text)]">{user.UsuNome || "Sem nome"}</div><div className="text-xs text-[var(--prosis-muted)]">{user.UsuCodigo} · função anterior {user.UsuTipo || "não definida"}</div></td><td className="px-6 py-4 text-sm text-[var(--prosis-text)]">{user.UsuEmail || "—"}</td><td className="px-6 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${user.chk_ativo ? "bg-[var(--prosis-success-soft)] text-[var(--prosis-success)]" : "bg-[var(--prosis-surface-soft)] text-[var(--prosis-muted)]"}`}>{user.chk_ativo ? "Ativo" : "Inativo"}</span></td><td className="px-6 py-4"><select aria-label={`Perfil de ${user.UsuNome || user.UsuCodigo}`} disabled={!canEdit || updating === user.UsuCodigo} value={user.AccessProfile?.id ?? ""} onChange={(event) => void assign(user, Number(event.target.value))} className="w-full min-w-56 rounded-xl border border-[var(--prosis-border)] bg-[var(--prosis-surface)] px-3 py-2 text-[var(--prosis-text)] disabled:cursor-not-allowed disabled:opacity-60"><option value="" disabled>Usando função anterior</option>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></td></tr>)}</tbody>
+          </table>
         </div>
-
-        <div className="flex-1 overflow-auto">
-          <div className="p-5">
-            <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
-              <thead className="bg-[#133c86] text-white text-left">
-                <tr>
-                  <th className="px-6 py-3 font-semibold text-sm uppercase">Cód. / Nome</th>
-                  <th className="px-6 py-3 font-semibold text-sm uppercase">E-mail</th>
-                  <th className="px-6 py-3 font-semibold text-sm uppercase">Status</th>
-                  <th className="px-6 py-3 font-semibold text-sm uppercase text-center w-64">Designação de Cargo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
-                  <tr><td colSpan={4} className="px-6 py-4 text-center">Carregando...</td></tr>
-                ) : error ? (
-                  <tr><td colSpan={4} className="px-6 py-4 text-center text-red-500">{error}</td></tr>
-                ) : lista.length === 0 ? (
-                  <tr><td colSpan={4} className="px-6 py-4 text-center">Nenhum usuário encontrado.</td></tr>
-                ) : (
-                  lista.map((u) => (
-                    <tr key={u.UsuCodigo} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-gray-800 uppercase">{u.UsuNome}</span>
-                          <span className="text-[10px] text-blue-800 font-mono">#{u.UsuCodigo}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{u.UsuEmail || "-"}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${u.chk_ativo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {u.chk_ativo ? 'Ativo' : 'Bloqueado'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={u.UsuTipo || ""}
-                            onChange={(e) => handleRoleChange(u.UsuCodigo, e.target.value)}
-                            disabled={updating === u.UsuCodigo}
-                            className="p-2 w-full rounded border border-gray-300 focus:ring-2 focus:ring-[#133c86] outline-none text-sm font-semibold uppercase disabled:opacity-50"
-                          >
-                            <option value="" disabled>Selecione um Cargo</option>
-                            {commonRoles.map(role => (
-                              <option key={role} value={role}>{role}</option>
-                            ))}
-                          </select>
-                          {updating === u.UsuCodigo && (
-                            <div className="w-5 h-5 border-2 border-[#133c86]/20 border-t-[#133c86] rounded-full animate-spin shrink-0" />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-4">
-            {!loading && !error && (
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+        <footer className="flex items-center justify-between border-t border-[var(--prosis-border)] p-5"><span className="text-sm text-[var(--prosis-muted)]">Página {page} de {totalPages}</span><div className="flex gap-2"><button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="rounded-lg border border-[var(--prosis-border)] px-4 py-2 text-[var(--prosis-text)] hover:bg-[var(--prosis-surface-soft)] disabled:opacity-40">Anterior</button><button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-[var(--prosis-border)] px-4 py-2 text-[var(--prosis-text)] hover:bg-[var(--prosis-surface-soft)] disabled:opacity-40">Próxima</button></div></footer>
+      </section>
+    </main>
   );
 }

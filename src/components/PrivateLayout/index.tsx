@@ -3,6 +3,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import AppNavigation from "../navigation";
 import { getSessionUserRole } from "@/utils/roles";
+import { useAccessPermissions } from "@/components/AccessPermissionsProvider";
+import { permissionKeyForPath } from "@/utils/accessPermissions";
 
 const EMPRESA_ALLOWED_PATHS = new Set([
   "/empresa/perfil",
@@ -14,9 +16,6 @@ const EMPRESA_ALLOWED_PATHS = new Set([
   "/empresa/contagem-faltas",
   "/empresa/avaliacoes-realizadas",
 ]);
-
-const CHAMADOS_ALLOWED_ROLES = new Set(["A", "P", "T", "DEV"]);
-const CHAMADOS_TECHNICAL_ROLES = new Set(["T", "DEV"]);
 
 function isEducadorAllowedPath(pathname: string): boolean {
   return (
@@ -34,6 +33,7 @@ function isEducadorAllowedPath(pathname: string): boolean {
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "";
   const router = useRouter();
+  const { can, loading: permissionsLoading } = useAccessPermissions();
 
   useEffect(() => {
     const publicRoutes = ["/login", "/cadastro", "/recuperar-senha", "/reset-password"];
@@ -50,12 +50,12 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
       const role = getSessionUserRole(userObj);
 
       if (pathname.startsWith("/chamados")) {
-        if (!CHAMADOS_ALLOWED_ROLES.has(role)) {
-          router.push("/login");
-          return;
+        if (!permissionsLoading) {
+          const permission = pathname.startsWith("/chamados/admin") ? "chamados.admin" : "chamados.portal";
+          if (!can(permission, "view")) router.replace("/acesso-negado");
         }
-        if (pathname.startsWith("/chamados/admin") && !CHAMADOS_TECHNICAL_ROLES.has(role)) {
-          router.push("/chamados/portal");
+        if (["APRENDIZ", "EDUCADOR", "EMPRESA"].includes(role)) {
+          router.replace("/login");
           return;
         }
         return;
@@ -70,13 +70,16 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
         router.push("/aprendizes");
       } else if (userObj.UsuTipo === "EMPRESA" && !EMPRESA_ALLOWED_PATHS.has(pathname)) {
         router.push("/empresa/perfil");
+      } else if (!permissionsLoading && pathname !== "/acesso-negado") {
+        const permission = permissionKeyForPath(pathname);
+        if (permission && !can(permission, "view")) router.replace("/acesso-negado");
       }
     } catch (e) {
       // Dado corrompido — limpa o cache local; o middleware redirecionará se o cookie também expirou
       console.error("Cache de sessão inválido, limpando localStorage:", e);
       localStorage.removeItem("projov_user");
     }
-  }, [pathname, router]);
+  }, [can, pathname, permissionsLoading, router]);
 
   const isPublicPage = pathname === "/login" || pathname === "/cadastro" || pathname === "/reset-password";
   if (isPublicPage) {

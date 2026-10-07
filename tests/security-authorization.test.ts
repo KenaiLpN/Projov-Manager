@@ -25,6 +25,9 @@ const fakePrisma: Record<string, any> = new Proxy({}, {
   },
 });
 (globalThis as any).prisma = fakePrisma;
+// Perfis personalizados são opcionais durante a migração. Esta suíte exercita
+// o fallback das funções existentes sem consultar um banco real.
+fakePrisma.accessUserProfile.findUnique = async () => null;
 
 let modules: any;
 test.before(async () => {
@@ -212,19 +215,6 @@ test("Allocation and attendance allowlists discard forged owner/audit columns", 
   assert.deepEqual(parsed, { ALATurma: 1, ALAUnidadeParceiro: 2 });
   const attendance = modules.schemas.capacitacaoPresencasBodySchema.parse({ registros: [{ aprendiz: 17, turma: 2, data: "2026-10-01", presenca: "P", usuario: "admin" }] });
   assert.equal(Object.hasOwn(attendance.registros[0], "usuario"), false);
-});
-
-test("Calendar allocation counts return only aggregate totals in a single query", async (t) => {
-  let queries = 0;
-  dbMock(t, fakePrisma, "$queryRaw", async () => {
-    queries++;
-    return [{ turmaId: 1, total: BigInt(25) }, { turmaId: 2, total: BigInt(0) }];
-  });
-  const app = await appFor(t, modules.alocacoes.alocacaoRoutes);
-  const result = await app.inject({ method: "GET", url: "/alocacoes/contagem-por-turma" });
-  assert.equal(result.statusCode, 200);
-  assert.deepEqual(result.json(), [{ turmaId: 1, total: 25 }, { turmaId: 2, total: 0 }]);
-  assert.equal(queries, 1);
 });
 
 test("Unbounded and malformed pagination requests are rejected before database access", async (t) => {

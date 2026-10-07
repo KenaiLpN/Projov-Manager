@@ -17,6 +17,7 @@ export type ChamadoUser = {
   sub: string;
   nome?: string;
   role?: string;
+  permissions?: string[];
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -44,7 +45,10 @@ function normalizeRole(role?: string) {
 }
 
 export function canManageChamados(user: ChamadoUser) {
-  return ["T", "DEV"].includes(normalizeRole(user.role));
+  return (
+    ["T", "DEV"].includes(normalizeRole(user.role)) ||
+    user.permissions?.includes("chamados.admin:edit") === true
+  );
 }
 
 function roleLabel(role?: string) {

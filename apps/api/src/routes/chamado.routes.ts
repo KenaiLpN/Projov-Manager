@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { authorizeRoles } from "../lib/authorization";
+import { authorizePermission } from "../lib/authorization";
 import {
   ChamadoCreateBody,
   ChamadoListQuery,
@@ -32,6 +32,7 @@ function authenticatedUser(request: FastifyRequest): ChamadoUser {
     sub: String(user.sub),
     nome: user.nome,
     role: user.role,
+    permissions: user.permissions,
   };
 }
 
@@ -49,7 +50,7 @@ function handleError(error: unknown, reply: FastifyReply, fallback: string) {
 }
 
 export async function chamadoRoutes(app: FastifyInstance) {
-  app.addHook("preHandler", authorizeRoles(["A", "P", "T", "DEV"]));
+  app.addHook("preHandler", authorizePermission("chamados.portal", "view"));
   const routes = app.withTypeProvider<ZodTypeProvider>();
 
   routes.get(

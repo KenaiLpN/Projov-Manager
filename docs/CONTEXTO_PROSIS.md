@@ -1,17 +1,5 @@
 # Contexto atual do ProSis
 
-## Segurança em 02/10/2026
-
-Revisão técnica e ataques controlados em código local: ver [relatório completo](AUDITORIA_SEGURANCA_2026-10-02.md). Primeiro acesso agora exige e-mail cadastrado e token de recuperação; o fluxo antigo CPF/código + senha foi removido. Novas senhas de recuperação exigem 12 caracteres e respeitam o limite de bytes do bcrypt. Reset usa propósito explícito e escrita condicional para impedir replay concorrente. Tokens antigos de recuperação sem propósito precisam ser solicitados novamente.
-
-JWT HS256 é verificado tanto na API quanto no middleware. O Next precisa do mesmo `JWT_SECRET` da API, exclusivamente no ambiente do servidor. `LOGIN_PROXY_SECRET` é obrigatório no login de produção; `FRONTEND_URL` identifica a origem pública. API independente usa `API_HOST=127.0.0.1` por padrão; confiança em proxy exige `TRUSTED_PROXY_CIDRS` explícito. Foram adicionados limites por conta/transporte, rejeição de duplicatas JSON/query, proteção de origem no login/logout e no-store na API. O calendário recebe contagens agregadas por turma para evitar centenas de requisições.
-
-Corrigidos acesso indevido de educador, hash em resposta de educador, papéis no módulo de chamados, campos indevidos em escritas e algumas mensagens internas. Dependências corrigidas: Nodemailer e DOMPurify; auditoria de dependências sem avisos conhecidos. `npm run test:security` executa cenários isolados e a varredura de autenticação das 336 combinações de método/rota registradas.
-
-Validação final: 38 testes de segurança aprovados, regressões existentes aprovadas, build completo em cópia física isolada com Prisma/API/84 páginas e nove cenários de integração do standalone aprovados. Chrome validou primeiro acesso por e-mail, senha mínima, CSP local e sessões assinada/adulterada. Ambiente local Windows/Node 24.21.0; homologação no Node 22.x/Linux da hospedagem e com banco real ainda necessária. Nenhum teste desta auditoria usou o banco ou SMTP reais.
-
-Deploy público foi verificado somente por GETs de baixo volume. `.env`/`.git` testados foram bloqueados e nenhum dos segredos locais examinados apareceu no HTML/scripts públicos examinados. A primeira rodada aceitou token falso na camada visual, mas a API negou os dados. Após commits surgidos durante a execução, o reteste público também negou o token falso na página. A CSP recebida do CDN continua sem as restrições de scripts, exigindo ajuste na hospedagem. Permanecem pendentes sessões revogáveis/refresh, matriz de permissões internas, store compartilhado dos limites e homologação com contas e banco de staging. O assistente não executou migração, publicação ou mudança de dados reais; há ajustes finais locais.
-
 ## Configurações pessoais em 01/10/2026
 
 A página `/configuracoes` contém as abas Aparência, Navegação e Notificações (esta última para A/P/T/DEV). Oferece tema claro/escuro/automático, redução de animações, sidebar expandida/recolhida e sons/volumes/prévias por abertura, mensagem e resolução de chamados. As alterações têm efeito imediato, persistem neste navegador e sincronizam entre abas; `Restaurar padrões` redefine apenas estas preferências e preserva a sessão. Não há sincronização por conta no backend.
@@ -30,7 +18,7 @@ Validação local: 14 testes de navegação/perfis, TypeScript e ESLint dos arqu
 
 O responsável voltou o hPanel para Next.js e o site abriu, mas a API separada deixou de iniciar. A nova integração inclui o Fastify no processo do Next, sem `listen()` próprio, processo filho ou porta 3333 em produção. O build instala a API pelo lock, compila a API antes do Next e produz `.next/standalone` com dependências, Prisma e assets. `npm start` executa o servidor standalone. Configuração: preset Next.js, branch `main`, Node `22.x`, raiz `./`, build `npm run build`, saída `.next`.
 
-As variáveis secretas são fornecidas pelo ambiente de execução do hPanel. O pós-build remove apenas os quatro arquivos de ambiente de produção/raiz que o Next pode copiar para o standalone. A API é criada na primeira requisição; o build e `/api/proxy/health` não consultam MySQL. Build e testes locais desta integração foram aprovados na revisão de 02/10 descrita acima; deploy completo e login real ainda precisam de homologação. Ver `docs/hostinger-deploy.md`.
+As variáveis secretas são fornecidas pelo ambiente de execução do hPanel. O pós-build remove apenas os quatro arquivos de ambiente de produção/raiz que o Next pode copiar para o standalone. A API é criada na primeira requisição; o build e `/api/proxy/health` não consultam MySQL. Build e testes locais desta integração ainda pendentes; deploy e login real também precisam de homologação. Ver `docs/hostinger-deploy.md`.
 
 ### Histórico: incidente de inicializacao em 29/09/2026
 
@@ -75,7 +63,7 @@ Desenvolvimento: Next.js :3000 -> HTTP -> Fastify :3333 -> Prisma -> MySQL
 - `src/services/api.ts`: Axios em `/api/proxy/`, com cookies. Em produção, a rota Pages API passa a requisição HTTP ao Fastify no mesmo processo; em desenvolvimento, `next.config.ts` mantém o rewrite para a API separada.
 - `src/app/api/auth/login/route.ts`: encaminha o login internamente ao Fastify em produção (via HTTP em desenvolvimento), recebe o JWT e grava cookie `token` HTTP-only, com validade de oito horas. O navegador recebe o usuário, não o token no JSON.
 - `apps/api/src/app.ts` cria a aplicação sem abrir porta; `apps/api/src/server.ts` mantém o listener para desenvolvimento/uso independente. `src/lib/server/embedded-api.ts` carrega a API compilada sob demanda no Next.
-- `src/middleware.ts` verifica assinatura HS256, expiração e coerência da sessão, além das regras de navegação. A API também valida o JWT independentemente. `PrivateLayout` aplica restrições de navegação por perfil. O cache `projov_user` não deve ser fonte de autorização no backend.
+- `src/middleware.ts` faz verificações de navegação e expiração; a verificação criptográfica do JWT ocorre na API. `PrivateLayout` aplica restrições de navegação por perfil. O cache `projov_user` não deve ser fonte de autorização no backend.
 - API: rotas -> serviços -> Prisma. Schema em `apps/api/prisma/schema.prisma`; banco legado com algumas relações e IDs gerenciados pela aplicação.
 - CRUD do front: `src/hooks/useCrud.ts`, serviços em `src/services`, tipos em `src/types`, tabelas e formulários em `src/components`.
 
@@ -92,7 +80,7 @@ Abra `C:\Users\leona\OneDrive\Desktop\Programação\ProSis\Projov-Manager` no VS
 | Configuração | Onde / observação |
 | --- | --- |
 | `DATABASE_URL` | `apps/api/.env`; URL MySQL real, com usuário autorizado e banco existente |
-| `JWT_SECRET`, `COOKIE_SECRET` | `apps/api/.env`; JWT_SECRET também na raiz para o middleware, com o mesmo valor; nunca NEXT_PUBLIC_* |
+| `JWT_SECRET`, `COOKIE_SECRET` | `apps/api/.env`; valores aleatórios locais |
 | `API_PORT` | Padrão 3333; se mudar, mantenha front e API alinhados |
 | `INTERNAL_API_URL` | `.env.local` da raiz; opcional para a porta padrão |
 | `LOGIN_PROXY_SECRET` | Mesmo valor no front e na API quando utilizado |
@@ -159,3 +147,13 @@ O log enviado confirmou Next e Fastify iniciando, seguido de `App did not call l
 - Respostas inválidas agora são rejeitadas antes de substituir listas em chamados e nos pontos legados revisados. useCrud preserva dados anteriores em falhas; painel técnico exibe aviso. Contratos completos de todos os módulos ainda são uma evolução futura.
 - Claims de sessão validadas após assinatura JWT para impedir uso de token de reset como sessão. Demais riscos e decisões de permissão estão em [auditoria-seguranca.md](auditoria-seguranca.md).
 - Comando npm run test:regression; detalhes de arquivos, testes e limitações em [REVISAO_2026-09-25.md](REVISAO_2026-09-25.md).
+
+## Perfis e permissões modulares em 02/10/2026
+
+- Adicionado modelo de perfis personalizados com hierarquia, indicador de coordenação e matriz de visualização/edição por submenu.
+- Novas telas: `/acessos/perfis`, `/acessos/designar` e `/acesso-negado`; a rota antiga `/acessos/funcoes` redireciona para a gestão nova.
+- O menu, o acesso direto às páginas e as APIs mapeadas agora consultam a permissão efetiva. Usuários sem designação usam temporariamente o comportamento compatível com `UsuTipo`.
+- Aprendiz, Educador e Empresa mantêm suas regras de escopo próprias; a matriz nova atende os usuários internos.
+- A migração `apps/api/prisma/migrations/20261002_access_profiles.sql` cria as tabelas e os perfis de sistema. Em 03/10/2026, ela foi aplicada ao banco configurado em `apps/api/.env`: as cinco tabelas e os oito perfis de sistema foram confirmados. Outros ambientes precisam receber a mesma migração antes da homologação.
+- O teste integrado de 03/10/2026 confirmou criação de perfil, designação por `userCode`, resolução das permissões e preservação de `CA_Usuarios.UsuTipo`. O perfil e o vínculo temporários foram removidos após o teste.
+- Procedimento de implantação, modelo e cenários de homologação: [perfis-permissoes-implementacao.md](perfis-permissoes-implementacao.md).

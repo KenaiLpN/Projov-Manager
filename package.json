@@ -18,7 +18,7 @@
     "start:all": "node scripts/start-production.mjs",
     "lint": "eslint",
     "test:regression": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/response-validation.test.ts",
-    "test:navigation": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/navigation.test.ts",
+    "test:navigation": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/navigation.test.ts tests/access-permissions.test.ts",
     "test:settings": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/interface-preferences.test.ts tests/chamado-notification-preferences.test.ts",
     "test:startup": "node --test tests/api-healthcheck.test.mjs",
     "test:security": "node apps/api/node_modules/tsx/dist/cli.mjs --test tests/security-*.test.ts tests/security-*.test.mjs",

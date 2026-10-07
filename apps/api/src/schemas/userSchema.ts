@@ -43,6 +43,12 @@ export const userResponseSchema = z.object({
   id_usuario: z.number().nullable().optional(),
   criado_em: z.date().nullable().optional(),
   atualizado_em: z.date().nullable().optional(),
+  AccessProfile: z.object({
+    id: z.number(),
+    code: z.string(),
+    name: z.string(),
+    active: z.boolean(),
+  }).nullable().optional(),
 });
 export const listUsersQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),

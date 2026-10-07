@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { normalizeRoleCode } from "@/utils/roles";
+import { permissionKeyForPath, type EffectivePermission } from "@/utils/accessPermissions";
 
 export interface NavigationItem {
   name: string;
@@ -219,15 +220,15 @@ const estatisticasSection: NavigationSection = {
 const acessosSection: NavigationSection = {
   id: "acessos",
   name: "Acessos",
-  href: "/acessos/funcoes",
+  href: "/acessos/perfis",
   icon: ShieldCheck,
   description: "Organize as funções e os acessos da equipe.",
   groups: [
     {
-      name: "Funções e permissões",
+      name: "Perfis e permissões",
       items: [
-        { name: "Cadastro de Funções", href: "/acessos/funcoes", description: "Gerencie as funções do sistema." },
-        { name: "Designar Funções", href: "/acessos/designar", description: "Associe funções aos usuários." },
+        { name: "Perfis e Permissões", href: "/acessos/perfis", description: "Crie perfis e configure suas permissões." },
+        { name: "Designar Perfis", href: "/acessos/designar", description: "Associe perfis aos usuários." },
       ],
     },
   ],
@@ -271,7 +272,35 @@ const chamadosRoles = new Set(["A", "P", "T", "DEV"]);
 const technicalRoles = new Set(["T", "DEV"]);
 
 /** Navigation visibility mirrors the existing route guards; the API enforces authorization. */
-export function getNavigationSections(role: string, userId?: string | number): NavigationSection[] {
+function filterSectionsByPermissions(sections: NavigationSection[], permissions?: EffectivePermission[] | null) {
+  if (permissions === undefined || permissions === null) return sections;
+  const visible = new Set(permissions.filter(({ canView }) => canView).map(({ key }) => key));
+
+  function filterItem(item: NavigationItem): NavigationItem | null {
+    const children = item.subMenu?.map(filterItem).filter((child): child is NavigationItem => Boolean(child));
+    const key = permissionKeyForPath(item.href);
+    if (key && !visible.has(key) && !children?.length) return null;
+    return { ...item, ...(children ? { subMenu: children } : {}) };
+  }
+
+  return sections.flatMap((section) => {
+    const groups = section.groups.map((group) => ({
+      ...group,
+      items: group.items.map(filterItem).filter((child): child is NavigationItem => Boolean(child)),
+    })).filter((group) => group.items.length > 0);
+    const sectionKey = permissionKeyForPath(section.href);
+    if (groups.length === 0 && sectionKey && !visible.has(sectionKey)) return [];
+    if (groups.length === 0 && !sectionKey) return [];
+    const firstDestination = groups.flatMap((group) => group.items).find((entry) => entry.href !== "#");
+    return [{
+      ...section,
+      groups,
+      href: sectionKey && visible.has(sectionKey) ? section.href : firstDestination?.href ?? section.href,
+    }];
+  });
+}
+
+export function getNavigationSections(role: string, userId?: string | number, permissions?: EffectivePermission[] | null): NavigationSection[] {
   const normalizedRole = normalizeRoleCode(role);
 
   if (normalizedRole === "APRENDIZ") {
@@ -301,14 +330,19 @@ export function getNavigationSections(role: string, userId?: string | number): N
     acessosSection,
   ];
 
-  if (chamadosRoles.has(normalizedRole)) {
-    const items: NavigationItem[] = [{
-      name: "Portal de Chamados",
-      href: "/chamados/portal",
-      description: "Abra solicitações e acompanhe seus atendimentos.",
-    }];
+  const configuredPermissions = new Set(permissions?.filter(({ canView }) => canView).map(({ key }) => key));
+  if (chamadosRoles.has(normalizedRole) || configuredPermissions.has("chamados.portal") || configuredPermissions.has("chamados.admin")) {
+    const items: NavigationItem[] = [];
 
-    if (technicalRoles.has(normalizedRole)) {
+    if (chamadosRoles.has(normalizedRole) || configuredPermissions.has("chamados.portal")) {
+      items.push({
+        name: "Portal de Chamados",
+        href: "/chamados/portal",
+        description: "Abra solicitações e acompanhe seus atendimentos.",
+      });
+    }
+
+    if (technicalRoles.has(normalizedRole) || configuredPermissions.has("chamados.admin")) {
       items.push({
         name: "Painel Técnico",
         href: "/chamados/admin/dashboard",
@@ -326,7 +360,7 @@ export function getNavigationSections(role: string, userId?: string | number): N
     });
   }
 
-  return sections;
+  return filterSectionsByPermissions(sections, permissions);
 }
 
 /** Search only contains actual destinations, with duplicate section links removed. */

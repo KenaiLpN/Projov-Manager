@@ -13,6 +13,7 @@ import { NavigationContext } from "./NavigationContext";
 import { flattenNavigation, getNavigationMatch, getNavigationSections } from "./navigation";
 import styles from "./navigation.module.css";
 import { useInterfacePreferences } from "@/hooks/useInterfacePreferences";
+import { useAccessPermissions } from "@/components/AccessPermissionsProvider";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 const focusable = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex="0"]';
@@ -20,6 +21,7 @@ const focusable = 'a[href], button:not([disabled]), input:not([disabled]), [tabi
 export default function AppNavigation({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const { preferences, updatePreferences, shouldReduceMotion: reducedMotion } = useInterfacePreferences();
+  const { permissions, loading: permissionsLoading } = useAccessPermissions();
   const [user, setUser] = useState({ name: "", role: "", id: "" });
   const collapsed = preferences.sidebarCollapsed;
   const [mobile, setMobile] = useState(false);
@@ -31,7 +33,10 @@ export default function AppNavigation({ children }: { children: ReactNode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const drawerTriggerRef = useRef<HTMLElement | null>(null);
-  const sections = useMemo(() => getNavigationSections(user.role, user.id), [user.role, user.id]);
+  const sections = useMemo(
+    () => getNavigationSections(user.role, user.id, permissionsLoading ? [] : permissions),
+    [permissions, permissionsLoading, user.id, user.role],
+  );
   const match = getNavigationMatch(sections, pathname);
   const selectedSection = sections.find((section) => section.id === opened);
   const compact = collapsed && !mobile;

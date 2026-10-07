@@ -3,7 +3,7 @@ import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { UserService } from "../services/UserService";
 import { hash } from "bcryptjs";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { authorizeRoles } from "../lib/authorization";
+import { authorizePermission } from "../lib/authorization";
 import {
   createUserBodySchema,
   userResponseSchema,
@@ -20,7 +20,8 @@ import {
 } from "../schemas/userSchema";
 import { z } from "zod";
 const userService = new UserService();
-const onlyAdminOrDev = authorizeRoles(["A", "DEV"]);
+const viewUsers = authorizePermission("cadastros.usuarios", "view");
+const editUsers = authorizePermission("cadastros.usuarios", "edit");
 
 export async function userRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -36,7 +37,7 @@ export async function userRoutes(app: FastifyInstance) {
           500: z.object({ message: z.string() }),
         },
       },
-      preHandler: [onlyAdminOrDev],
+      preHandler: [editUsers],
     },
     async (request, reply: FastifyReply) => {
       const { UsuCodigo, UsuNome, UsuEmail, UsuTipo, UsuSenha } =
@@ -83,7 +84,7 @@ export async function userRoutes(app: FastifyInstance) {
           500: z.object({ message: z.string() }),
         },
       },
-      preHandler: [onlyAdminOrDev],
+      preHandler: [viewUsers],
     },
     async (request, reply: FastifyReply) => {
       const { page, limit, search } = request.query as ListUsersQuery;
@@ -151,7 +152,7 @@ export async function userRoutes(app: FastifyInstance) {
           500: z.object({ message: z.string() }),
         },
       },
-      preHandler: [onlyAdminOrDev],
+      preHandler: [editUsers],
     },
     async (request, reply: FastifyReply) => {
       const { id } = request.params as UpdateUserParams;
@@ -197,7 +198,7 @@ export async function userRoutes(app: FastifyInstance) {
           500: z.object({ message: z.string() }),
         },
       },
-      preHandler: [onlyAdminOrDev],
+      preHandler: [editUsers],
     },
     async (request, reply: FastifyReply) => {
       const { id } = request.params as DeleteUserParams;
